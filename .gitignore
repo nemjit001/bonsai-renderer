@@ -1,0 +1,8 @@
+# IDE folders
+.idea/
+.vs/
+.vscode/
+
+# Build folders
+[Bb]uild/
+[Oo]ut/
