@@ -1,19 +1,12 @@
 #include "logger.hpp"
 
-#include <spdlog/sinks/basic_file_sink.h>
-
-Logger::Logger()
-{
-    //
-}
-
 Logger& Logger::get()
 {
     static Logger instance;
     return instance;
 }
 
-void Logger::setMinLogLevel(LogLevel const& level)
+void Logger::set_min_log_level(LogLevel const& level)
 {
     switch (level)
     {

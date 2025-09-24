@@ -21,6 +21,7 @@ enum class LogLevel : uint8_t
 class Logger
 {
 public:
+    /// @brief Get the logger singleton instance.
     static Logger& get();
 
     ~Logger() = default;
@@ -29,7 +30,7 @@ public:
 
     /// @brief Set the minimum log level for the logger to use.
     /// @param level Minimum log level to show.
-    void setMinLogLevel(LogLevel const& level);
+    void set_min_log_level(LogLevel const& level);
 
     template <typename... Args>
     void trace(Args&&... args);
@@ -50,7 +51,7 @@ public:
     void critical(Args&&... args);
 
 private:
-    Logger();
+    Logger() = default;
 };
 
 #define BONSAI_LOG_TRACE(...)       (Logger::get().trace(__VA_ARGS__))
