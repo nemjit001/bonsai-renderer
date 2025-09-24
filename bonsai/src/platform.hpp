@@ -14,6 +14,10 @@ struct SurfaceConfig
     bool allow_high_dpi;
 };
 
+typedef void(*PFN_PlatformQuitCallback)(void*);
+typedef void(*PFN_PlatformSurfaceResizeCallback)(void*, uint32_t, uint32_t);
+typedef void(*PFN_PlatformSurfaceClosedCallback)(void*);
+
 /// @brief Platform singleton wrapper, exposes platform interface with platform-dependent implementation.
 class Platform
 {
@@ -37,6 +41,21 @@ public:
     /// @brief Destroy a platform surface.
     /// @param surface Surface to destroy.
     void destroy_surface(Surface* surface);
+
+    /// @brief Set the user data pointer for a surface. This opaque pointer is used in the surface callback functions.
+    /// @param surface Surface to set the user data pointer for.
+    /// @param user_data User data pointer.
+    void set_surface_user_data(Surface* surface, void* user_data);
+
+    /// @brief Set the user data pointer for the platform. This opaque pointer is used in platform callback functions.
+    /// @param user_data User data pointer.
+    void set_platform_user_data(void* user_data);
+
+    void set_platform_quit_callback(PFN_PlatformQuitCallback const& callback);
+
+    void set_platform_surface_resize_callback(PFN_PlatformSurfaceResizeCallback const& callback);
+
+    void set_platform_surface_closed_callback(PFN_PlatformSurfaceClosedCallback const& callback);
 
 private:
     Platform();

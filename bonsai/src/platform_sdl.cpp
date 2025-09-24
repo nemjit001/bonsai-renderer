@@ -8,11 +8,16 @@ struct Surface
 {
     SDL_WindowID window_id;
     SDL_Window* window;
+    void* user_data;
 };
 
 struct Platform::Impl
 {
     std::unordered_map<SDL_WindowID, Surface*> surfaces;
+    void* user_data;
+    PFN_PlatformQuitCallback quit_callback;
+    PFN_PlatformSurfaceResizeCallback surface_resize_callback;
+    PFN_PlatformSurfaceClosedCallback surface_closed_callback;
 };
 
 static int get_sdl_window_flags(SurfaceConfig const& config)
@@ -60,31 +65,42 @@ void Platform::pump_messages()
         switch (event.type)
         {
         case SDL_EVENT_QUIT:
-            BONSAI_LOG_TRACE("Quit event received");
+            if (m_pImpl->quit_callback) m_pImpl->quit_callback(m_pImpl->user_data);
             break;
         case SDL_EVENT_WINDOW_SHOWN:
-            BONSAI_LOG_TRACE("Window shown ({})", event.window.windowID);
-            break;
         case SDL_EVENT_WINDOW_HIDDEN:
-            BONSAI_LOG_TRACE("Window hidden ({})", event.window.windowID);
-            break;
         case SDL_EVENT_WINDOW_EXPOSED:
-            BONSAI_LOG_TRACE("Window exposed ({})", event.window.windowID);
+        case SDL_EVENT_WINDOW_MAXIMIZED:
             break;
         case SDL_EVENT_WINDOW_RESIZED:
-            BONSAI_LOG_TRACE("Window resized to {}x{} ({})", event.window.windowID, event.window.data1, event.window.data2);
-            break;
-        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-            BONSAI_LOG_TRACE("Window close requested ({})", event.window.windowID);
+            if (m_pImpl->surface_resize_callback)
+            {
+                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
+                m_pImpl->surface_resize_callback(surface->user_data, event.window.data1, event.window.data2);
+            }
             break;
         case SDL_EVENT_WINDOW_MINIMIZED:
-            BONSAI_LOG_TRACE("Window minimized ({})", event.window.windowID);
-            break;
-        case SDL_EVENT_WINDOW_MAXIMIZED:
-            BONSAI_LOG_TRACE("Window maximized ({})", event.window.windowID);
+            if (m_pImpl->surface_resize_callback)
+            {
+                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
+                m_pImpl->surface_resize_callback(surface->user_data, 0, 0);
+            }
             break;
         case SDL_EVENT_WINDOW_RESTORED:
-            BONSAI_LOG_TRACE("Window restored ({})", event.window.windowID);
+            if (m_pImpl->surface_resize_callback)
+            {
+                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
+                int width = 0, height = 0;
+                SDL_GetWindowSize(surface->window, &width, &height);
+                m_pImpl->surface_resize_callback(surface->user_data, width, height);
+            }
+            break;
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+            if (m_pImpl->surface_closed_callback)
+            {
+                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
+                m_pImpl->surface_closed_callback(surface->user_data);
+            }
             break;
         default:
             break;
@@ -106,7 +122,7 @@ Surface* Platform::create_surface(char const* title, uint32_t width, uint32_t he
 
     // Create new surface
     SDL_WindowID window_id = SDL_GetWindowID(window);
-    Surface* surface = new Surface{ window_id, window };
+    Surface* surface = new Surface{ window_id, window, nullptr };
 
     // Add surface to tracked surfaces map
     m_pImpl->surfaces[window_id] = surface;
@@ -126,5 +142,30 @@ void Platform::destroy_surface(Surface* surface)
     // Destroy surface
     SDL_DestroyWindow(surface->window);
     delete surface;
+}
+
+void Platform::set_surface_user_data(Surface* surface, void* user_data)
+{
+    surface->user_data = user_data;
+}
+
+void Platform::set_platform_user_data(void* user_data)
+{
+    m_pImpl->user_data = user_data;
+}
+
+void Platform::set_platform_quit_callback(PFN_PlatformQuitCallback const& callback)
+{
+    m_pImpl->quit_callback = callback;
+}
+
+void Platform::set_platform_surface_resize_callback(PFN_PlatformSurfaceResizeCallback const& callback)
+{
+    m_pImpl->surface_resize_callback = callback;
+}
+
+void Platform::set_platform_surface_closed_callback(PFN_PlatformSurfaceClosedCallback const& callback)
+{
+    m_pImpl->surface_closed_callback = callback;
 }
 
