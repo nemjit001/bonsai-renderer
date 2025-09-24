@@ -13,8 +13,8 @@ struct Surface
 
 struct Platform::Impl
 {
-    std::unordered_map<SDL_WindowID, Surface*> surfaces;
     void* user_data;
+    std::unordered_map<SDL_WindowID, Surface*> surfaces;
     PFN_PlatformQuitCallback quit_callback;
     PFN_PlatformSurfaceResizeCallback surface_resize_callback;
     PFN_PlatformSurfaceClosedCallback surface_closed_callback;
@@ -49,12 +49,6 @@ Platform::~Platform()
 {
     SDL_Quit();
     delete m_pImpl;
-}
-
-Platform& Platform::get()
-{
-    static Platform instance;
-    return instance;
 }
 
 void Platform::pump_messages()
