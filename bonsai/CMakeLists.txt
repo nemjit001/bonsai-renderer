@@ -5,6 +5,8 @@ add_executable(Bonsai
         src/main.cpp
         src/logger.cpp
         src/logger.hpp
+        src/platform.hpp
+        src/platform_sdl.cpp
 )
 target_compile_features(Bonsai PRIVATE cxx_std_17)
 target_link_libraries(Bonsai PRIVATE SDL3::SDL3 spdlog::spdlog)
