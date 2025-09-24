@@ -17,6 +17,7 @@ struct SurfaceConfig
 typedef void(*PFN_PlatformQuitCallback)(void*);
 typedef void(*PFN_PlatformSurfaceResizeCallback)(void*, uint32_t, uint32_t);
 typedef void(*PFN_PlatformSurfaceClosedCallback)(void*);
+typedef void(*PFN_PlatformSurfaceKeyCallback)(void* user_data, int32_t, int32_t, bool);
 
 /// @brief Platform manager, exposes platform interface with platform-dependent implementation.
 class Platform
@@ -62,6 +63,10 @@ public:
     /// @brief Set the platform surface closed callback.
     /// @param callback Callback to set, may be nullptr.
     void set_platform_surface_closed_callback(PFN_PlatformSurfaceClosedCallback const& callback);
+
+    /// @brief Set the paltform surface key input callback.
+    /// @param callback Callback to set, may be nullptr.
+    void set_platform_surface_key_callback(PFN_PlatformSurfaceKeyCallback const& callback);
 
 private:
     /// @brief Platform implementation.

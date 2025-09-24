@@ -18,6 +18,7 @@ struct Platform::Impl
     PFN_PlatformQuitCallback quit_callback;
     PFN_PlatformSurfaceResizeCallback surface_resize_callback;
     PFN_PlatformSurfaceClosedCallback surface_closed_callback;
+    PFN_PlatformSurfaceKeyCallback surface_key_callback;
 };
 
 static int get_sdl_window_flags(SurfaceConfig const& config)
@@ -58,14 +59,11 @@ void Platform::pump_messages()
     {
         switch (event.type)
         {
+        // Handle quit event
         case SDL_EVENT_QUIT:
             if (m_pImpl->quit_callback) m_pImpl->quit_callback(m_pImpl->user_data);
             break;
-        case SDL_EVENT_WINDOW_SHOWN:
-        case SDL_EVENT_WINDOW_HIDDEN:
-        case SDL_EVENT_WINDOW_EXPOSED:
-        case SDL_EVENT_WINDOW_MAXIMIZED:
-            break;
+        // Handle window events
         case SDL_EVENT_WINDOW_RESIZED:
             if (m_pImpl->surface_resize_callback)
             {
@@ -95,6 +93,20 @@ void Platform::pump_messages()
                 Surface const* surface = m_pImpl->surfaces[event.window.windowID];
                 m_pImpl->surface_closed_callback(surface->user_data);
             }
+            break;
+        // Handle key events
+        case SDL_EVENT_KEY_DOWN:
+        case SDL_EVENT_KEY_UP:
+            {
+                Surface const* surface = m_pImpl->surfaces[event.key.windowID];
+                m_pImpl->surface_key_callback(surface->user_data, static_cast<int32_t>(event.key.key), static_cast<int32_t>(event.key.scancode), event.key.down);
+            }
+            break;
+        // Handle mouse events
+        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_WHEEL:
             break;
         default:
             break;
@@ -161,5 +173,10 @@ void Platform::set_platform_surface_resize_callback(PFN_PlatformSurfaceResizeCal
 void Platform::set_platform_surface_closed_callback(PFN_PlatformSurfaceClosedCallback const& callback)
 {
     m_pImpl->surface_closed_callback = callback;
+}
+
+void Platform::set_platform_surface_key_callback(PFN_PlatformSurfaceKeyCallback const& callback)
+{
+    m_pImpl->surface_key_callback = callback;
 }
 
