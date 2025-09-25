@@ -4,6 +4,7 @@
 
 #include "platform/platform.hpp"
 
+/// @brief Main engine class, handles subsystem management and lifecycle.
 class Engine
 {
 public:
