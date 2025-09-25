@@ -8,9 +8,9 @@ add_library(bonsai_core STATIC
         src/core/logger.hpp
         src/platform/platform.hpp
         src/platform/platform_vulkan.hpp
-        src/platform/platform_sdl.cpp
-        src/platform/platform_sdl.hpp
-        src/platform/platform_vulkan_sdl.cpp
+        src/platform/sdl/platform_sdl.cpp
+        src/platform/sdl/platform_sdl.hpp
+        src/platform/sdl/platform_vulkan_sdl.cpp
         src/engine.cpp
         src/engine.hpp
 )
@@ -38,7 +38,7 @@ if (BONSAI_TEST)
     include(GoogleTest)
     add_executable(bonsai_tests
             tests/sanity.cpp
-            tests/platform_sdl_tests.cpp
+            tests/platform_tests.cpp
     )
     target_compile_features(bonsai_tests PRIVATE cxx_std_17)
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)

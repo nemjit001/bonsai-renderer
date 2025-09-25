@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <platform/platform.hpp>
 
-TEST(platform_sdl, create_default_surface)
+TEST(platform, create_default_surface)
 {
     Platform platform{};
     Surface* surface = platform.create_surface("Test Surface", 512, 512, SurfaceConfig{});
@@ -10,7 +10,7 @@ TEST(platform_sdl, create_default_surface)
     platform.destroy_surface(surface);
 }
 
-TEST(platform_sdl, create_multiple_surfaces)
+TEST(platform, create_multiple_surfaces)
 {
     Platform platform{};
     Surface* surface1 = platform.create_surface("Test Surface 1", 512, 512, SurfaceConfig{});

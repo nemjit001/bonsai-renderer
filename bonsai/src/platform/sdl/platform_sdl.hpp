@@ -4,7 +4,7 @@
 
 #include <unordered_map>
 #include <SDL3/SDL.h>
-#include "platform.hpp"
+#include "platform/platform.hpp"
 
 struct SurfaceImpl
 {
