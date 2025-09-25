@@ -5,11 +5,14 @@ add_library(bonsai_core STATIC
         src/logger.cpp
         src/logger.hpp
         src/platform.hpp
-        src/platform_sdl.cpp
+        src/platform_vulkan.hpp
+        src/platform/platform_sdl.cpp
+        src/platform/platform_sdl.hpp
+        src/platform/platform_vulkan_sdl.cpp
 )
 target_include_directories(bonsai_core PUBLIC src/)
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
-target_link_libraries(bonsai_core PUBLIC SDL3::SDL3 spdlog::spdlog)
+target_link_libraries(bonsai_core PUBLIC SDL3::SDL3 spdlog::spdlog volk::volk_headers)
 target_extended_warnings(bonsai_core)
 
 # Set up bonsai executable

@@ -1,25 +1,6 @@
-#include "platform.hpp"
+#include "platform_sdl.hpp"
 
-#include <unordered_map>
-#include <SDL3/SDL.h>
 #include "logger.hpp"
-
-struct Surface
-{
-    SDL_WindowID window_id;
-    SDL_Window* window;
-    void* user_data;
-};
-
-struct Platform::Impl
-{
-    void* user_data;
-    std::unordered_map<SDL_WindowID, Surface*> surfaces;
-    PFN_PlatformQuitCallback quit_callback;
-    PFN_PlatformSurfaceResizeCallback surface_resize_callback;
-    PFN_PlatformSurfaceClosedCallback surface_closed_callback;
-    PFN_PlatformSurfaceKeyCallback surface_key_callback;
-};
 
 static int get_sdl_window_flags(SurfaceConfig const& config)
 {
