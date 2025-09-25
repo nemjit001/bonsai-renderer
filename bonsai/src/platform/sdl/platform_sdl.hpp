@@ -1,6 +1,7 @@
 #pragma once
 #ifndef BONSAI_RENDERER_PLATFORM_SDL_HPP
 #define BONSAI_RENDERER_PLATFORM_SDL_HPP
+#if BONSAI_PLATFORM_SDL
 
 #include <unordered_map>
 #include <SDL3/SDL.h>
@@ -23,4 +24,5 @@ struct Platform::Impl
     PFN_PlatformSurfaceKeyCallback surface_key_callback;
 };
 
+#endif // BONSAI_PLATFORM_SDL
 #endif //BONSAI_RENDERER_PLATFORM_SDL_HPP

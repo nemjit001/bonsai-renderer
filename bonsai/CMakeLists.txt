@@ -2,7 +2,6 @@ project("Bonsai" VERSION 0.1.0)
 
 # Set up bonsai core library
 add_library(bonsai_core STATIC
-        src/core/die.cpp
         src/core/die.hpp
         src/core/logger.cpp
         src/core/logger.hpp
@@ -17,6 +16,7 @@ add_library(bonsai_core STATIC
 target_include_directories(bonsai_core PUBLIC src/)
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
 target_link_libraries(bonsai_core PUBLIC SDL3::SDL3 spdlog::spdlog volk::volk_headers)
+target_compile_definitions(bonsai_core PUBLIC BONSAI_PLATFORM_SDL=1 BONSAI_USE_VULKAN=1)
 target_extended_warnings(bonsai_core)
 
 # Set up bonsai executable

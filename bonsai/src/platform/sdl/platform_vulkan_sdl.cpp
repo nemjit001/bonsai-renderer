@@ -1,4 +1,6 @@
 #include "platform/platform_vulkan.hpp"
+#if BONSAI_PLATFORM_SDL
+#if BONSAI_USE_VULKAN
 
 #include <SDL3/SDL_vulkan.h>
 #include "platform_sdl.hpp"
@@ -14,3 +16,6 @@ bool platform_create_vulkan_surface(Surface* platform_surface, VkInstance instan
     SurfaceImpl const* surface_impl = platform_surface->raw_surface();
     return SDL_Vulkan_CreateSurface(surface_impl->window, instance, allocator, out_surface);
 }
+
+#endif // BONSAI_USE_VULKAN
+#endif // BONSAI_PLATFORM_SDL

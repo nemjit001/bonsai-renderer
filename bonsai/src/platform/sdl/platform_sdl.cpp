@@ -1,5 +1,7 @@
 #include "platform_sdl.hpp"
 
+#if BONSAI_PLATFORM_SDL
+
 #include "core/die.hpp"
 #include "core/logger.hpp"
 
@@ -179,3 +181,4 @@ void Platform::set_platform_surface_key_callback(PFN_PlatformSurfaceKeyCallback 
     m_impl->surface_key_callback = callback;
 }
 
+#endif // BONSAI_PLATFORM_SDL
