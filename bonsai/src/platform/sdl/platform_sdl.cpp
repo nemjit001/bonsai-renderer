@@ -1,4 +1,5 @@
 #include "platform_sdl.hpp"
+
 #if BONSAI_PLATFORM_SDL
 
 #include "core/die.hpp"
