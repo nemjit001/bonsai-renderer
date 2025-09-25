@@ -2,6 +2,8 @@ project("Bonsai" VERSION 0.1.0)
 
 # Set up bonsai core library
 add_library(bonsai_core STATIC
+        src/core/die.cpp
+        src/core/die.hpp
         src/core/logger.cpp
         src/core/logger.hpp
         src/platform/platform.hpp
@@ -9,6 +11,8 @@ add_library(bonsai_core STATIC
         src/platform/platform_sdl.cpp
         src/platform/platform_sdl.hpp
         src/platform/platform_vulkan_sdl.cpp
+        src/engine.cpp
+        src/engine.hpp
 )
 target_include_directories(bonsai_core PUBLIC src/)
 target_compile_features(bonsai_core PUBLIC cxx_std_17)

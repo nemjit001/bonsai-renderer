@@ -71,7 +71,7 @@ public:
 private:
     /// @brief Platform implementation.
     struct Impl;
-    Impl* m_pImpl = nullptr;
+    Impl* m_impl = nullptr;
 };
 
 #endif //BONSAI_RENDERER_PLATFORM_HPP

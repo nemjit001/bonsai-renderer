@@ -1,5 +1,6 @@
 #include "platform_sdl.hpp"
 
+#include "core/die.hpp"
 #include "core/logger.hpp"
 
 static int get_sdl_window_flags(SurfaceConfig const& config)
@@ -18,19 +19,18 @@ static int get_sdl_window_flags(SurfaceConfig const& config)
 
 Platform::Platform()
     :
-    m_pImpl(new Impl{})
+    m_impl(new Impl{})
 {
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
-        BONSAI_LOG_CRITICAL("Failed to initialize SDL: {}", SDL_GetError());
-        std::exit(1); // FIXME(nemjit001): Should this throw?
+        bonsai::die("Failed to initialize SDL: {}", SDL_GetError());
     }
 }
 
 Platform::~Platform()
 {
     SDL_Quit();
-    delete m_pImpl;
+    delete m_impl;
 }
 
 void Platform::pump_messages()
@@ -42,45 +42,45 @@ void Platform::pump_messages()
         {
         // Handle quit event
         case SDL_EVENT_QUIT:
-            if (m_pImpl->quit_callback) m_pImpl->quit_callback(m_pImpl->user_data);
+            if (m_impl->quit_callback) m_impl->quit_callback(m_impl->user_data);
             break;
         // Handle window events
         case SDL_EVENT_WINDOW_RESIZED:
-            if (m_pImpl->surface_resize_callback)
+            if (m_impl->surface_resize_callback)
             {
-                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
-                m_pImpl->surface_resize_callback(surface->user_data, event.window.data1, event.window.data2);
+                Surface const* surface = m_impl->surfaces[event.window.windowID];
+                m_impl->surface_resize_callback(surface->user_data, event.window.data1, event.window.data2);
             }
             break;
         case SDL_EVENT_WINDOW_MINIMIZED:
-            if (m_pImpl->surface_resize_callback)
+            if (m_impl->surface_resize_callback)
             {
-                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
-                m_pImpl->surface_resize_callback(surface->user_data, 0, 0);
+                Surface const* surface = m_impl->surfaces[event.window.windowID];
+                m_impl->surface_resize_callback(surface->user_data, 0, 0);
             }
             break;
         case SDL_EVENT_WINDOW_RESTORED:
-            if (m_pImpl->surface_resize_callback)
+            if (m_impl->surface_resize_callback)
             {
-                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
+                Surface const* surface = m_impl->surfaces[event.window.windowID];
                 int width = 0, height = 0;
                 SDL_GetWindowSize(surface->window, &width, &height);
-                m_pImpl->surface_resize_callback(surface->user_data, width, height);
+                m_impl->surface_resize_callback(surface->user_data, width, height);
             }
             break;
         case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-            if (m_pImpl->surface_closed_callback)
+            if (m_impl->surface_closed_callback)
             {
-                Surface const* surface = m_pImpl->surfaces[event.window.windowID];
-                m_pImpl->surface_closed_callback(surface->user_data);
+                Surface const* surface = m_impl->surfaces[event.window.windowID];
+                m_impl->surface_closed_callback(surface->user_data);
             }
             break;
         // Handle key events
         case SDL_EVENT_KEY_DOWN:
         case SDL_EVENT_KEY_UP:
             {
-                Surface const* surface = m_pImpl->surfaces[event.key.windowID];
-                m_pImpl->surface_key_callback(surface->user_data, static_cast<int32_t>(event.key.key), static_cast<int32_t>(event.key.scancode), event.key.down);
+                Surface const* surface = m_impl->surfaces[event.key.windowID];
+                m_impl->surface_key_callback(surface->user_data, static_cast<int32_t>(event.key.key), static_cast<int32_t>(event.key.scancode), event.key.down);
             }
             break;
         // Handle mouse events
@@ -112,7 +112,7 @@ Surface* Platform::create_surface(char const* title, uint32_t width, uint32_t he
     Surface* surface = new Surface{ window_id, window, nullptr };
 
     // Add surface to tracked surfaces map
-    m_pImpl->surfaces[window_id] = surface;
+    m_impl->surfaces[window_id] = surface;
     return surface;
 }
 
@@ -124,7 +124,7 @@ void Platform::destroy_surface(Surface* surface)
     }
 
     // Remove tracked surface from surfaces map
-    m_pImpl->surfaces.erase(surface->window_id);
+    m_impl->surfaces.erase(surface->window_id);
 
     // Destroy surface
     SDL_DestroyWindow(surface->window);
@@ -138,26 +138,26 @@ void Platform::set_surface_user_data(Surface* surface, void* user_data)
 
 void Platform::set_platform_user_data(void* user_data)
 {
-    m_pImpl->user_data = user_data;
+    m_impl->user_data = user_data;
 }
 
 void Platform::set_platform_quit_callback(PFN_PlatformQuitCallback const& callback)
 {
-    m_pImpl->quit_callback = callback;
+    m_impl->quit_callback = callback;
 }
 
 void Platform::set_platform_surface_resize_callback(PFN_PlatformSurfaceResizeCallback const& callback)
 {
-    m_pImpl->surface_resize_callback = callback;
+    m_impl->surface_resize_callback = callback;
 }
 
 void Platform::set_platform_surface_closed_callback(PFN_PlatformSurfaceClosedCallback const& callback)
 {
-    m_pImpl->surface_closed_callback = callback;
+    m_impl->surface_closed_callback = callback;
 }
 
 void Platform::set_platform_surface_key_callback(PFN_PlatformSurfaceKeyCallback const& callback)
 {
-    m_pImpl->surface_key_callback = callback;
+    m_impl->surface_key_callback = callback;
 }
 
