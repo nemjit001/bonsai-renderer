@@ -26,6 +26,11 @@ public:
     Surface(Surface const&) = delete;
     Surface& operator=(Surface const&) = delete;
 
+    /// @brief Get the surface size in pixels.
+    /// @param width Width in pixels
+    /// @param height Height in pixels
+    void get_size(uint32_t& width, uint32_t& height) const;
+
     /// @brief Set the user data pointer for this surface, this pointer will be passed to the platform surface callbacks.
     /// @param user_data User data pointer to set.
     void set_user_data(void* user_data);

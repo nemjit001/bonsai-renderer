@@ -30,6 +30,14 @@ Surface::~Surface()
     delete m_impl;
 }
 
+void Surface::get_size(uint32_t& width, uint32_t& height) const
+{
+    int _width = 0, _height = 0;
+    SDL_GetWindowSizeInPixels(m_impl->window, &_width, &_height);
+    width = static_cast<uint32_t>(_width);
+    height = static_cast<uint32_t>(_height);
+}
+
 void Surface::set_user_data(void* user_data)
 {
     m_impl->user_data = user_data;
