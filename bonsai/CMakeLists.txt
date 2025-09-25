@@ -38,6 +38,7 @@ if (BONSAI_TEST)
     include(GoogleTest)
     add_executable(bonsai_tests
             tests/sanity.cpp
+            tests/platform_sdl_tests.cpp
     )
     target_compile_features(bonsai_tests PRIVATE cxx_std_17)
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)

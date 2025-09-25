@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-TEST(Sanity, AlwaysTrue)
+TEST(sanity, always_true)
 {
     EXPECT_TRUE(true);
 }
