@@ -15,9 +15,18 @@ add_library(bonsai_core STATIC
 )
 target_include_directories(bonsai_core PUBLIC src/)
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
-target_link_libraries(bonsai_core PUBLIC SDL3::SDL3 spdlog::spdlog volk::volk_headers)
-target_compile_definitions(bonsai_core PUBLIC BONSAI_PLATFORM_SDL=1 BONSAI_USE_VULKAN=1)
+target_link_libraries(bonsai_core PUBLIC spdlog::spdlog)
 target_extended_warnings(bonsai_core)
+
+if (BONSAI_USE_SDL)
+    target_link_libraries(bonsai_core PUBLIC SDL3::SDL3)
+    target_compile_definitions(bonsai_core PUBLIC BONSAI_PLATFORM_SDL=1)
+endif()
+
+if (BONSAI_USE_VULKAN)
+    target_link_libraries(bonsai_core PUBLIC volk::volk_headers)
+    target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
+endif()
 
 # Set up bonsai executable
 add_executable(bonsai

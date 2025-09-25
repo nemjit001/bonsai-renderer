@@ -4,6 +4,8 @@ enable_testing()
 
 # Options
 option(BONSAI_TEST "Enable unit test targets" ON)
+option(BONSAI_USE_SDL "Use SDL as the platform layer backend" ON)
+option(BONSAI_USE_VULKAN "Use Vulkan for rendering" ON)
 
 # Set CMake module path
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/")
