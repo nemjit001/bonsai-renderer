@@ -4,14 +4,40 @@
 
 #include <cstdint>
 
-/// @brief Platform surface implementation.
-struct Surface;
+class Platform;
 
 /// @brief Platform surface configuration for surface attributes.
 struct SurfaceConfig
 {
     bool resizable;
     bool allow_high_dpi;
+};
+
+/// @brief Opaque platform surface implementation.
+struct SurfaceImpl;
+
+/// @brief Platform surface, represents something that can be rendered to such as an application window.
+class Surface
+{
+public:
+    friend Platform;
+
+    ~Surface();
+    Surface(Surface const&) = delete;
+    Surface& operator=(Surface const&) = delete;
+
+    /// @brief Set the user data pointer for this surface, this pointer will be passed to the platform surface callbacks.
+    /// @param user_data User data pointer to set.
+    void set_user_data(void* user_data);
+
+    /// @brief Get the raw platform surface implementation. Opaque, unless you know what you're doing...
+    [[nodiscard]] SurfaceImpl* raw_surface() const { return m_impl; }
+
+private:
+    SurfaceImpl* m_impl = nullptr;
+
+    /// @brief Constructor, only accessible through platform.
+    explicit Surface(SurfaceImpl* impl);
 };
 
 typedef void(*PFN_PlatformQuitCallback)(void*);
@@ -43,14 +69,9 @@ public:
     /// @param surface Surface to destroy.
     void destroy_surface(Surface* surface);
 
-    /// @brief Set the user data pointer for a surface. This opaque pointer is used in the surface callback functions.
-    /// @param surface Surface to set the user data pointer for.
-    /// @param user_data User data pointer.
-    void set_surface_user_data(Surface* surface, void* user_data);
-
     /// @brief Set the user data pointer for the platform. This opaque pointer is used in platform callback functions.
     /// @param user_data User data pointer.
-    void set_platform_user_data(void* user_data);
+    void set_user_data(void* user_data);
 
     /// @brief Set the platform quit callback.
     /// @param callback Callback to set, may be nullptr.

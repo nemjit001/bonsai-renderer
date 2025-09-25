@@ -6,7 +6,7 @@
 #include <SDL3/SDL.h>
 #include "platform.hpp"
 
-struct Surface
+struct SurfaceImpl
 {
     SDL_WindowID window_id;
     SDL_Window* window;

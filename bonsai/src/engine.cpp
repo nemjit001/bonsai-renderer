@@ -37,9 +37,13 @@ void Engine::init()
     {
         BONSAI_LOG_TRACE("Window resized ({} x {})", width, height);
     });
+    m_platform->set_platform_surface_closed_callback([]([[maybe_unused]] void* user_data)
+    {
+        BONSAI_LOG_TRACE("Window closed");
+    });
 
     // Set application quit handler
-    m_platform->set_platform_user_data(this);
+    m_platform->set_user_data(this);
     m_platform->set_platform_quit_callback([](void* user_data)
     {
         Engine* pThat = static_cast<Engine*>(user_data);
