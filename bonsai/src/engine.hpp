@@ -13,8 +13,10 @@ public:
     Engine(Engine const&) = delete;
     Engine& operator=(Engine const&) = delete;
 
+    /// @brief Initialize all engine subsystems.
     void init();
 
+    /// @brief Run the engine main loop.
     void run();
 
 private:
