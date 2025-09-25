@@ -1,6 +1,6 @@
 #include "platform_sdl.hpp"
 
-#include "logger.hpp"
+#include "core/logger.hpp"
 
 static int get_sdl_window_flags(SurfaceConfig const& config)
 {

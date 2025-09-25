@@ -1,5 +1,5 @@
-#include "logger.hpp"
-#include "platform.hpp"
+#include "core/logger.hpp"
+#include "platform/platform.hpp"
 
 int main()
 {
