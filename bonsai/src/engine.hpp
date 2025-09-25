@@ -2,7 +2,7 @@
 #ifndef BONSAI_RENDERER_ENGINE_HPP
 #define BONSAI_RENDERER_ENGINE_HPP
 
-#include "platform/platform.hpp"
+#include <platform/platform.hpp>
 
 /// @brief Main engine class, handles subsystem management and lifecycle.
 class Engine

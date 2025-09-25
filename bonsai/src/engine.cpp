@@ -1,7 +1,8 @@
 #include "engine.hpp"
 
-#include "core/die.hpp"
-#include "core/logger.hpp"
+#include <core/die.hpp>
+#include <core/logger.hpp>
+#include "bonsai_config.hpp"
 
 Engine::~Engine()
 {
@@ -26,7 +27,7 @@ void Engine::init()
     // Create a platform surface
     BONSAI_LOG_INFO("Initializing application surface");
     SurfaceConfig const surface_config{ true /* resizable */, true /* allow_high_dpi */ };
-    m_surface = m_platform->create_surface("Bonsai Renderer", 1600, 900, surface_config);
+    m_surface = m_platform->create_surface("Bonsai Renderer (" BONSAI_VERSION ")", 1600, 900, surface_config);
     if (m_surface == nullptr)
     {
         bonsai::die("Failed to create application surface");
@@ -51,7 +52,7 @@ void Engine::init()
     });
 
     m_running = true;
-    BONSAI_LOG_INFO("Initialized Bonsai!");
+    BONSAI_LOG_INFO("Initialized Bonsai! (v{})", BONSAI_VERSION);
 }
 
 void Engine::run()
