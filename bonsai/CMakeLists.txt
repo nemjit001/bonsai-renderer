@@ -19,13 +19,13 @@ target_link_libraries(bonsai_core PUBLIC spdlog::spdlog)
 target_extended_warnings(bonsai_core)
 
 if (BONSAI_USE_SDL)
-    target_link_libraries(bonsai_core PUBLIC SDL3::SDL3)
-    target_compile_definitions(bonsai_core PUBLIC BONSAI_PLATFORM_SDL=1)
+    target_link_libraries(bonsai_core PRIVATE SDL3::SDL3)
+    target_compile_definitions(bonsai_core PRIVATE BONSAI_PLATFORM_SDL=1)
 endif()
 
 if (BONSAI_USE_VULKAN)
-    target_link_libraries(bonsai_core PUBLIC volk::volk_headers)
-    target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
+    target_link_libraries(bonsai_core PRIVATE volk::volk_headers)
+    target_compile_definitions(bonsai_core PRIVATE BONSAI_USE_VULKAN=1)
 endif()
 
 # Set up bonsai executable
