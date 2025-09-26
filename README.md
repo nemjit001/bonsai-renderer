@@ -6,8 +6,9 @@ High performance render engine written in C++17.
 
 Bonsai consists of several layers that build out its functionality:
 
-- *core* contains core code that other layers can build on. It is only dependent on external libraries.
-- *platform* contains platform specific code such as window handling and filesystem access.
+- **core** contains core code that other layers can build on. It is only dependent on external libraries.
+- **platform** contains platform specific code such as window handling and filesystem access.
+- **rendering** contains the Bonsai rendering abstractions that wrap base render APIs.
 
 ## External dependencies
 

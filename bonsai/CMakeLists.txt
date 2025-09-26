@@ -15,6 +15,7 @@ add_library(bonsai_core STATIC
         src/platform/sdl/platform_vulkan_sdl.cpp
         src/platform/platform_win32.hpp
         src/platform/sdl/platform_win32_sdl.cpp
+        src/rendering/vulkan/use_volk.cpp
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(bonsai_core PUBLIC cxx_std_17)

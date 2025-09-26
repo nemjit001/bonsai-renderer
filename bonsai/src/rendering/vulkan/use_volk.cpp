@@ -1,0 +1,5 @@
+#if BONSAI_USE_VULKAN
+#define VOLK_IMPLEMENTATION
+#include <volk.h>
+
+#endif // BONSAI_USE_VULKAN
