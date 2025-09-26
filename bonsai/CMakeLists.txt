@@ -3,18 +3,24 @@ project("Bonsai" VERSION 0.1.0)
 # Set up bonsai core library
 configure_file(bonsai_config.hpp.in bonsai_config.hpp)
 add_library(bonsai_core STATIC
+        # Engine API
         src/engine.cpp
         src/engine.hpp
+        # Core API
         src/core/die.hpp
         src/core/logger.cpp
         src/core/logger.hpp
+        # Platform API
         src/platform/platform.hpp
         src/platform/platform_vulkan.hpp
+        src/platform/platform_win32.hpp
         src/platform/sdl/platform_sdl.cpp
         src/platform/sdl/platform_sdl.hpp
         src/platform/sdl/platform_vulkan_sdl.cpp
-        src/platform/platform_win32.hpp
         src/platform/sdl/platform_win32_sdl.cpp
+        # Rendering API
+        src/rendering/renderer.cpp
+        src/rendering/renderer.hpp
         src/rendering/vulkan/use_volk.cpp
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
@@ -53,6 +59,7 @@ if (BONSAI_TEST)
     add_executable(bonsai_tests
             tests/sanity.cpp
             tests/platform_tests.cpp
+            tests/renderer_tests.cpp
     )
     target_compile_features(bonsai_tests PRIVATE cxx_std_17)
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)

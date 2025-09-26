@@ -6,14 +6,18 @@
 
 Engine::~Engine()
 {
-    if (m_platform)
+    // Clean up renderer system
+    delete m_renderer;
+
+    // Clean up platform system
+    if (m_platform != nullptr)
     {
         m_platform->destroy_surface(m_surface);
-        delete m_platform;
     }
+    delete m_platform;
 }
 
-void Engine::init()
+Engine::Engine()
 {
     // Initialize global logger state
     Logger& logger = Logger::get();
@@ -32,6 +36,10 @@ void Engine::init()
     {
         bonsai::die("Failed to create application surface");
     }
+
+    // Initialize rendering system
+    BONSAI_LOG_INFO("Initializing Renderer");
+    m_renderer = new Renderer();
 
     // Set surface handlers
     m_platform->set_platform_surface_resize_callback([]([[maybe_unused]] void* user_data, uint32_t width, uint32_t height)
