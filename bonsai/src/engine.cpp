@@ -1,7 +1,7 @@
 #include "engine.hpp"
 
-#include <core/die.hpp>
-#include <core/logger.hpp>
+#include "core/die.hpp"
+#include "core/logger.hpp"
 #include "bonsai_config.hpp"
 
 Engine::~Engine()
