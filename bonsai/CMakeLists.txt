@@ -62,6 +62,7 @@ if (BONSAI_TEST)
     add_executable(bonsai_tests
             tests/sanity.cpp
             tests/platform_tests.cpp
+            tests/world_tests.cpp
             tests/renderer_tests.cpp
     )
     target_compile_features(bonsai_tests PRIVATE cxx_std_17)

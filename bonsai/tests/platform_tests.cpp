@@ -25,13 +25,13 @@ TEST(platform, create_multiple_surfaces)
 TEST(platform, query_surface_size)
 {
     Platform platform{};
-    Surface* surface = platform.create_surface("Test Surface", 256, 512, SurfaceConfig{});
+    Surface* surface = platform.create_surface("Test Surface", 512, 256, SurfaceConfig{});
     ASSERT_NE(surface, nullptr);
 
     uint32_t width = 0, height = 0;
     surface->get_size(width, height);
-    ASSERT_EQ(width, 256);
-    ASSERT_EQ(height, 512);
+    ASSERT_EQ(width, 512);
+    ASSERT_EQ(height, 256);
 
     platform.destroy_surface(surface);
 }
