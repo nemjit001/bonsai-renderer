@@ -3,6 +3,7 @@
 #define BONSAI_RENDERER_ENGINE_HPP
 
 #include "platform/platform.hpp"
+#include "world/world.hpp"
 #include "rendering/renderer.hpp"
 
 /// @brief Main engine class, handles subsystem management and lifecycle.
@@ -22,6 +23,7 @@ private:
     bool        m_running   = false;
     Platform*   m_platform  = nullptr;
     Surface*    m_surface   = nullptr;
+    World*      m_world     = nullptr;
     Renderer*   m_renderer  = nullptr;
 };
 

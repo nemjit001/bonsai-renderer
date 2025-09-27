@@ -9,6 +9,9 @@ Engine::~Engine()
     // Clean up renderer system
     delete m_renderer;
 
+    // Clean up world
+    delete m_world;
+
     // Clean up platform system
     if (m_platform != nullptr)
     {
@@ -37,14 +40,21 @@ Engine::Engine()
         bonsai::die("Failed to create application surface");
     }
 
+    // Initialize empty world
+    BONSAI_LOG_INFO("Initializing World");
+    m_world = new World();
+
     // Initialize rendering system
     BONSAI_LOG_INFO("Initializing Renderer");
     m_renderer = new Renderer();
 
     // Set surface handlers
+    m_surface->set_user_data(m_renderer);
     m_platform->set_platform_surface_resize_callback([]([[maybe_unused]] void* user_data, uint32_t width, uint32_t height)
     {
         BONSAI_LOG_TRACE("Window resized ({} x {})", width, height);
+        Renderer* renderer = static_cast<Renderer*>(user_data);
+        renderer->on_resize(width, height);
     });
     m_platform->set_platform_surface_closed_callback([]([[maybe_unused]] void* user_data)
     {
@@ -55,8 +65,8 @@ Engine::Engine()
     m_platform->set_user_data(this);
     m_platform->set_platform_quit_callback([](void* user_data)
     {
-        Engine* pThat = static_cast<Engine*>(user_data);
-        pThat->m_running = false;
+        Engine* that = static_cast<Engine*>(user_data);
+        that->m_running = false;
     });
 
     m_running = true;
@@ -68,6 +78,7 @@ void Engine::run()
     while (m_running)
     {
         m_platform->pump_messages();
+        m_renderer->render(*m_world);
     }
 }
 

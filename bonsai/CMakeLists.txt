@@ -18,6 +18,9 @@ add_library(bonsai_core STATIC
         src/platform/sdl/platform_sdl.hpp
         src/platform/sdl/platform_vulkan_sdl.cpp
         src/platform/sdl/platform_win32_sdl.cpp
+        # World API
+        src/world/world.cpp
+        src/world/world.hpp
         # Rendering API
         src/rendering/renderer.cpp
         src/rendering/renderer.hpp

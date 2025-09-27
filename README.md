@@ -4,11 +4,15 @@ High performance render engine written in C++17.
 
 ## Code structure
 
-Bonsai consists of several layers that build out its functionality:
+Bonsai consists of several layers that build out its functionality, each layer builds on top of previous layers.
+High level layers may only depend on lower-level layers.
+
+Bonsai's API layers in order from low-level to high-level:
 
 - **core** contains core code that other layers can build on. It is only dependent on external libraries.
 - **platform** contains platform specific code such as window handling and filesystem access.
-- **rendering** contains the Bonsai rendering abstractions that wrap base render APIs.
+- **world** contains the renderer world representation.
+- **rendering** contains the Bonsai rendering abstractions that wrap low level graphics APIs.
 
 ## External dependencies
 
