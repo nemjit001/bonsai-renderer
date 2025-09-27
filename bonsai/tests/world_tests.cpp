@@ -4,5 +4,5 @@
 TEST(world, spawn_entity)
 {
     World world{};
-    world.get_root()->add_child(Entity("child"));
+    world.get_root()->add_child(Entity::create<Entity>("child"));
 }

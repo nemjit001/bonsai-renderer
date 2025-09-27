@@ -7,7 +7,7 @@ Entity::Entity(std::string const& name)
     //
 }
 
-void Entity::add_child(Entity const& entity)
+void Entity::add_child(Ref entity)
 {
-    m_children.push_back(std::make_shared<Entity>(entity));
+    m_children.emplace_back(std::move(entity));
 }
