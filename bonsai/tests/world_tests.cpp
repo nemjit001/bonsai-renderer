@@ -3,5 +3,6 @@
 
 TEST(world, spawn_entity)
 {
-    //
+    World world{};
+    world.get_root()->add_child(Entity("child"));
 }
