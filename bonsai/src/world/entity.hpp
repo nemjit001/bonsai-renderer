@@ -82,6 +82,10 @@ public:
     [[nodiscard]] Transform get_transform() const { return m_transform; }
 
 private:
+    /// @brief Find a unique name for this entity in the parent entity.
+    /// @param parent Parent node to use for unique name search, may be nullptr.
+    /// @param name Candidate name to make unique.
+    /// @return A guaranteed unique name in the given parent node.
     [[nodiscard]] std::string get_unique_name_in_parent(Entity* parent, std::string const& name) const;
 
 private:
