@@ -71,8 +71,8 @@ public:
     /// @return The child node Entity::Ref, or an empty ref if the child does not exist.
     [[nodiscard]] Ref get_child(std::string const& name);
 
-    /// @brief Get the worldspace affine transformation matrix.
-    [[nodiscard]] glm::mat4 get_worldspace_transform() const;
+    /// @brief Get the world-space affine transformation matrix.
+    [[nodiscard]] glm::mat4 get_world_space_transform() const;
 
     /// @brief Set the local entity transform.
     /// @param transform New entity transform.
@@ -81,12 +81,15 @@ public:
     /// @brief Get the local entity transform.
     [[nodiscard]] Transform get_transform() const { return m_transform; }
 
+    /// @brief Update the state of this entity and its children.
+    virtual void update();
+
 private:
     /// @brief Find a unique name for this entity in the parent entity.
     /// @param parent Parent node to use for unique name search, may be nullptr.
     /// @param name Candidate name to make unique.
     /// @return A guaranteed unique name in the given parent node.
-    [[nodiscard]] std::string get_unique_name_in_parent(Entity* parent, std::string const& name) const;
+    [[nodiscard]] static std::string get_unique_name_in_parent(Entity const* parent, std::string const& name);
 
 private:
     std::string         m_name;

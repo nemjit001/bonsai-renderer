@@ -85,18 +85,26 @@ Entity::Ref Entity::get_child(std::string const& name)
     return {};
 }
 
-glm::mat4 Entity::get_worldspace_transform() const
+glm::mat4 Entity::get_world_space_transform() const
 {
     if (m_parent == nullptr)
     {
         return m_transform.matrix();
     }
 
-    glm::mat4 const parent_transform = m_parent->get_worldspace_transform();
+    glm::mat4 const parent_transform = m_parent->get_world_space_transform();
     return m_transform.matrix() * parent_transform;
 }
 
-std::string Entity::get_unique_name_in_parent(Entity* parent, std::string const& name) const
+void Entity::update()
+{
+    for (auto const& child : m_children)
+    {
+        child->update();
+    }
+}
+
+std::string Entity::get_unique_name_in_parent(Entity const* parent, std::string const& name)
 {
     if (parent == nullptr)
     {

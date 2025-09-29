@@ -78,6 +78,7 @@ void Engine::run()
     while (m_running)
     {
         m_platform->pump_messages();
+        m_world->update();
         m_renderer->render(*m_world);
     }
 }

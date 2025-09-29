@@ -9,6 +9,9 @@
 class World
 {
 public:
+    /// @brief Update the world state, updating all entities in the world in the process.
+    void update();
+
     [[nodiscard]] Entity::Ref           get_root()          { return m_root; }
     [[nodiscard]] Entity::Ref const&    get_root() const    { return m_root; }
 
