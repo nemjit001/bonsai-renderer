@@ -5,6 +5,20 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
+
+/// @brief Entity scene transform.
+struct Transform
+{
+    glm::vec3 position  = glm::vec3(0.0F, 0.0F, 0.0F);
+    glm::quat rotation  = glm::quat(1.0F, 0.0F, 0.0F, 0.0F);
+    glm::vec3 scale     = glm::vec3(1.0F, 1.0F, 1.0F);
+
+    /// @brief Calculate the affine transformation matrix representing this Transform.
+    /// @return A 4x4 transformation matrix.
+    [[nodiscard]] glm::mat4 matrix() const;
+};
 
 /// @brief Base entity class, represents anything that can be stored in the world.
 class Entity
@@ -25,6 +39,7 @@ public:
     }
 
     explicit Entity(std::string const& name);
+    Entity(std::string const& name, Transform const& transform);
     virtual ~Entity() = default;
 
     Entity(Entity const&) = default;
@@ -34,9 +49,21 @@ public:
     /// @param entity Entity to add as child.
     void add_child(Ref entity);
 
+    /// @brief Get the worldspace affine transformation matrix.
+    [[nodiscard]] glm::mat4 get_worldspace_transform() const;
+
+    /// @brief Set the local entity transform.
+    /// @param transform New entity transform.
+    void set_transform(Transform const& transform) { m_transform = transform; }
+
+    /// @brief Get the local entity transform.
+    [[nodiscard]] Transform get_transform() const { return m_transform; }
+
 private:
     std::string         m_name;
+    Entity*             m_parent;
     std::vector<Ref>    m_children;
+    Transform           m_transform;
 };
 
 #endif //BONSAI_RENDERER_ENTITY_HPP

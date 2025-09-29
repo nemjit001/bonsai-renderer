@@ -1,3 +1,5 @@
+add_subdirectory("glm" EXCLUDE_FROM_ALL SYSTEM)
+
 set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 add_subdirectory("googletest" EXCLUDE_FROM_ALL SYSTEM)
 

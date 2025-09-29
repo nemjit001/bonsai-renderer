@@ -30,7 +30,7 @@ add_library(bonsai_core STATIC
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
-target_link_libraries(bonsai_core PUBLIC spdlog::spdlog)
+target_link_libraries(bonsai_core PUBLIC glm::glm spdlog::spdlog)
 target_extended_warnings(bonsai_core)
 
 if (BONSAI_USE_SDL)
