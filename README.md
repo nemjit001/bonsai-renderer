@@ -19,6 +19,7 @@ Bonsai's API layers in order from low-level to high-level:
 All of Bonsai's dependencies are included as git submodules in the repository and pinned at a specific
 version.
 
+- GLM (v1.0.1)
 - GoogleTest (v1.17.0)
 - SDL3 (v3.2.x)
 - SPDLog (v1.15.3)
