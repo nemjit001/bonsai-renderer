@@ -45,9 +45,21 @@ public:
     Entity(Entity const&) = default;
     Entity& operator=(Entity const&) = default;
 
+    /// @brief Get this entity's name.
+    [[nodiscard]] std::string get_name() const { return m_name; }
+
     /// @brief Add a child to this entity.
     /// @param entity Entity to add as child.
     void add_child(Ref entity);
+
+    /// @brief Remove a child from this entity.
+    /// @param name Name of the child entity to remove.
+    void remove_child(std::string const& name);
+
+    /// @brief Check if this node has a child node with the given name
+    /// @param name Named node to search for.
+    /// @return A boolean indicating child's existence.
+    [[nodiscard]] bool has_child(std::string const& name) const;
 
     /// @brief Get the worldspace affine transformation matrix.
     [[nodiscard]] glm::mat4 get_worldspace_transform() const;

@@ -9,11 +9,11 @@
 class World
 {
 public:
-    [[nodiscard]] Entity*       get_root()          { return &m_root; }
-    [[nodiscard]] Entity const* get_root() const    { return &m_root; }
+    [[nodiscard]] Entity::Ref           get_root()          { return m_root; }
+    [[nodiscard]] Entity::Ref const&    get_root() const    { return m_root; }
 
 private:
-    Entity m_root{ "Root" };
+    Entity::Ref m_root = Entity::create<Entity>("Root");
 };
 
 #endif //BONSAI_RENDERER_WORLD_HPP
