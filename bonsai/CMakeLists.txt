@@ -10,6 +10,7 @@ add_library(bonsai_core STATIC
         src/core/die.hpp
         src/core/logger.cpp
         src/core/logger.hpp
+        src/core/timer.hpp
         # Platform API
         src/platform/platform.hpp
         src/platform/platform_vulkan.hpp

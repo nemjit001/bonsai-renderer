@@ -2,6 +2,7 @@
 #ifndef BONSAI_RENDERER_ENGINE_HPP
 #define BONSAI_RENDERER_ENGINE_HPP
 
+#include "core/timer.hpp"
 #include "platform/platform.hpp"
 #include "world/world.hpp"
 #include "rendering/renderer.hpp"
@@ -21,6 +22,7 @@ public:
 
 private:
     bool        m_running   = false;
+    Timer       m_timer     = Timer();
     Platform*   m_platform  = nullptr;
     Surface*    m_surface   = nullptr;
     World*      m_world     = nullptr;

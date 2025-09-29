@@ -2,6 +2,7 @@
 
 #include "core/die.hpp"
 #include "core/logger.hpp"
+#include "core/timer.hpp"
 #include "bonsai_config.hpp"
 
 Engine::~Engine()
@@ -70,6 +71,7 @@ Engine::Engine()
     });
 
     m_running = true;
+    m_timer.reset();
     BONSAI_LOG_INFO("Initialized Bonsai! (v{})", BONSAI_VERSION);
 }
 
@@ -77,6 +79,7 @@ void Engine::run()
 {
     while (m_running)
     {
+        m_timer.tick();
         m_platform->pump_messages();
         m_world->update();
         m_renderer->render(*m_world);
