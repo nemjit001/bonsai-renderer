@@ -21,6 +21,8 @@ add_library(bonsai_core STATIC
         # World API
         src/world/world.cpp
         src/world/world.hpp
+        src/world/entity.cpp
+        src/world/entity.hpp
         # Rendering API
         src/rendering/renderer.cpp
         src/rendering/renderer.hpp
