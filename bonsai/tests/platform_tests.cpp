@@ -26,12 +26,12 @@ TEST(platform, query_surface_size)
 {
     Platform platform{};
     Surface* surface = platform.create_surface("Test Surface", 512, 256, SurfaceConfig{});
-    ASSERT_NE(surface, nullptr);
+    EXPECT_NE(surface, nullptr);
 
     uint32_t width = 0, height = 0;
     surface->get_size(width, height);
-    ASSERT_EQ(width, 512);
-    ASSERT_EQ(height, 256);
+    EXPECT_EQ(width, 512);
+    EXPECT_EQ(height, 256);
 
     platform.destroy_surface(surface);
 }

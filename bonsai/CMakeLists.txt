@@ -51,12 +51,7 @@ target_include_directories(bonsai PRIVATE src/)
 target_compile_features(bonsai PRIVATE cxx_std_17)
 target_link_libraries(bonsai PRIVATE bonsai_core)
 target_extended_warnings(bonsai)
-
-# Copy DLL dependencies to target binary dir
-add_custom_command(TARGET bonsai POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:bonsai> $<TARGET_FILE_DIR:bonsai>
-    COMMAND_EXPAND_LISTS
-)
+target_track_dll_dependencies(bonsai)
 
 # Set up bonsai unit tests
 if (BONSAI_TEST)
@@ -70,6 +65,7 @@ if (BONSAI_TEST)
     target_compile_features(bonsai_tests PRIVATE cxx_std_17)
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)
     target_extended_warnings(bonsai_tests)
+    target_track_dll_dependencies(bonsai_tests)
 
     gtest_discover_tests(bonsai_tests)
 endif()

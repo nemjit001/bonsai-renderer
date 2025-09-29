@@ -45,7 +45,12 @@ public:
     Entity(Entity const&) = default;
     Entity& operator=(Entity const&) = default;
 
+    /// @brief Set this entity's name, will make the name unique within the parent node's children.
+    /// @param name New name of this entity.
+    void set_name(std::string const& name);
+
     /// @brief Get this entity's name.
+    /// @return The entity name.
     [[nodiscard]] std::string get_name() const { return m_name; }
 
     /// @brief Add a child to this entity.
@@ -61,6 +66,11 @@ public:
     /// @return A boolean indicating child's existence.
     [[nodiscard]] bool has_child(std::string const& name) const;
 
+    /// @brief Get a child of this node by name.
+    /// @param name Child node name to get.
+    /// @return The child node Entity::Ref, or an empty ref if the child does not exist.
+    [[nodiscard]] Ref get_child(std::string const& name);
+
     /// @brief Get the worldspace affine transformation matrix.
     [[nodiscard]] glm::mat4 get_worldspace_transform() const;
 
@@ -70,6 +80,9 @@ public:
 
     /// @brief Get the local entity transform.
     [[nodiscard]] Transform get_transform() const { return m_transform; }
+
+private:
+    [[nodiscard]] std::string get_unique_name_in_parent(Entity* parent, std::string const& name) const;
 
 private:
     std::string         m_name;
