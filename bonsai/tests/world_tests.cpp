@@ -73,3 +73,21 @@ TEST(world, move_entity)
     EXPECT_FALSE(child1->has_child("child3"));
     EXPECT_TRUE(child2->has_child("child3"));
 }
+
+TEST(world, iter_children_mutably)
+{
+    World world{};
+    Entity::Ref const root = world.get_root();
+    root->add_child(Entity::create<Entity>("child1"));
+    root->add_child(Entity::create<Entity>("child2"));
+    root->add_child(Entity::create<Entity>("child3"));
+    EXPECT_EQ(root->children().size(), 3);
+
+    for (auto& child : root->children())
+    {
+        child->set_name("node");
+    }
+    EXPECT_TRUE(root->has_child("node"));
+    EXPECT_TRUE(root->has_child("node1"));
+    EXPECT_TRUE(root->has_child("node2"));
+}

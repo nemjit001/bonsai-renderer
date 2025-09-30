@@ -71,6 +71,10 @@ public:
     /// @return The child node Entity::Ref, or an empty ref if the child does not exist.
     [[nodiscard]] Ref get_child(std::string const& name);
 
+    /// @brief Get the list of children of this node.
+    /// @return A vector of child nodes.
+    [[nodiscard]] std::vector<Ref> const& children() const { return m_children; }
+
     /// @brief Get the world-space affine transformation matrix.
     [[nodiscard]] glm::mat4 get_world_space_transform() const;
 
