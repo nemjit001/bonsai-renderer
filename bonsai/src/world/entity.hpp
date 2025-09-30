@@ -113,15 +113,6 @@ public:
     /// @return A vector of ComponentRefs associated with this entity..
     [[nodiscard]] std::vector<ComponentRef> const& components() const { return m_components; }
 
-    /// @brief Update the state of this entity and its children.
-    /// @param delta Time delta between updates in milliseconds.
-    void update_tree(double delta);
-
-protected:
-    /// @brief Update the state of this entity by updating all its components.
-    /// @param delta Time delta between updates in milliseconds.
-    void update(double delta);
-
 private:
     /// @brief Find a unique name for this entity in the parent entity.
     /// @param parent Parent node to use for unique name search, may be nullptr.

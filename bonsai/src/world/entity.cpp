@@ -112,24 +112,6 @@ void Entity::remove_component_by_index(size_t index)
     m_components.erase(m_components.begin() + static_cast<ptrdiff_t>(index));
 }
 
-void Entity::update_tree(double delta)
-{
-    update(delta);
-    for (auto const& child : m_children)
-    {
-        child->update_tree(delta);
-    }
-}
-
-void Entity::update(double delta)
-{
-    for (auto const& component : m_components)
-    {
-        component->update(delta);
-    }
-}
-
-
 std::string Entity::get_unique_name_in_parent(Entity const* parent, std::string const& name)
 {
     if (parent == nullptr)
