@@ -82,11 +82,13 @@ public:
     [[nodiscard]] Transform get_transform() const { return m_transform; }
 
     /// @brief Update the state of this entity and its children.
-    void update_tree();
+    /// @param delta Time delta between updates in milliseconds.
+    void update_tree(double delta);
 
 protected:
     /// @brief Update the state of this entity.
-    virtual void update();
+    /// @param delta Time delta between updates in milliseconds.
+    virtual void update(double delta);
 
 private:
     /// @brief Find a unique name for this entity in the parent entity.

@@ -80,8 +80,10 @@ void Engine::run()
     while (m_running)
     {
         m_timer.tick();
+        double const delta_milliseconds = m_timer.delta_milliseconds().count();
+
         m_platform->pump_messages();
-        m_world->update();
+        m_world->update(delta_milliseconds);
         m_renderer->render(*m_world);
     }
 }

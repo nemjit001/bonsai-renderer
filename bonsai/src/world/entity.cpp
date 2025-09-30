@@ -96,16 +96,16 @@ glm::mat4 Entity::get_world_space_transform() const
     return m_transform.matrix() * parent_transform;
 }
 
-void Entity::update_tree()
+void Entity::update_tree(double delta)
 {
-    update();
+    update(delta);
     for (auto const& child : m_children)
     {
-        child->update_tree();
+        child->update_tree(delta);
     }
 }
 
-void Entity::update()
+void Entity::update([[maybe_unused]] double delta)
 {
     //
 }
