@@ -7,10 +7,16 @@ glm::mat4 Transform::matrix() const
         * glm::scale(glm::identity<glm::mat4>(), scale);
 }
 
+Entity::Entity()
+    :
+    Entity("Entity")
+{
+
+}
+
 Entity::Entity(std::string const& name)
     :
-    m_name(name),
-    m_parent(nullptr)
+    Entity(name, Transform{})
 {
     //
 }
@@ -96,6 +102,16 @@ glm::mat4 Entity::get_world_space_transform() const
     return m_transform.matrix() * parent_transform;
 }
 
+void Entity::remove_component_by_index(size_t index)
+{
+    if (index >= m_components.size())
+    {
+        return;
+    }
+
+    m_components.erase(m_components.begin() + static_cast<ptrdiff_t>(index));
+}
+
 void Entity::update_tree(double delta)
 {
     update(delta);
@@ -105,9 +121,12 @@ void Entity::update_tree(double delta)
     }
 }
 
-void Entity::update([[maybe_unused]] double delta)
+void Entity::update(double delta)
 {
-    //
+    for (auto const& component : m_components)
+    {
+        component->update(delta);
+    }
 }
 
 

@@ -7,6 +7,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include "component.hpp"
 
 /// @brief Entity scene transform.
 struct Transform
@@ -25,6 +26,7 @@ class Entity
 {
 public:
     using Ref = std::shared_ptr<Entity>;
+    using ComponentRef = std::shared_ptr<Component>;
 
     /// @brief Create a new entity or derived entity.
     /// @tparam EntityType Entity type to create.
@@ -32,12 +34,9 @@ public:
     /// @param args Constructor arguments.
     /// @return A new Entity::Ref representing the newly created entity.
     template <typename EntityType, typename... Args>
-    static Ref create(Args&&... args)
-    {
-        static_assert(std::is_base_of_v<Entity, EntityType> && "EntityType should derive from Entity!");
-        return Ref(new EntityType(std::forward<Args>(args)...));
-    }
+    static Ref create(Args&&... args);
 
+    Entity();
     explicit Entity(std::string const& name);
     Entity(std::string const& name, Transform const& transform);
     virtual ~Entity() = default;
@@ -76,6 +75,7 @@ public:
     [[nodiscard]] std::vector<Ref> const& children() const { return m_children; }
 
     /// @brief Get the world-space affine transformation matrix.
+    /// @return The entity transformation matrix.
     [[nodiscard]] glm::mat4 get_world_space_transform() const;
 
     /// @brief Set the local entity transform.
@@ -83,16 +83,44 @@ public:
     void set_transform(Transform const& transform) { m_transform = transform; }
 
     /// @brief Get the local entity transform.
+    /// @return The entity transform.
     [[nodiscard]] Transform get_transform() const { return m_transform; }
+
+    /// @brief Add a component to this entity.
+    /// @tparam ComponentType Component type to add.
+    /// @tparam Args Constructor arguments parameter pack.
+    /// @param args Component constructor args.
+    template <typename ComponentType, typename... Args>
+    void add_component(Args&&... args);
+
+    /// @brief Remove a component from this entity by index.
+    /// @param index Index of the component to remove.
+    void remove_component_by_index(size_t index);
+
+    /// @brief Check if this entity has a component.
+    /// @tparam ComponentType Component type for which to check existence.
+    /// @return bool A boolean indicating component existence.
+    template <typename ComponentType>
+    [[nodiscard]] bool has_component() const;
+
+    /// @brief Get a component stored in this entity, will return this first component that matches the specified type.
+    /// @tparam ComponentType Component type to retrieve.
+    /// @return A ComponentRef, or an empty ref if no component was found.
+    template <typename ComponentType>
+    [[nodiscard]] ComponentRef get_component() const;
+
+    /// @brief Get all components associated with this entity.
+    /// @return A vector of ComponentRefs associated with this entity..
+    [[nodiscard]] std::vector<ComponentRef> const& components() const { return m_components; }
 
     /// @brief Update the state of this entity and its children.
     /// @param delta Time delta between updates in milliseconds.
     void update_tree(double delta);
 
 protected:
-    /// @brief Update the state of this entity.
+    /// @brief Update the state of this entity by updating all its components.
     /// @param delta Time delta between updates in milliseconds.
-    virtual void update(double delta);
+    void update(double delta);
 
 private:
     /// @brief Find a unique name for this entity in the parent entity.
@@ -102,10 +130,57 @@ private:
     [[nodiscard]] static std::string get_unique_name_in_parent(Entity const* parent, std::string const& name);
 
 private:
-    std::string         m_name;
-    Entity*             m_parent;
-    std::vector<Ref>    m_children;
-    Transform           m_transform;
+    std::string                 m_name;
+    Entity*                     m_parent;
+    std::vector<Ref>            m_children;
+    Transform                   m_transform;
+    std::vector<ComponentRef>   m_components;
 };
+
+#pragma region implementation
+
+template <typename EntityType, typename... Args>
+Entity::Ref Entity::create(Args&&... args)
+{
+    static_assert(std::is_base_of_v<Entity, EntityType> && "EntityType should derive from Entity!");
+    return Ref(new EntityType(std::forward<Args>(args)...));
+}
+
+template <typename ComponentType, typename... Args>
+void Entity::add_component(Args&&... args)
+{
+    static_assert(std::is_base_of_v<Component, ComponentType> && "ComponentType should derive from Component");
+    m_components.emplace_back(new ComponentType(std::forward<Args>(args)...));
+}
+
+template <typename ComponentType>
+bool Entity::has_component() const
+{
+    for (auto const& component : m_components)
+    {
+        if (typeid(component.get()) == typeid(ComponentType*))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template <typename ComponentType>
+Entity::ComponentRef Entity::get_component() const
+{
+    for (auto const& component : m_components)
+    {
+        if (typeid(component.get()) == typeid(ComponentType*))
+        {
+            return component;
+        }
+    }
+
+    return {};
+}
+
+#pragma endregion
 
 #endif //BONSAI_RENDERER_ENTITY_HPP

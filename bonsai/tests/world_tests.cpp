@@ -91,3 +91,26 @@ TEST(world, iter_children_mutably)
     EXPECT_TRUE(root->has_child("node1"));
     EXPECT_TRUE(root->has_child("node2"));
 }
+
+TEST(world, add_component)
+{
+    World world{};
+    world.get_root()->add_component<Component>();
+    EXPECT_TRUE(world.get_root()->has_component<Component>());
+    EXPECT_NE(world.get_root()->get_component<Component>(), nullptr);
+}
+
+TEST(world, remove_component)
+{
+    World world{};
+    world.get_root()->add_component<Component>();
+    world.get_root()->add_component<Component>();
+
+    world.get_root()->remove_component_by_index(0);
+    EXPECT_TRUE(world.get_root()->has_component<Component>());
+    EXPECT_NE(world.get_root()->get_component<Component>(), nullptr);
+
+    world.get_root()->remove_component_by_index(0);
+    EXPECT_FALSE(world.get_root()->has_component<Component>());
+    EXPECT_EQ(world.get_root()->get_component<Component>(), nullptr);
+}
