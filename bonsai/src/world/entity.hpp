@@ -149,7 +149,7 @@ bool Entity::has_component() const
 {
     for (auto const& component : m_components)
     {
-        if (typeid(component.get()) == typeid(ComponentType*))
+        if (component != nullptr && typeid(*component) == typeid(ComponentType))
         {
             return true;
         }
@@ -163,7 +163,7 @@ Entity::ComponentRef Entity::get_component() const
 {
     for (auto const& component : m_components)
     {
-        if (typeid(component.get()) == typeid(ComponentType*))
+        if (component != nullptr && typeid(*component) == typeid(ComponentType))
         {
             return component;
         }

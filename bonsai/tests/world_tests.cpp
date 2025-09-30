@@ -100,6 +100,19 @@ TEST(world, add_component)
     EXPECT_NE(world.get_root()->get_component<Component>(), nullptr);
 }
 
+TEST(world, add_custom_component)
+{
+    class CustomComponent : public Component
+    {
+        //
+    };
+
+    World world{};
+    world.get_root()->add_component<CustomComponent>();
+    EXPECT_TRUE(world.get_root()->has_component<CustomComponent>());
+    EXPECT_NE(world.get_root()->get_component<CustomComponent>(), nullptr);
+}
+
 TEST(world, remove_component)
 {
     World world{};
