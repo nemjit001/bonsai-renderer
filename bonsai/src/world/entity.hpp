@@ -82,6 +82,10 @@ public:
     [[nodiscard]] Transform get_transform() const { return m_transform; }
 
     /// @brief Update the state of this entity and its children.
+    void update_tree();
+
+protected:
+    /// @brief Update the state of this entity.
     virtual void update();
 
 private:

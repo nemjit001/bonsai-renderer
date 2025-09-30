@@ -2,5 +2,5 @@
 
 void World::update()
 {
-    m_root->update();
+    m_root->update_tree();
 }

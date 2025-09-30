@@ -96,13 +96,20 @@ glm::mat4 Entity::get_world_space_transform() const
     return m_transform.matrix() * parent_transform;
 }
 
-void Entity::update()
+void Entity::update_tree()
 {
+    update();
     for (auto const& child : m_children)
     {
-        child->update();
+        child->update_tree();
     }
 }
+
+void Entity::update()
+{
+    //
+}
+
 
 std::string Entity::get_unique_name_in_parent(Entity const* parent, std::string const& name)
 {
