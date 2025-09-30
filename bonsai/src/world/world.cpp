@@ -10,13 +10,13 @@ void World::update(double delta)
         // Fetch next node from the stack & update components
         Entity::Ref const current = stack.back();
         stack.pop_back();
-        for (auto const& component : current->components())
+        for (auto const& component : current->get_components())
         {
             component->update(delta);
         }
 
         // Push children onto the stack for further processing
-        for (auto const& child : current->children())
+        for (auto const& child : current->get_children())
         {
             stack.push_back(child);
         }

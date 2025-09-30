@@ -72,7 +72,7 @@ public:
 
     /// @brief Get the list of children of this node.
     /// @return A vector of child nodes.
-    [[nodiscard]] std::vector<Ref> const& children() const { return m_children; }
+    [[nodiscard]] std::vector<Ref> const& get_children() const { return m_children; }
 
     /// @brief Get the world-space affine transformation matrix.
     /// @return The entity transformation matrix.
@@ -110,8 +110,8 @@ public:
     [[nodiscard]] ComponentRef get_component() const;
 
     /// @brief Get all components associated with this entity.
-    /// @return A vector of ComponentRefs associated with this entity..
-    [[nodiscard]] std::vector<ComponentRef> const& components() const { return m_components; }
+    /// @return A vector of ComponentRefs associated with this entity.
+    [[nodiscard]] std::vector<ComponentRef> const& get_components() const { return m_components; }
 
 private:
     /// @brief Find a unique name for this entity in the parent entity.

@@ -81,9 +81,9 @@ TEST(world, iter_children_mutably)
     root->add_child(Entity::create<Entity>("child1"));
     root->add_child(Entity::create<Entity>("child2"));
     root->add_child(Entity::create<Entity>("child3"));
-    EXPECT_EQ(root->children().size(), 3);
+    EXPECT_EQ(root->get_children().size(), 3);
 
-    for (auto& child : root->children())
+    for (auto& child : root->get_children())
     {
         child->set_name("node");
     }
