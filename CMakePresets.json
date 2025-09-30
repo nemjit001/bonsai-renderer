@@ -42,6 +42,12 @@
       "configuration": "Debug"
     },
     {
+      "name": "clang-x64-release-with-debug-info",
+      "displayName": "Clang Release with Debug info (x64)",
+      "configurePreset": "clang-x64",
+      "configuration": "RelWithDebInfo"
+    },
+    {
       "name": "clang-x64-release",
       "displayName": "Clang Release (x64)",
       "configurePreset": "clang-x64",
