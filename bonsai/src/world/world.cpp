@@ -15,13 +15,13 @@ void World::update(double delta)
         std::vector<Entity::ComponentRef> components = current->get_components();
         std::vector<Entity::Ref> children = current->get_children();
 
-        // Update components & entities
+        // Update all entity components
         for (auto const& component : components)
         {
             component->update(delta);
         }
 
-        // Push children onto the stack for further processing
+        // Push entity children onto the stack for further processing
         for (auto const& child : children)
         {
             stack.push_back(child);

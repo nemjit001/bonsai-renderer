@@ -127,3 +127,23 @@ TEST(world, remove_component)
     EXPECT_FALSE(world.get_root()->has_component<Component>());
     EXPECT_EQ(world.get_root()->get_component<Component>(), nullptr);
 }
+
+TEST(world, single_timestep_modify_entity)
+{
+    class RemoverComponent : public Component
+    {
+    public:
+        void update([[maybe_unused]] double delta) override
+        {
+            parent_entity().remove_child("child");
+        }
+    };
+
+    World world{};
+    world.get_root()->add_child(Entity::create<Entity>("child"));
+    world.get_root()->add_component<RemoverComponent>();
+    EXPECT_TRUE(world.get_root()->has_child("child"));
+
+    world.update(0.0);
+    EXPECT_FALSE(world.get_root()->has_child("child"));
+}

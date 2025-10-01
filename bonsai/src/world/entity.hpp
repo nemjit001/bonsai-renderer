@@ -36,8 +36,8 @@ public:
     /// @param entity Entity to mark as parent.
     void set_entity(Entity* entity) { m_entity = entity; }
 
-    [[nodiscard]] Entity*       entity()        { return m_entity; }
-    [[nodiscard]] Entity const* entity() const  { return m_entity; }
+    [[nodiscard]] Entity&       parent_entity()         { return *m_entity; }
+    [[nodiscard]] Entity const& parent_entity() const   { return *m_entity; }
 
 private:
     Entity* m_entity = nullptr;
