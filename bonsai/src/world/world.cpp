@@ -7,16 +7,22 @@ void World::update(double delta)
     stack.push_back(m_root);
     while (!stack.empty())
     {
-        // Fetch next node from the stack & update components
+        // Fetch next node from the stack
         Entity::Ref const current = stack.back();
         stack.pop_back();
-        for (auto const& component : current->get_components())
+
+        // Get entity data before update, copies are used to avoid iterator invalidation during update in entities.
+        std::vector<Entity::ComponentRef> components = current->get_components();
+        std::vector<Entity::Ref> children = current->get_children();
+
+        // Update components & entities
+        for (auto const& component : components)
         {
             component->update(delta);
         }
 
         // Push children onto the stack for further processing
-        for (auto const& child : current->get_children())
+        for (auto const& child : children)
         {
             stack.push_back(child);
         }

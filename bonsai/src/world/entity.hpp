@@ -141,7 +141,9 @@ template <typename ComponentType, typename... Args>
 void Entity::add_component(Args&&... args)
 {
     static_assert(std::is_base_of_v<Component, ComponentType> && "ComponentType should derive from Component");
-    m_components.emplace_back(new ComponentType(std::forward<Args>(args)...));
+    ComponentRef component(new ComponentType(std::forward<Args>(args)...));
+    component->set_entity(this);
+    m_components.emplace_back(component);
 }
 
 template <typename ComponentType>
