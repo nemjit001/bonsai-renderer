@@ -7,7 +7,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include "component.hpp"
+
+class Entity;
 
 /// @brief Entity scene transform.
 struct Transform
@@ -19,6 +20,27 @@ struct Transform
     /// @brief Calculate the affine transformation matrix representing this Transform.
     /// @return A 4x4 transformation matrix.
     [[nodiscard]] glm::mat4 matrix() const;
+};
+
+/// @brief Component interface, can be added to an entity in the world to provide behaviour.
+class Component
+{
+public:
+    virtual ~Component() = default;
+
+    /// @brief Update this component's state.
+    /// @param delta Time delta between updates.
+    virtual void update([[maybe_unused]] double delta) {};
+
+    /// @brief Set this Component's associated entity.
+    /// @param entity Entity to mark as parent.
+    void set_entity(Entity* entity) { m_entity = entity; }
+
+    [[nodiscard]] Entity*       entity()        { return m_entity; }
+    [[nodiscard]] Entity const* entity() const  { return m_entity; }
+
+private:
+    Entity* m_entity = nullptr;
 };
 
 /// @brief Base entity class, represents anything that can be stored in the world.
