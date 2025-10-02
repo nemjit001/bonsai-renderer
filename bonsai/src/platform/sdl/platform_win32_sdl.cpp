@@ -11,5 +11,5 @@ HWND platform_get_surface_hwnd(Surface* surface)
     return static_cast<HWND>(SDL_GetPointerProperty(window_properties, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr));
 }
 
-#endif // _WIN32
-#endif // BONSAI_PLATFORM_SDL
+#endif //_WIN32
+#endif //BONSAI_PLATFORM_SDL

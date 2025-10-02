@@ -13,5 +13,5 @@
 /// @return The HWND associated with this platform surface.
 HWND platform_get_surface_hwnd(Surface* surface);
 
-#endif // _WIN32
+#endif //_WIN32
 #endif //BONSAI_RENDERER_PLATFORM_WIN32_HPP

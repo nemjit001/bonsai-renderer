@@ -20,5 +20,5 @@ char const** platform_enumerate_vulkan_instance_extensions(uint32_t* out_count);
 /// @return A boolean indicating successful surface creation.
 bool platform_create_vulkan_surface(Surface* platform_surface, VkInstance instance, VkAllocationCallbacks const* allocator, VkSurfaceKHR* out_surface);
 
-#endif // BONSAI_USE_VULKAN
+#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_PLATFORM_VULKAN_HPP

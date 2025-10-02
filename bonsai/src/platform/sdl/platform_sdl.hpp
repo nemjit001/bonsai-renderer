@@ -24,5 +24,5 @@ struct Platform::Impl
     PFN_PlatformSurfaceKeyCallback surface_key_callback;
 };
 
-#endif // BONSAI_PLATFORM_SDL
+#endif //BONSAI_PLATFORM_SDL
 #endif //BONSAI_RENDERER_PLATFORM_SDL_HPP

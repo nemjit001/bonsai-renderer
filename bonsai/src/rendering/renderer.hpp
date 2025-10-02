@@ -12,7 +12,7 @@ class Renderer
 {
 public:
     Renderer(Surface* surface);
-    ~Renderer() = default;
+    ~Renderer();
 
     Renderer(Renderer const&) = delete;
     Renderer& operator=(Renderer const&) = delete;

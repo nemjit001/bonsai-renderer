@@ -181,4 +181,4 @@ void Platform::set_platform_surface_key_callback(PFN_PlatformSurfaceKeyCallback 
     m_impl->surface_key_callback = callback;
 }
 
-#endif // BONSAI_PLATFORM_SDL
+#endif //BONSAI_PLATFORM_SDL

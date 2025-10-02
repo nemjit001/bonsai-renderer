@@ -17,5 +17,5 @@ bool platform_create_vulkan_surface(Surface* platform_surface, VkInstance instan
     return SDL_Vulkan_CreateSurface(surface_impl->window, instance, allocator, out_surface);
 }
 
-#endif // BONSAI_USE_VULKAN
-#endif // BONSAI_PLATFORM_SDL
+#endif //BONSAI_USE_VULKAN
+#endif //BONSAI_PLATFORM_SDL
