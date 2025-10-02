@@ -11,7 +11,7 @@ class World;
 class Renderer
 {
 public:
-    Renderer(Surface* surface);
+    explicit Renderer(Surface* surface);
     ~Renderer();
 
     Renderer(Renderer const&) = delete;
