@@ -2,7 +2,6 @@
 
 #include "core/die.hpp"
 #include "core/logger.hpp"
-#include "core/timer.hpp"
 #include "bonsai_config.hpp"
 
 Engine::~Engine()
@@ -47,7 +46,7 @@ Engine::Engine()
 
     // Initialize rendering system
     BONSAI_LOG_INFO("Initializing Renderer");
-    m_renderer = new Renderer();
+    m_renderer = new Renderer(m_surface);
 
     // Set surface handlers
     m_surface->set_user_data(m_renderer);

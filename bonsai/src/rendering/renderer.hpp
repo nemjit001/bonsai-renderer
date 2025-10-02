@@ -4,13 +4,14 @@
 
 #include <cstdint>
 
+class Surface;
 class World;
 
 /// @brief Renderer, exposes a rendering API abstraction over a low level graphics API.
 class Renderer
 {
 public:
-    Renderer() = default;
+    Renderer(Surface* surface);
     ~Renderer() = default;
 
     Renderer(Renderer const&) = delete;
