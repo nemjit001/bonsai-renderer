@@ -6,6 +6,7 @@
 #include "core/die.hpp"
 #include "core/logger.hpp"
 #include "platform/platform_vulkan.hpp"
+#include "bonsai_config.hpp"
 
 static constexpr uint32_t BONSAI_MINIMUM_VULKAN_VERSION = VK_API_VERSION_1_3;
 
@@ -157,7 +158,7 @@ Renderer::Renderer(Surface const* surface)
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pNext = nullptr;
     app_info.pApplicationName = "Bonsai";
-    app_info.applicationVersion = 0;
+    app_info.applicationVersion = VK_MAKE_API_VERSION(0, BONSAI_VERSION_MAJOR, BONSAI_VERSION_MINOR, BONSAI_VERSION_PATCH);
     app_info.apiVersion = BONSAI_MINIMUM_VULKAN_VERSION;
 
     VkInstanceCreateInfo instance_create_info{};
