@@ -72,6 +72,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vulkan_debug_callback(
     return create_info;
 }
 
+/// @brief Check if a list of validation layer names are all available in the instance.
+/// @param layer_names
+/// @return A boolean indicating all layer names are available in the Vulkan instance.
 static bool has_validation_layers(std::vector<char const*> const& layer_names)
 {
     uint32_t count = 0;
@@ -100,6 +103,10 @@ static bool has_validation_layers(std::vector<char const*> const& layer_names)
     return true;
 }
 
+/// @brief Validate a list of extension names against a list of available extensions.
+/// @param extension_names
+/// @param available_extensions
+/// @return A boolean indicating all extension names are available in the available extension list.
 static bool validate_extensions(std::vector<char const*> const& extension_names, std::vector<VkExtensionProperties> const& available_extensions)
 {
     for (auto const& name : extension_names)
@@ -124,6 +131,9 @@ static bool validate_extensions(std::vector<char const*> const& extension_names,
     return true;
 }
 
+/// @brief Check if a list of instance extensions are all available.
+/// @param extension_names
+/// @return A boolean indicating complete availability.
 static bool has_instance_extensions(std::vector<char const*> const& extension_names)
 {
     uint32_t count = 0;
@@ -133,6 +143,10 @@ static bool has_instance_extensions(std::vector<char const*> const& extension_na
     return validate_extensions(extension_names, available_extensions);
 }
 
+/// @brief Check if a list of device extensions are all available.
+/// @param device Physical device to use for the check.
+/// @param extension_names
+/// @return A boolean indicating complete availability.
 static bool has_device_extensions(VkPhysicalDevice device, std::vector<char const*> const& extension_names)
 {
     uint32_t count = 0;
