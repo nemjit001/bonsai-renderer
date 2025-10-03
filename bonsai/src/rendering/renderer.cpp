@@ -1,5 +1,6 @@
 #include "renderer.hpp"
 
+#include <cstring>
 #include <vector>
 #include <unordered_set>
 #include <volk.h>
@@ -69,6 +70,76 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vulkan_debug_callback(
     create_info.pUserData = nullptr;
 
     return create_info;
+}
+
+static bool has_validation_layers(std::vector<char const*> const& layer_names)
+{
+    uint32_t count = 0;
+    vkEnumerateInstanceLayerProperties(&count, nullptr);
+    std::vector<VkLayerProperties> available_layers(count);
+    vkEnumerateInstanceLayerProperties(&count, available_layers.data());
+    for (auto const& name : layer_names)
+    {
+        bool found = false;
+        for (auto const& available_layer : available_layers)
+        {
+            if (std::strcmp(name, available_layer.layerName) == 0)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            BONSAI_LOG_WARNING("Requested validation layer {} not found!", name);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool validate_extensions(std::vector<char const*> const& extension_names, std::vector<VkExtensionProperties> const& available_extensions)
+{
+    for (auto const& name : extension_names)
+    {
+        bool found = false;
+        for (auto const& available_extension : available_extensions)
+        {
+            if (std::strcmp(name, available_extension.extensionName) == 0)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            BONSAI_LOG_WARNING("Requested extension {} not found!", name);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool has_instance_extensions(std::vector<char const*> const& extension_names)
+{
+    uint32_t count = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
+    std::vector<VkExtensionProperties> available_extensions(count);
+    vkEnumerateInstanceExtensionProperties(nullptr, &count, available_extensions.data());
+    return validate_extensions(extension_names, available_extensions);
+}
+
+static bool has_device_extensions(VkPhysicalDevice device, std::vector<char const*> const& extension_names)
+{
+    uint32_t count = 0;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
+    std::vector<VkExtensionProperties> available_extensions(count);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &count, available_extensions.data());
+    return validate_extensions(extension_names, available_extensions);
 }
 
 /// @brief Pick the first found suitable physical device for the given Vulkan instance and surface.
@@ -148,11 +219,19 @@ Renderer::Renderer(Surface const* surface)
     layer_names.push_back("VK_LAYER_KHRONOS_validation");
     layer_names.push_back("VK_LAYER_KHRONOS_synchronization2");
 #endif //NDEBUG
+    if (!has_validation_layers(layer_names))
+    {
+        bonsai::die("Not all required Vulkan validation layers are available");
+    }
 
     uint32_t extension_count = 0;
     char const** window_extension_names = platform_enumerate_vulkan_instance_extensions(&extension_count);
     std::vector<char const*> extension_names(window_extension_names, window_extension_names + extension_count);
     extension_names.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    if (!has_instance_extensions(extension_names))
+    {
+        bonsai::die("Not all required Vulkan instance extensions are available");
+    }
 
     VkApplicationInfo app_info{};
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -187,6 +266,11 @@ Renderer::Renderer(Surface const* surface)
     }
 #endif //NDEBUG
     BONSAI_LOG_TRACE("Initialized Vulkan instance");
+    BONSAI_LOG_TRACE("Enabled {} instance extension(s)", extension_names.size());
+    for (auto const& extension : extension_names)
+    {
+        BONSAI_LOG_TRACE("- {}", extension);
+    }
 
     if (!platform_create_vulkan_surface(surface, m_impl->instance, nullptr, &m_impl->surface))
     {
@@ -209,6 +293,10 @@ Renderer::Renderer(Surface const* surface)
 
     std::vector<char const*> device_extension_names{};
     device_extension_names.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    if (!has_device_extensions(m_impl->physical_device, device_extension_names))
+    {
+        bonsai::die("Not all required Vulkan device extensions are available");
+    }
 
     std::unordered_set<uint32_t> const unique_queue_families = { m_impl->graphics_queue_family, };
     std::vector<std::vector<float>> queue_priorities{};
@@ -249,6 +337,11 @@ Renderer::Renderer(Surface const* surface)
     volkLoadDevice(m_impl->device);
     vkGetDeviceQueue(m_impl->device, m_impl->graphics_queue_family, 0, &m_impl->graphics_queue);
     BONSAI_LOG_TRACE("Initialized Vulkan device");
+    BONSAI_LOG_TRACE("Enabled {} device extension(s)", device_extension_names.size());
+    for (auto const& extension : device_extension_names)
+    {
+        BONSAI_LOG_TRACE("- {}", extension);
+    }
 }
 
 Renderer::~Renderer()
