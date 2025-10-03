@@ -7,7 +7,7 @@
 class Surface;
 class World;
 
-/// @brief Renderer, exposes a rendering API abstraction over a low level graphics API.
+/// @brief Renderer, implements the complete render pipeline for Bonsai.
 class Renderer
 {
 public:
@@ -24,7 +24,12 @@ public:
 
     /// @brief Render a World using the renderer.
     /// @param render_world World to use for rendering.
-    void render(World const& render_world);
+    /// @param delta Time delta between rendered frames in milliseconds.
+    void render(World const& render_world, double delta);
+
+private:
+    struct Impl;
+    Impl* m_impl = nullptr;
 };
 
 #endif //BONSAI_RENDERER_RENDERER_HPP

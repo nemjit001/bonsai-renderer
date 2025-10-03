@@ -11,7 +11,7 @@ char const** platform_enumerate_vulkan_instance_extensions(uint32_t* out_count)
     return const_cast<char const**>(extension_names); // This is kinda gross...
 }
 
-bool platform_create_vulkan_surface(Surface* platform_surface, VkInstance instance, VkAllocationCallbacks const* allocator, VkSurfaceKHR* out_surface)
+bool platform_create_vulkan_surface(Surface const* platform_surface, VkInstance instance, VkAllocationCallbacks const* allocator, VkSurfaceKHR* out_surface)
 {
     SurfaceImpl const* surface_impl = platform_surface->raw_surface();
     return SDL_Vulkan_CreateSurface(surface_impl->window, instance, allocator, out_surface);

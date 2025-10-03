@@ -83,7 +83,7 @@ void Engine::run()
 
         m_platform->pump_messages();
         m_world->update(delta_milliseconds);
-        m_renderer->render(*m_world);
+        m_renderer->render(*m_world, delta_milliseconds);
     }
 }
 
