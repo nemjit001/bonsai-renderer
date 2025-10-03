@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 
 #include <vector>
+#include <unordered_set>
 #include <volk.h>
 #include "core/die.hpp"
 #include "core/logger.hpp"
@@ -49,7 +50,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vulkan_debug_callback(
 }
 
 /// @brief Get the default debug utils configuration.
-static VkDebugUtilsMessengerCreateInfoEXT get_debug_utils_create_info()
+[[maybe_unused]] static VkDebugUtilsMessengerCreateInfoEXT get_debug_utils_create_info()
 {
     VkDebugUtilsMessengerCreateInfoEXT create_info{};
     create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -91,6 +92,41 @@ static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR s
     return VK_NULL_HANDLE;
 }
 
+/// @brief Find a queue family index by queue flags.
+/// @param device Physical device to use for queue queries.
+/// @param surface Surface to use for surface support queries, optional.
+/// @param required Required queue flags.
+/// @param ignored Ignored queue flags.
+/// @return The found queue family or UINT32_MAX if no queue family was found.
+static uint32_t find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface, VkQueueFlags required, VkQueueFlags ignored)
+{
+    uint32_t count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
+    std::vector<VkQueueFamilyProperties> queue_families(count);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &count, queue_families.data());
+
+    uint32_t queue_idx = 0;
+    for (auto const& queue_family : queue_families)
+    {
+        VkBool32 surface_support = VK_TRUE; // Assume supported
+        if (surface != VK_NULL_HANDLE)
+        {
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, queue_idx, surface, &surface_support);
+        }
+
+        if ((queue_family.queueFlags & required) == required
+            && (queue_family.queueFlags & ignored) == 0
+            && surface_support == VK_TRUE)
+        {
+            return queue_idx;
+        }
+
+        queue_idx += 1;
+    }
+
+    return UINT32_MAX;
+}
+
 Renderer::Renderer(Surface const* surface)
     :
     m_impl(new Impl{})
@@ -101,6 +137,10 @@ Renderer::Renderer(Surface const* surface)
     }
     BONSAI_LOG_TRACE("Loaded Vulkan symbols (v{}.{}.{})",
         VK_VERSION_MAJOR(volkGetInstanceVersion()), VK_API_VERSION_MINOR(volkGetInstanceVersion()), VK_API_VERSION_PATCH(volkGetInstanceVersion()));
+    if (volkGetInstanceVersion() < BONSAI_MINIMUM_VULKAN_VERSION)
+    {
+        bonsai::die("The installed Vulkan driver version is not compatible with Bonsai's minimum required Vulkan version");
+    }
 
     std::vector<char const*> layer_names{};
 #ifndef NDEBUG
@@ -158,11 +198,61 @@ Renderer::Renderer(Surface const* surface)
     {
         bonsai::die("Failed to select suitable physical device");
     }
+
+    m_impl->graphics_queue_family = find_queue_family(m_impl->physical_device, m_impl->surface, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 0);
+    if (m_impl->graphics_queue_family == UINT32_MAX)
+    {
+        bonsai::die("Failed to find required device queue families");
+    }
     BONSAI_LOG_TRACE("Picked suitable Vulkan physical device");
+
+    std::vector<char const*> device_extension_names{};
+    device_extension_names.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+    std::unordered_set<uint32_t> const unique_queue_families = { m_impl->graphics_queue_family, };
+    std::vector<std::vector<float>> queue_priorities{};
+    std::vector<VkDeviceQueueCreateInfo> queue_create_infos{};
+    queue_priorities.reserve(unique_queue_families.size());
+    queue_create_infos.reserve(unique_queue_families.size());
+    for (auto const& queue_family : unique_queue_families)
+    {
+        queue_priorities.push_back({ 1.0F }); // Single queue with 100% priority
+
+        VkDeviceQueueCreateInfo queue_create_info{};
+        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_create_info.pNext = nullptr;
+        queue_create_info.flags = 0;
+        queue_create_info.queueFamilyIndex = queue_family;
+        queue_create_info.queueCount = queue_priorities.back().size();
+        queue_create_info.pQueuePriorities = queue_priorities.back().data();
+
+        queue_create_infos.push_back(queue_create_info);
+    }
+
+    VkDeviceCreateInfo device_create_info{};
+    device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    device_create_info.pNext = nullptr;
+    device_create_info.flags = 0;
+    device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
+    device_create_info.pQueueCreateInfos = queue_create_infos.data();
+    device_create_info.enabledLayerCount = static_cast<uint32_t>(layer_names.size()); //NOTE(nemjit001): Deprecated, but required by Vulkan 1.0
+    device_create_info.ppEnabledLayerNames = layer_names.data();
+    device_create_info.enabledExtensionCount = static_cast<uint32_t>(device_extension_names.size());
+    device_create_info.ppEnabledExtensionNames = device_extension_names.data();
+    device_create_info.pEnabledFeatures = nullptr;
+
+    if (vkCreateDevice(m_impl->physical_device, &device_create_info, nullptr, &m_impl->device) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to create Vulkan device");
+    }
+    volkLoadDevice(m_impl->device);
+    vkGetDeviceQueue(m_impl->device, m_impl->graphics_queue_family, 0, &m_impl->graphics_queue);
+    BONSAI_LOG_TRACE("Initialized Vulkan device");
 }
 
 Renderer::~Renderer()
 {
+    vkDestroyDevice(m_impl->device, nullptr);
     vkDestroySurfaceKHR(m_impl->instance, m_impl->surface, nullptr);
     vkDestroyDebugUtilsMessengerEXT(m_impl->instance, m_impl->debug_messenger, nullptr);
     vkDestroyInstance(m_impl->instance, nullptr);
@@ -172,7 +262,8 @@ Renderer::~Renderer()
 
 void Renderer::on_resize(uint32_t width, uint32_t height)
 {
-    //
+    vkDeviceWaitIdle(m_impl->device);
+    // TODO(nemjit001): Resize swap chain buffers & any dependent resources
 }
 
 void Renderer::render(World const& render_world, double delta)
