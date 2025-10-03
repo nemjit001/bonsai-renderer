@@ -5,7 +5,8 @@
 
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.hpp>
-#include "platform.hpp"
+
+class Surface;
 
 /// @brief Enumerate the platform's required Vulkan instance extensions.
 /// @param out_count Number of extensions in the returned extension names array.

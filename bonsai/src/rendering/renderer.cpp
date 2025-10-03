@@ -4,7 +4,6 @@
 #include <volk.h>
 #include "core/die.hpp"
 #include "core/logger.hpp"
-#include "platform/platform.hpp"
 #include "platform/platform_vulkan.hpp"
 
 static constexpr uint32_t BONSAI_MINIMUM_VULKAN_VERSION = VK_API_VERSION_1_3;
@@ -70,6 +69,10 @@ static VkDebugUtilsMessengerCreateInfoEXT get_debug_utils_create_info()
     return create_info;
 }
 
+/// @brief Pick the first found suitable physical device for the given Vulkan instance and surface.
+/// @param instance
+/// @param surface
+/// @return A physical device, or VK_NULL_HANDLE if no device was found.
 static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR surface)
 {
     uint32_t count = 0;

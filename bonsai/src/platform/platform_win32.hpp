@@ -6,7 +6,8 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include "platform.hpp"
+
+class Surface;
 
 /// @brief Get the Win32 HWND handle from a platform surface.
 /// @param surface Surface to get HWND for.
