@@ -2,7 +2,7 @@
 
 #include "platform/platform.hpp"
 
-Renderer::Renderer(Surface* surface)
+Renderer::Renderer(Surface const* surface)
 {
     //
 }

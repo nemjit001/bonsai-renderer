@@ -16,6 +16,11 @@ static int get_sdl_window_flags(SurfaceConfig const& config)
     {
         window_flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
     }
+
+#if BONSAI_USE_VULKAN
+    window_flags |= SDL_WINDOW_VULKAN;
+#endif //BONSAI_USE_VULKAN
+
     return window_flags;
 }
 
