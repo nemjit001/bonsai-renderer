@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#if BONSAI_USE_VULKAN
 
 #include <cstring>
 #include <vector>
@@ -14,7 +15,7 @@ static constexpr uint32_t   BONSAI_MINIMUM_VULKAN_VERSION   = VK_API_VERSION_1_3
 /// @brief Number of frames in flight that Bonsai initializes with.
 static constexpr size_t     BONSAI_FRAMES_IN_FLIGHT         = 2;
 
-/// @brief Vulkan frame state.
+/// @brief Vulkan frame state, contains state that is better kept separated between frames.
 struct FrameState
 {
     VkFence frame_ready;
@@ -518,3 +519,5 @@ void Renderer::render(World const& render_world, double delta)
     }
     m_impl->frame_index += 1;
 }
+
+#endif //BONSAI_USE_VULKAN
