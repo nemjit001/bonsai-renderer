@@ -22,6 +22,8 @@ struct FrameState
     VkSemaphore swap_available;
     VkSemaphore rendering_finished;
     VkCommandPool graphics_pool;
+    VkCommandPool compute_pool;
+    VkCommandPool transfer_pool;
     VkCommandBuffer frame_commands;
 };
 
@@ -33,8 +35,12 @@ struct Renderer::Impl
     VkSurfaceKHR surface;
     VkPhysicalDevice physical_device;
     uint32_t graphics_queue_family;
+    uint32_t compute_queue_family;
+    uint32_t transfer_queue_family;
     VkDevice device;
     VkQueue graphics_queue;
+    VkQueue compute_queue;
+    VkQueue transfer_queue;
     VkSwapchainKHR swapchain;
     std::vector<VkImage> swap_images;
     std::vector<VkImageView> swap_image_views;
@@ -338,7 +344,18 @@ Renderer::Renderer(Surface const* surface)
     }
 
     m_impl->graphics_queue_family = find_queue_family(m_impl->physical_device, m_impl->surface, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 0);
-    if (m_impl->graphics_queue_family == UINT32_MAX)
+    m_impl->compute_queue_family = find_queue_family(m_impl->physical_device, VK_NULL_HANDLE, VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT);
+    m_impl->transfer_queue_family = find_queue_family(m_impl->physical_device, VK_NULL_HANDLE, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT);
+    if (m_impl->compute_queue_family == UINT32_MAX
+        || m_impl->transfer_queue_family == UINT32_MAX)
+    {   // Search for queues that support compute or transfer without specifically being unique from the graphics queue
+        m_impl->compute_queue_family = find_queue_family(m_impl->physical_device, VK_NULL_HANDLE, VK_QUEUE_COMPUTE_BIT, 0);
+        m_impl->transfer_queue_family = find_queue_family(m_impl->physical_device, VK_NULL_HANDLE, VK_QUEUE_TRANSFER_BIT, 0);
+    }
+
+    if (m_impl->graphics_queue_family == UINT32_MAX
+        || m_impl->compute_queue_family == UINT32_MAX
+        || m_impl->transfer_queue_family == UINT32_MAX)
     {
         bonsai::die("Failed to find required device queue families");
     }
@@ -354,10 +371,14 @@ Renderer::Renderer(Surface const* surface)
     device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     device_features2.features.samplerAnisotropy = VK_TRUE;
 
-    std::unordered_set<uint32_t> const unique_queue_families = { m_impl->graphics_queue_family, };
+    std::unordered_set<uint32_t> const unique_queue_families = {
+        m_impl->graphics_queue_family,
+        m_impl->compute_queue_family,
+        m_impl->transfer_queue_family,
+    };
     std::vector<std::vector<float>> queue_priorities{};
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos{};
-    queue_priorities.reserve(unique_queue_families.size());
+    queue_priorities.reserve(unique_queue_families.size()); // Reserve here is needed to keep pointers to queue priorities stable across vector pushes
     queue_create_infos.reserve(unique_queue_families.size());
     for (auto const& queue_family : unique_queue_families)
     {
@@ -392,6 +413,8 @@ Renderer::Renderer(Surface const* surface)
     }
     volkLoadDevice(m_impl->device);
     vkGetDeviceQueue(m_impl->device, m_impl->graphics_queue_family, 0, &m_impl->graphics_queue);
+    vkGetDeviceQueue(m_impl->device, m_impl->compute_queue_family, 0, &m_impl->compute_queue);
+    vkGetDeviceQueue(m_impl->device, m_impl->transfer_queue_family, 0, &m_impl->transfer_queue);
     BONSAI_LOG_TRACE("Initialized Vulkan device");
     BONSAI_LOG_TRACE("Enabled {} device extension(s)", device_extension_names.size());
     for (auto const& extension : device_extension_names)
@@ -429,9 +452,23 @@ Renderer::Renderer(Surface const* surface)
         graphics_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         graphics_pool_create_info.queueFamilyIndex = m_impl->graphics_queue_family;
 
-        if (vkCreateCommandPool(m_impl->device, &graphics_pool_create_info, nullptr, &frame_state.graphics_pool) != VK_SUCCESS)
+        VkCommandPoolCreateInfo compute_pool_create_info{};
+        compute_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        compute_pool_create_info.pNext = nullptr;
+        compute_pool_create_info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // Used as async compute
+        compute_pool_create_info.queueFamilyIndex = m_impl->compute_queue_family;
+
+        VkCommandPoolCreateInfo transfer_pool_create_info{};
+        transfer_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        transfer_pool_create_info.pNext = nullptr;
+        transfer_pool_create_info.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT; // Used for one-shot transfer jobs
+        transfer_pool_create_info.queueFamilyIndex = m_impl->transfer_queue_family;
+
+        if (vkCreateCommandPool(m_impl->device, &graphics_pool_create_info, nullptr, &frame_state.graphics_pool) != VK_SUCCESS
+            || vkCreateCommandPool(m_impl->device, &compute_pool_create_info, nullptr, &frame_state.compute_pool) != VK_SUCCESS
+            || vkCreateCommandPool(m_impl->device, &transfer_pool_create_info, nullptr, &frame_state.transfer_pool) != VK_SUCCESS)
         {
-            bonsai::die("Failed to create Vulkan graphics command pool");
+            bonsai::die("Failed to create Vulkan FrameState command pools");
         }
 
         VkCommandBufferAllocateInfo frame_command_buffer_allocate_info{};
@@ -457,6 +494,8 @@ Renderer::~Renderer()
     vkDeviceWaitIdle(m_impl->device);
     for (auto const& frame_state : m_impl->frame_states)
     {
+        vkDestroyCommandPool(m_impl->device, frame_state.transfer_pool, nullptr);
+        vkDestroyCommandPool(m_impl->device, frame_state.compute_pool, nullptr);
         vkDestroyCommandPool(m_impl->device, frame_state.graphics_pool, nullptr);
 
         vkDestroyFence(m_impl->device, frame_state.frame_ready, nullptr);
