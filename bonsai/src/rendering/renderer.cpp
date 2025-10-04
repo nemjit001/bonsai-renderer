@@ -9,8 +9,20 @@
 #include "platform/platform_vulkan.hpp"
 #include "bonsai_config.hpp"
 
-static constexpr uint32_t BONSAI_MINIMUM_VULKAN_VERSION = VK_API_VERSION_1_3;
+/// @brief Minimum supported Vulkan API version against which Bonsai is written.
+static constexpr uint32_t   BONSAI_MINIMUM_VULKAN_VERSION   = VK_API_VERSION_1_3;
+/// @brief Number of frames in flight that Bonsai initializes with.
+static constexpr size_t     BONSAI_FRAMES_IN_FLIGHT         = 2;
 
+/// @brief Vulkan frame state.
+struct FrameState
+{
+    VkFence frame_ready;
+    VkSemaphore swap_available;
+    VkSemaphore rendering_finished;
+};
+
+/// @brief Vulkan Renderer implementation.
 struct Renderer::Impl
 {
     VkInstance instance;
@@ -20,6 +32,11 @@ struct Renderer::Impl
     uint32_t graphics_queue_family;
     VkDevice device;
     VkQueue graphics_queue;
+    VkSwapchainKHR swapchain;
+    std::vector<VkImage> swap_images;
+    std::vector<VkImageView> swap_image_views;
+    std::vector<FrameState> frame_states;
+    uint64_t frame_index;
 };
 
 /// @brief Vulkan debug callback for routing validation data through logger.
@@ -168,10 +185,28 @@ static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR s
     vkEnumeratePhysicalDevices(instance, &count, physical_devices.data());
     for (auto const& device : physical_devices)
     {
-        // TODO(nemjit001): validate device
-        // - Validate Vulkan API version on device w/ min version
-        // - Check surface present support on at least 1 queue
-        // - Check required features are supported on device
+        // Check device properties
+        VkPhysicalDeviceProperties2 device_properties2{};
+        device_properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+
+        vkGetPhysicalDeviceProperties2(device, &device_properties2);
+        if (device_properties2.properties.apiVersion < BONSAI_MINIMUM_VULKAN_VERSION)
+        {
+            continue;
+        }
+
+        // Check required device features
+        VkPhysicalDeviceFeatures2 device_features2{};
+        device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+        vkGetPhysicalDeviceFeatures2(device, &device_features2);
+        if (device_features2.features.samplerAnisotropy == VK_FALSE)
+        {
+            continue;
+        }
+
+        // TODO(nemjit001): Check physical device surface support before returning the device
+        BONSAI_LOG_TRACE("Found suitable Vulkan device: {} ({})", device_properties2.properties.deviceName, device_properties2.properties.deviceID);
         return device;
     }
 
@@ -267,6 +302,7 @@ Renderer::Renderer(Surface const* surface)
     VkDebugUtilsMessengerCreateInfoEXT const debug_create_info = get_debug_utils_create_info();
     instance_create_info.pNext = &debug_create_info;
 #endif //NDEBUG
+
     if (vkCreateInstance(&instance_create_info, nullptr, &m_impl->instance) != VK_SUCCESS)
     {
         bonsai::die("Failed to create Vulkan instance");
@@ -303,7 +339,6 @@ Renderer::Renderer(Surface const* surface)
     {
         bonsai::die("Failed to find required device queue families");
     }
-    BONSAI_LOG_TRACE("Picked suitable Vulkan physical device");
 
     std::vector<char const*> device_extension_names{};
     device_extension_names.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -311,6 +346,10 @@ Renderer::Renderer(Surface const* surface)
     {
         bonsai::die("Not all required Vulkan device extensions are available");
     }
+
+    VkPhysicalDeviceFeatures2 device_features2{};
+    device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    device_features2.features.samplerAnisotropy = VK_TRUE;
 
     std::unordered_set<uint32_t> const unique_queue_families = { m_impl->graphics_queue_family, };
     std::vector<std::vector<float>> queue_priorities{};
@@ -334,7 +373,7 @@ Renderer::Renderer(Surface const* surface)
 
     VkDeviceCreateInfo device_create_info{};
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_create_info.pNext = nullptr;
+    device_create_info.pNext = &device_features2;
     device_create_info.flags = 0;
     device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
@@ -356,10 +395,47 @@ Renderer::Renderer(Surface const* surface)
     {
         BONSAI_LOG_TRACE("- {}", extension);
     }
+
+    BONSAI_LOG_TRACE("Starting Vulkan FrameState initialization");
+    m_impl->frame_states.reserve(BONSAI_FRAMES_IN_FLIGHT);
+    for (size_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
+    {
+        FrameState frame_state{};
+
+        VkFenceCreateInfo frame_fence_create_info{};
+        frame_fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        frame_fence_create_info.pNext = nullptr;
+        frame_fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        VkSemaphoreCreateInfo semaphore_create_info{};
+        semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphore_create_info.pNext = nullptr;
+        semaphore_create_info.flags = 0;
+
+        if (vkCreateFence(m_impl->device, &frame_fence_create_info, nullptr, &frame_state.frame_ready) != VK_SUCCESS
+            || vkCreateSemaphore(m_impl->device, &semaphore_create_info, nullptr, &frame_state.swap_available) != VK_SUCCESS
+            || vkCreateSemaphore(m_impl->device, &semaphore_create_info, nullptr, &frame_state.rendering_finished) != VK_SUCCESS)
+        {
+            bonsai::die("Failed to create Vulkan FrameState sync primitives");
+        }
+        BONSAI_LOG_TRACE("Initialized Vulkan FrameState sync primitives (frame {})", i + 1);
+
+        m_impl->frame_states.push_back(frame_state);
+    }
+    BONSAI_LOG_TRACE("Initialized Vulkan frame states ({} frames in flight)", BONSAI_FRAMES_IN_FLIGHT);
+    m_impl->frame_index = 0;
 }
 
 Renderer::~Renderer()
 {
+    vkDeviceWaitIdle(m_impl->device);
+    for (auto const& frame_state : m_impl->frame_states)
+    {
+        vkDestroyFence(m_impl->device, frame_state.frame_ready, nullptr);
+        vkDestroySemaphore(m_impl->device, frame_state.swap_available, nullptr);
+        vkDestroySemaphore(m_impl->device, frame_state.rendering_finished, nullptr);
+    }
+
     vkDestroyDevice(m_impl->device, nullptr);
     vkDestroySurfaceKHR(m_impl->instance, m_impl->surface, nullptr);
     vkDestroyDebugUtilsMessengerEXT(m_impl->instance, m_impl->debug_messenger, nullptr);
@@ -376,5 +452,22 @@ void Renderer::on_resize(uint32_t width, uint32_t height)
 
 void Renderer::render(World const& render_world, double delta)
 {
-    //
+    size_t const current_frame_index = m_impl->frame_index % m_impl->frame_states.size();
+    FrameState const& frame_state = m_impl->frame_states[current_frame_index];
+
+    vkWaitForFences(m_impl->device, 1, &frame_state.frame_ready, VK_TRUE, UINT64_MAX);
+    vkResetFences(m_impl->device, 1, &frame_state.frame_ready);
+
+    VkSubmitInfo submit_info{};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.waitSemaphoreCount = 0;
+    submit_info.pWaitDstStageMask = nullptr;
+    submit_info.pWaitDstStageMask = nullptr;
+    submit_info.commandBufferCount = 0;
+    submit_info.pCommandBuffers = nullptr;
+    submit_info.signalSemaphoreCount = 0;
+    submit_info.pSignalSemaphores = nullptr;
+
+    vkQueueSubmit(m_impl->graphics_queue, 1, &submit_info, frame_state.frame_ready);
+    m_impl->frame_index += 1;
 }
