@@ -9,11 +9,23 @@
 #include "core/logger.hpp"
 #include "platform/platform_vulkan.hpp"
 #include "bonsai_config.hpp"
+#include "platform/platform.hpp"
 
 /// @brief Minimum supported Vulkan API version against which Bonsai is written.
 static constexpr uint32_t   BONSAI_MINIMUM_VULKAN_VERSION   = VK_API_VERSION_1_3;
 /// @brief Number of frames in flight that Bonsai initializes with.
 static constexpr size_t     BONSAI_FRAMES_IN_FLIGHT         = 2;
+
+struct SwapchainConfig
+{
+    VkSurfaceKHR surface;
+    uint32_t image_count;
+    VkExtent2D extent;
+    VkFormat preferred_format;
+    VkColorSpaceKHR preferred_color_space;
+    VkPresentModeKHR preferred_present_mode;
+    VkSurfaceTransformFlagBitsKHR current_transform;
+};
 
 /// @brief Vulkan frame state, contains state that is better kept separated between frames.
 struct FrameState
@@ -257,6 +269,90 @@ static uint32_t find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface,
     return UINT32_MAX;
 }
 
+static SwapchainConfig get_swap_configuration(VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height)
+{
+    // FIXME(nemjit001): Read these parameters from surface capabilities
+    SwapchainConfig config{};
+    config.surface = surface;
+    config.image_count = 3;
+    config.extent = VkExtent2D{ width, height };
+    config.preferred_format = VK_FORMAT_R8G8B8A8_SRGB;
+    config.preferred_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    config.preferred_present_mode = VK_PRESENT_MODE_FIFO_KHR;
+    config.current_transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    return config;
+}
+
+static VkResult create_swapchain(VkDevice device, SwapchainConfig const& swapchain_config, VkSwapchainKHR old_swapchain, VkSwapchainKHR* out_swapchain)
+{
+    VkSwapchainCreateInfoKHR swapchain_create_info{};
+    swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchain_create_info.pNext = nullptr;
+    swapchain_create_info.flags = 0;
+    swapchain_create_info.surface = swapchain_config.surface;
+    swapchain_create_info.minImageCount = swapchain_config.image_count;
+    swapchain_create_info.imageFormat = swapchain_config.preferred_format;
+    swapchain_create_info.imageColorSpace = swapchain_config.preferred_color_space;
+    swapchain_create_info.imageExtent = swapchain_config.extent;
+    swapchain_create_info.imageArrayLayers = 1;
+    swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapchain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    swapchain_create_info.queueFamilyIndexCount = 0;
+    swapchain_create_info.pQueueFamilyIndices = nullptr;
+    swapchain_create_info.preTransform = swapchain_config.current_transform;
+    swapchain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapchain_create_info.presentMode = swapchain_config.preferred_present_mode;
+    swapchain_create_info.clipped = VK_FALSE;
+    swapchain_create_info.oldSwapchain = old_swapchain;
+
+    if (vkCreateSwapchainKHR(device, &swapchain_create_info, nullptr, out_swapchain) != VK_SUCCESS)
+    {
+        return VK_ERROR_INITIALIZATION_FAILED;
+    }
+    vkDestroySwapchainKHR(device, old_swapchain, nullptr);
+    return VK_SUCCESS;
+}
+
+static void create_swapchain_image_resources(
+    VkDevice device,
+    VkSwapchainKHR swapchain,
+    SwapchainConfig const& swapchain_config,
+    std::vector<VkImage>& out_swap_images,
+    std::vector<VkImageView>& out_swap_image_views
+)
+{
+    uint32_t swap_image_count = 0;
+    vkGetSwapchainImagesKHR(device, swapchain, &swap_image_count, nullptr);
+    out_swap_images.resize(swap_image_count);
+    vkGetSwapchainImagesKHR(device, swapchain, &swap_image_count, out_swap_images.data());
+
+    out_swap_image_views.clear();
+    out_swap_image_views.reserve(swap_image_count);
+    for (auto const& image : out_swap_images)
+    {
+        VkImageViewCreateInfo image_view_create_info{};
+        image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        image_view_create_info.pNext = nullptr;
+        image_view_create_info.flags = 0;
+        image_view_create_info.image = image;
+        image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        image_view_create_info.format = swapchain_config.preferred_format;
+        image_view_create_info.components = VkComponentMapping{};
+        image_view_create_info.subresourceRange = VkImageSubresourceRange{
+            VK_IMAGE_ASPECT_COLOR_BIT,
+            0, 1,
+            0, 1,
+        };
+
+        VkImageView view = VK_NULL_HANDLE;
+        if (vkCreateImageView(device, &image_view_create_info, nullptr, &view) != VK_SUCCESS)
+        {
+            bonsai::die("Failed to create Vulkan swap image view");
+        }
+        out_swap_image_views.push_back(view);
+    }
+}
+
 Renderer::Renderer(Surface const* surface)
     :
     m_impl(new Impl{})
@@ -422,6 +518,16 @@ Renderer::Renderer(Surface const* surface)
         BONSAI_LOG_TRACE("- {}", extension);
     }
 
+    uint32_t surface_width = 0, surface_height = 0;
+    surface->get_size(surface_width, surface_height);
+    SwapchainConfig const swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, surface_width, surface_height);
+    if (create_swapchain(m_impl->device, swap_config, VK_NULL_HANDLE, &m_impl->swapchain) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to create Vulkan swap chain");
+    }
+    create_swapchain_image_resources(m_impl->device, m_impl->swapchain, swap_config, m_impl->swap_images, m_impl->swap_image_views);
+    BONSAI_LOG_TRACE("Initialized Vulkan swap chain");
+
     BONSAI_LOG_TRACE("Starting Vulkan FrameState initialization");
     m_impl->frame_states.reserve(BONSAI_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < BONSAI_FRAMES_IN_FLIGHT; i++)
@@ -503,6 +609,12 @@ Renderer::~Renderer()
         vkDestroySemaphore(m_impl->device, frame_state.rendering_finished, nullptr);
     }
 
+    for (auto const& view : m_impl->swap_image_views)
+    {
+        vkDestroyImageView(m_impl->device, view, nullptr);
+    }
+    vkDestroySwapchainKHR(m_impl->device, m_impl->swapchain, nullptr);
+
     vkDestroyDevice(m_impl->device, nullptr);
     vkDestroySurfaceKHR(m_impl->instance, m_impl->surface, nullptr);
     vkDestroyDebugUtilsMessengerEXT(m_impl->instance, m_impl->debug_messenger, nullptr);
@@ -514,7 +626,25 @@ Renderer::~Renderer()
 void Renderer::on_resize(uint32_t width, uint32_t height)
 {
     vkDeviceWaitIdle(m_impl->device);
-    // TODO(nemjit001): Resize swap chain buffers & any dependent resources
+
+    for (auto const& view : m_impl->swap_image_views)
+    {
+        vkDestroyImageView(m_impl->device, view, nullptr);
+    }
+    m_impl->swap_image_views.clear();
+    m_impl->swap_images.clear();
+    BONSAI_LOG_TRACE("Released swap resources");
+
+    VkSwapchainKHR const old_swapchain = m_impl->swapchain;
+    SwapchainConfig const swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, width, height);
+    if (create_swapchain(m_impl->device, swap_config, old_swapchain, &m_impl->swapchain) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to recreate Vulkan swap chain");
+    }
+    BONSAI_LOG_TRACE("Recreated swap chain");
+
+    create_swapchain_image_resources(m_impl->device, m_impl->swapchain, swap_config, m_impl->swap_images, m_impl->swap_image_views);
+    BONSAI_LOG_TRACE("Recreated swap resources");
 }
 
 void Renderer::render(World const& render_world, double delta)
