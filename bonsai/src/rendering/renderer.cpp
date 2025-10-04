@@ -20,6 +20,8 @@ struct FrameState
     VkFence frame_ready;
     VkSemaphore swap_available;
     VkSemaphore rendering_finished;
+    VkCommandPool graphics_pool;
+    VkCommandBuffer frame_commands;
 };
 
 /// @brief Vulkan Renderer implementation.
@@ -420,6 +422,29 @@ Renderer::Renderer(Surface const* surface)
         }
         BONSAI_LOG_TRACE("Initialized Vulkan FrameState sync primitives (frame {})", i + 1);
 
+        VkCommandPoolCreateInfo graphics_pool_create_info{};
+        graphics_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        graphics_pool_create_info.pNext = nullptr;
+        graphics_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        graphics_pool_create_info.queueFamilyIndex = m_impl->graphics_queue_family;
+
+        if (vkCreateCommandPool(m_impl->device, &graphics_pool_create_info, nullptr, &frame_state.graphics_pool) != VK_SUCCESS)
+        {
+            bonsai::die("Failed to create Vulkan graphics command pool");
+        }
+
+        VkCommandBufferAllocateInfo frame_command_buffer_allocate_info{};
+        frame_command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        frame_command_buffer_allocate_info.pNext = nullptr;
+        frame_command_buffer_allocate_info.commandPool = frame_state.graphics_pool;
+        frame_command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        frame_command_buffer_allocate_info.commandBufferCount = 1;
+
+        if (vkAllocateCommandBuffers(m_impl->device, &frame_command_buffer_allocate_info, &frame_state.frame_commands) != VK_SUCCESS)
+        {
+            bonsai::die("Failed to allocate Vulkan frame command buffer");
+        }
+        BONSAI_LOG_TRACE("Initialized Vulkan FrameState command state (frame {})", i + 1);
         m_impl->frame_states.push_back(frame_state);
     }
     BONSAI_LOG_TRACE("Initialized Vulkan frame states ({} frames in flight)", BONSAI_FRAMES_IN_FLIGHT);
@@ -431,6 +456,8 @@ Renderer::~Renderer()
     vkDeviceWaitIdle(m_impl->device);
     for (auto const& frame_state : m_impl->frame_states)
     {
+        vkDestroyCommandPool(m_impl->device, frame_state.graphics_pool, nullptr);
+
         vkDestroyFence(m_impl->device, frame_state.frame_ready, nullptr);
         vkDestroySemaphore(m_impl->device, frame_state.swap_available, nullptr);
         vkDestroySemaphore(m_impl->device, frame_state.rendering_finished, nullptr);
@@ -458,16 +485,36 @@ void Renderer::render(World const& render_world, double delta)
     vkWaitForFences(m_impl->device, 1, &frame_state.frame_ready, VK_TRUE, UINT64_MAX);
     vkResetFences(m_impl->device, 1, &frame_state.frame_ready);
 
+    VkCommandBufferBeginInfo command_buffer_begin_info{};
+    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    command_buffer_begin_info.pNext = nullptr;
+    command_buffer_begin_info.flags = 0;
+    command_buffer_begin_info.pInheritanceInfo = nullptr;
+
+    vkResetCommandBuffer(frame_state.frame_commands, 0);
+    if (vkBeginCommandBuffer(frame_state.frame_commands, &command_buffer_begin_info) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to start command recording for frame ({})", m_impl->frame_index);
+    }
+
+    if (vkEndCommandBuffer(frame_state.frame_commands) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to end command recording for frame ({})", m_impl->frame_index);
+    }
+
     VkSubmitInfo submit_info{};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.waitSemaphoreCount = 0;
     submit_info.pWaitDstStageMask = nullptr;
     submit_info.pWaitDstStageMask = nullptr;
-    submit_info.commandBufferCount = 0;
-    submit_info.pCommandBuffers = nullptr;
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &frame_state.frame_commands;
     submit_info.signalSemaphoreCount = 0;
     submit_info.pSignalSemaphores = nullptr;
 
-    vkQueueSubmit(m_impl->graphics_queue, 1, &submit_info, frame_state.frame_ready);
+    if (vkQueueSubmit(m_impl->graphics_queue, 1, &submit_info, frame_state.frame_ready) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to present rendered frame ({})", m_impl->frame_index);
+    }
     m_impl->frame_index += 1;
 }
