@@ -283,7 +283,10 @@ static uint32_t find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface,
 
     return UINT32_MAX;
 }
-
+/// @brief Get the swap chain capabilities for a surface and physical device.
+/// @param device
+/// @param surface
+/// @return A SwapchainCapabilities structure containing capability info.
 static SwapchainCapabilities get_swap_capabilities(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     VkSurfaceCapabilitiesKHR surface_capabilities{};
