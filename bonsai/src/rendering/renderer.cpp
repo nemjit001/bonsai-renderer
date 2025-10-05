@@ -62,6 +62,7 @@ struct Renderer::Impl
     VkQueue graphics_queue;
     VkQueue compute_queue;
     VkQueue transfer_queue;
+    SwapchainConfig swap_config;
     VkSwapchainKHR swapchain;
     std::vector<VkImage> swap_images;
     std::vector<VkImageView> swap_image_views;
@@ -607,12 +608,12 @@ Renderer::Renderer(Surface const* surface)
 
     uint32_t surface_width = 0, surface_height = 0;
     surface->get_size(surface_width, surface_height);
-    SwapchainConfig const swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, surface_width, surface_height);
-    if (create_swapchain(m_impl->device, swap_config, VK_NULL_HANDLE, &m_impl->swapchain) != VK_SUCCESS)
+    m_impl->swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, surface_width, surface_height);
+    if (create_swapchain(m_impl->device, m_impl->swap_config, VK_NULL_HANDLE, &m_impl->swapchain) != VK_SUCCESS)
     {
         bonsai::die("Failed to create Vulkan swap chain");
     }
-    create_swapchain_image_resources(m_impl->device, m_impl->swapchain, swap_config, m_impl->swap_images, m_impl->swap_image_views);
+    create_swapchain_image_resources(m_impl->device, m_impl->swapchain, m_impl->swap_config, m_impl->swap_images, m_impl->swap_image_views);
     BONSAI_LOG_TRACE("Initialized Vulkan swap chain");
 
     BONSAI_LOG_TRACE("Starting Vulkan FrameState initialization");
@@ -713,6 +714,11 @@ Renderer::~Renderer()
 void Renderer::on_resize(uint32_t width, uint32_t height)
 {
     vkDeviceWaitIdle(m_impl->device);
+    m_impl->swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, width, height);
+    if (width == 0 || height == 0)
+    {
+        return;
+    }
 
     for (auto const& view : m_impl->swap_image_views)
     {
@@ -722,18 +728,22 @@ void Renderer::on_resize(uint32_t width, uint32_t height)
     m_impl->swap_images.clear();
 
     VkSwapchainKHR old_swapchain = m_impl->swapchain;
-    SwapchainConfig const swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, width, height);
-    if (create_swapchain(m_impl->device, swap_config, old_swapchain, &m_impl->swapchain) != VK_SUCCESS)
+    if (create_swapchain(m_impl->device, m_impl->swap_config, old_swapchain, &m_impl->swapchain) != VK_SUCCESS)
     {
         bonsai::die("Failed to recreate Vulkan swap chain");
     }
-    create_swapchain_image_resources(m_impl->device, m_impl->swapchain, swap_config, m_impl->swap_images, m_impl->swap_image_views);
+    create_swapchain_image_resources(m_impl->device, m_impl->swapchain, m_impl->swap_config, m_impl->swap_images, m_impl->swap_image_views);
     BONSAI_LOG_TRACE("Recreated swap resources");
 }
 
 void Renderer::render(World const& render_world, double delta)
 {
     size_t const current_frame_index = m_impl->frame_index % m_impl->frame_states.size();
+    if (m_impl->swap_config.extent.width == 0 || m_impl->swap_config.extent.height == 0)
+    {
+        return;
+    }
+
     FrameState const& frame_state = m_impl->frame_states[current_frame_index];
     vkWaitForFences(m_impl->device, 1, &frame_state.frame_ready, VK_TRUE, UINT64_MAX);
 

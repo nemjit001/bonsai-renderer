@@ -86,4 +86,3 @@ void Engine::run()
         m_renderer->render(*m_world, delta_milliseconds);
     }
 }
-
