@@ -2,20 +2,29 @@
 #if BONSAI_USE_VULKAN
 
 #include <cstring>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 #include <volk.h>
 #include "core/die.hpp"
 #include "core/logger.hpp"
+#include "platform/platform.hpp"
 #include "platform/platform_vulkan.hpp"
 #include "bonsai_config.hpp"
-#include "platform/platform.hpp"
 
 /// @brief Minimum supported Vulkan API version against which Bonsai is written.
 static constexpr uint32_t   BONSAI_MINIMUM_VULKAN_VERSION   = VK_API_VERSION_1_3;
 /// @brief Number of frames in flight that Bonsai initializes with.
 static constexpr size_t     BONSAI_FRAMES_IN_FLIGHT         = 2;
 
+/// @brief Swap chain capabilities, contains possible config values that can be used to initialize the SwapchainConfig.
+struct SwapchainCapabilities
+{
+    VkSurfaceCapabilitiesKHR surface_capabilities;
+    std::vector<VkSurfaceFormatKHR> surface_formats;
+    std::vector<VkPresentModeKHR> present_infos;
+};
+
+/// @brief Swap chain configuration state, selected from swap capabilities.
 struct SwapchainConfig
 {
     VkSurfaceKHR surface;
@@ -217,11 +226,16 @@ static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR s
         }
 
         // Check required device features
+        VkPhysicalDeviceVulkan13Features vulkan13_features{};
+        vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+
         VkPhysicalDeviceFeatures2 device_features2{};
         device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        device_features2.pNext = &vulkan13_features;
 
         vkGetPhysicalDeviceFeatures2(device, &device_features2);
-        if (device_features2.features.samplerAnisotropy == VK_FALSE)
+        if (device_features2.features.samplerAnisotropy == VK_FALSE
+            || vulkan13_features.synchronization2 == VK_FALSE)
         {
             continue;
         }
@@ -269,20 +283,82 @@ static uint32_t find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface,
     return UINT32_MAX;
 }
 
+static SwapchainCapabilities get_swap_capabilities(VkPhysicalDevice device, VkSurfaceKHR surface)
+{
+    VkSurfaceCapabilitiesKHR surface_capabilities{};
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &surface_capabilities);
+
+    uint32_t format_count = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
+    std::vector<VkSurfaceFormatKHR> surface_formats(format_count);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, surface_formats.data());
+
+    uint32_t mode_count = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, nullptr);
+    std::vector<VkPresentModeKHR> present_modes(mode_count);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, present_modes.data());
+
+    SwapchainCapabilities capabilities{};
+    capabilities.surface_capabilities = surface_capabilities;
+    capabilities.surface_formats = surface_formats;
+    capabilities.present_infos = present_modes;
+    return capabilities;
+}
+
+/// @brief Get a swap chain configuration from a physical device and surface.
+/// @param device Physical device to use for configuration query.
+/// @param surface Surface to use for configuration query.
+/// @param width Surface width in pixels.
+/// @param height Surface height in pixels.
+/// @return A new SwapchainConfig structure.
 static SwapchainConfig get_swap_configuration(VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height)
 {
-    // FIXME(nemjit001): Read these parameters from surface capabilities
+    SwapchainCapabilities const capabilities = get_swap_capabilities(device, surface);
+    uint32_t image_count = capabilities.surface_capabilities.minImageCount + 1;
+    if (image_count > capabilities.surface_capabilities.maxImageCount && capabilities.surface_capabilities.maxImageCount != 0)
+    {
+        image_count = capabilities.surface_capabilities.maxImageCount;
+    }
+
+    VkExtent2D image_extent = capabilities.surface_capabilities.currentExtent;
+    if (image_extent.width == UINT32_MAX || image_extent.height == UINT32_MAX)
+    {
+        image_extent = VkExtent2D { width, height };
+    }
+
+    VkSurfaceFormatKHR preferred_surface_format = capabilities.surface_formats[0]; // Default to 1st available format
+    for (auto const& format : capabilities.surface_formats)
+    {
+        if (format.format == VK_FORMAT_R8G8B8A8_SRGB || format.format == VK_FORMAT_B8G8R8A8_SRGB)
+        {
+            preferred_surface_format = format;
+            break;
+        }
+
+        if (format.format == VK_FORMAT_R8G8B8A8_UNORM || format.format == VK_FORMAT_B8G8R8A8_UNORM)
+        {
+            preferred_surface_format = format;
+            break;
+        }
+    }
+
     SwapchainConfig config{};
     config.surface = surface;
-    config.image_count = 3;
-    config.extent = VkExtent2D{ width, height };
-    config.preferred_format = VK_FORMAT_R8G8B8A8_SRGB;
-    config.preferred_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-    config.preferred_present_mode = VK_PRESENT_MODE_FIFO_KHR;
-    config.current_transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    config.image_count = image_count;
+    config.extent = image_extent;
+    config.preferred_format = preferred_surface_format.format;
+    config.preferred_color_space = preferred_surface_format.colorSpace;
+    config.preferred_present_mode = VK_PRESENT_MODE_FIFO_KHR; // Always supported
+    config.current_transform = capabilities.surface_capabilities.currentTransform;
     return config;
 }
 
+/// @brief Create a swap chain using a given swap chain configuration.
+/// @param device Logical device to use for swap chain creation.
+/// @param swapchain_config Swap chain configuration to use.
+/// @param old_swapchain Old swap chain, optional.
+/// @param out_swapchain Output swap chain.
+/// @return A VkResult indicating creation status.
 static VkResult create_swapchain(VkDevice device, SwapchainConfig const& swapchain_config, VkSwapchainKHR old_swapchain, VkSwapchainKHR* out_swapchain)
 {
     VkSwapchainCreateInfoKHR swapchain_create_info{};
@@ -313,6 +389,12 @@ static VkResult create_swapchain(VkDevice device, SwapchainConfig const& swapcha
     return VK_SUCCESS;
 }
 
+/// @brief Create swap chain image resources.
+/// @param device
+/// @param swapchain
+/// @param swapchain_config
+/// @param out_swap_images
+/// @param out_swap_image_views
 static void create_swapchain_image_resources(
     VkDevice device,
     VkSwapchainKHR swapchain,
@@ -463,8 +545,13 @@ Renderer::Renderer(Surface const* surface)
         bonsai::die("Not all required Vulkan device extensions are available");
     }
 
+    VkPhysicalDeviceVulkan13Features vulkan13_features{};
+    vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    vulkan13_features.synchronization2 = VK_TRUE;
+
     VkPhysicalDeviceFeatures2 device_features2{};
     device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    device_features2.pNext = &vulkan13_features;
     device_features2.features.samplerAnisotropy = VK_TRUE;
 
     std::unordered_set<uint32_t> const unique_queue_families = {
@@ -633,16 +720,13 @@ void Renderer::on_resize(uint32_t width, uint32_t height)
     }
     m_impl->swap_image_views.clear();
     m_impl->swap_images.clear();
-    BONSAI_LOG_TRACE("Released swap resources");
 
-    VkSwapchainKHR const old_swapchain = m_impl->swapchain;
+    VkSwapchainKHR old_swapchain = m_impl->swapchain;
     SwapchainConfig const swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, width, height);
     if (create_swapchain(m_impl->device, swap_config, old_swapchain, &m_impl->swapchain) != VK_SUCCESS)
     {
         bonsai::die("Failed to recreate Vulkan swap chain");
     }
-    BONSAI_LOG_TRACE("Recreated swap chain");
-
     create_swapchain_image_resources(m_impl->device, m_impl->swapchain, swap_config, m_impl->swap_images, m_impl->swap_image_views);
     BONSAI_LOG_TRACE("Recreated swap resources");
 }
@@ -651,8 +735,13 @@ void Renderer::render(World const& render_world, double delta)
 {
     size_t const current_frame_index = m_impl->frame_index % m_impl->frame_states.size();
     FrameState const& frame_state = m_impl->frame_states[current_frame_index];
-
     vkWaitForFences(m_impl->device, 1, &frame_state.frame_ready, VK_TRUE, UINT64_MAX);
+
+    uint32_t swap_image_idx = 0;
+    if (vkAcquireNextImageKHR(m_impl->device, m_impl->swapchain, UINT64_MAX, frame_state.swap_available, VK_NULL_HANDLE, &swap_image_idx) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to acquire swap image");
+    }
     vkResetFences(m_impl->device, 1, &frame_state.frame_ready);
 
     VkCommandBufferBeginInfo command_buffer_begin_info{};
@@ -667,25 +756,69 @@ void Renderer::render(World const& render_world, double delta)
         bonsai::die("Failed to start command recording for frame ({})", m_impl->frame_index);
     }
 
+    VkImageMemoryBarrier2 swap_present_barrier{};
+    swap_present_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+    swap_present_barrier.pNext = nullptr;
+    swap_present_barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+    swap_present_barrier.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+    swap_present_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+    swap_present_barrier.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+    swap_present_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    swap_present_barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    swap_present_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    swap_present_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    swap_present_barrier.image = m_impl->swap_images[swap_image_idx];
+    swap_present_barrier.subresourceRange = VkImageSubresourceRange{
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        0, 1,
+        0, 1,
+    };
+
+    VkDependencyInfo swap_dependencies{};
+    swap_dependencies.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    swap_dependencies.pNext = nullptr;
+    swap_dependencies.dependencyFlags = 0;
+    swap_dependencies.imageMemoryBarrierCount = 1;
+    swap_dependencies.pImageMemoryBarriers = &swap_present_barrier;
+
+    vkCmdPipelineBarrier2(frame_state.frame_commands, &swap_dependencies);
+
     if (vkEndCommandBuffer(frame_state.frame_commands) != VK_SUCCESS)
     {
         bonsai::die("Failed to end command recording for frame ({})", m_impl->frame_index);
     }
 
+    VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     VkSubmitInfo submit_info{};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.waitSemaphoreCount = 0;
-    submit_info.pWaitDstStageMask = nullptr;
-    submit_info.pWaitDstStageMask = nullptr;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pWaitDstStageMask = wait_stages;
+    submit_info.pWaitSemaphores = &frame_state.swap_available;
     submit_info.commandBufferCount = 1;
     submit_info.pCommandBuffers = &frame_state.frame_commands;
-    submit_info.signalSemaphoreCount = 0;
-    submit_info.pSignalSemaphores = nullptr;
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pSignalSemaphores = &frame_state.rendering_finished;
 
     if (vkQueueSubmit(m_impl->graphics_queue, 1, &submit_info, frame_state.frame_ready) != VK_SUCCESS)
     {
-        bonsai::die("Failed to present rendered frame ({})", m_impl->frame_index);
+        bonsai::die("Failed to submit rendered frame ({})", m_impl->frame_index);
     }
+
+    VkPresentInfoKHR present_info{};
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.pNext = nullptr;
+    present_info.waitSemaphoreCount = 1;
+    present_info.pWaitSemaphores = &frame_state.rendering_finished;
+    present_info.swapchainCount = 1;
+    present_info.pSwapchains = &m_impl->swapchain;
+    present_info.pImageIndices = &swap_image_idx;
+    present_info.pResults = nullptr;
+
+    if (vkQueuePresentKHR(m_impl->graphics_queue, &present_info) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to present rendered frame({})", m_impl->frame_index);
+    }
+
     m_impl->frame_index += 1;
 }
 
