@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <vector>
 #include <volk.h>
+#include <vk_mem_alloc.h>
 #include "core/die.hpp"
 #include "core/logger.hpp"
 #include "platform/platform.hpp"
@@ -62,6 +63,7 @@ struct Renderer::Impl
     VkQueue graphics_queue;
     VkQueue compute_queue;
     VkQueue transfer_queue;
+    VmaAllocator allocator;
     SwapchainConfig swap_config;
     VkSwapchainKHR swapchain;
     std::vector<VkImage> swap_images;
@@ -609,6 +611,23 @@ Renderer::Renderer(Surface const* surface)
         BONSAI_LOG_TRACE("- {}", extension);
     }
 
+    VmaAllocatorCreateInfo allocator_create_info{};
+    allocator_create_info.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    allocator_create_info.instance = m_impl->instance;
+    allocator_create_info.physicalDevice = m_impl->physical_device;
+    allocator_create_info.device = m_impl->device;
+    allocator_create_info.vulkanApiVersion = BONSAI_MINIMUM_VULKAN_VERSION;
+
+    VmaVulkanFunctions vma_vulkan_functions{};
+    vmaImportVulkanFunctionsFromVolk(&allocator_create_info, &vma_vulkan_functions);
+    allocator_create_info.pVulkanFunctions = &vma_vulkan_functions;
+    if (vmaCreateAllocator(&allocator_create_info, &m_impl->allocator) != VK_SUCCESS)
+    {
+        bonsai::die("Failed to create Vulkan allocator");
+    }
+
+    BONSAI_LOG_TRACE("Initialized Vulkan allocator");
+
     uint32_t surface_width = 0, surface_height = 0;
     surface->get_size(surface_width, surface_height);
     m_impl->swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, surface_width, surface_height);
@@ -706,6 +725,7 @@ Renderer::~Renderer()
     }
     vkDestroySwapchainKHR(m_impl->device, m_impl->swapchain, nullptr);
 
+    vmaDestroyAllocator(m_impl->allocator);
     vkDestroyDevice(m_impl->device, nullptr);
     vkDestroySurfaceKHR(m_impl->instance, m_impl->surface, nullptr);
     vkDestroyDebugUtilsMessengerEXT(m_impl->instance, m_impl->debug_messenger, nullptr);

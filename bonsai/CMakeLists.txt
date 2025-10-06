@@ -27,6 +27,7 @@ add_library(bonsai_core STATIC
         # Rendering API
         src/rendering/renderer.cpp
         src/rendering/renderer.hpp
+        src/rendering/vulkan/use_vma.cpp
         src/rendering/vulkan/use_volk.cpp
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
@@ -40,7 +41,7 @@ if (BONSAI_USE_SDL)
 endif()
 
 if (BONSAI_USE_VULKAN)
-    target_link_libraries(bonsai_core PUBLIC volk::volk_headers)
+    target_link_libraries(bonsai_core PUBLIC GPUOpen::VulkanMemoryAllocator volk::volk_headers)
     target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
 endif()
 
