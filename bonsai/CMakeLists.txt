@@ -25,8 +25,8 @@ add_library(bonsai_core STATIC
         src/world/world.cpp
         src/world/world.hpp
         # Rendering API
-        src/rendering/renderer.cpp
         src/rendering/renderer.hpp
+        src/rendering/vulkan/renderer_vulkan.cpp
         src/rendering/vulkan/use_vma.cpp
         src/rendering/vulkan/use_volk.cpp
 )
