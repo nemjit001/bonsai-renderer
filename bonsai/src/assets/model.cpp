@@ -59,8 +59,8 @@ Model Model::from_file(std::string const& path)
             glm::vec3 const e2 = face_positions[2] - face_positions[0];
             glm::vec2 const dUV1 = face_texcoords[1] - face_texcoords[0];
             glm::vec2 const dUV2 = face_texcoords[2] - face_texcoords[0];
-            float const f = 1.0F / (dUV1.x * dUV2.y - dUV1.y * dUV2.x);
-            glm::vec3 face_tangent = f * (dUV2.y * e1 - dUV1.y * e2);
+            float const d = 1.0F / (dUV1.x * dUV2.y - dUV1.y * dUV2.x);
+            glm::vec3 face_tangent = d * (dUV2.y * e1 - dUV1.y * e2);
 
             // Push indexed vertex data into mesh buffers
             for (size_t f = 0; f < face_vertices; f++)
