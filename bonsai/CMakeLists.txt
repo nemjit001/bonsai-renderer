@@ -7,6 +7,7 @@ add_library(bonsai_core STATIC
         src/engine.cpp
         src/engine.hpp
         # Core API
+        src/core/assert.hpp
         src/core/die.hpp
         src/core/logger.cpp
         src/core/logger.hpp
@@ -24,6 +25,11 @@ add_library(bonsai_core STATIC
         src/world/entity.hpp
         src/world/world.cpp
         src/world/world.hpp
+        # Asset API
+        src/assets/mesh.cpp
+        src/assets/mesh.hpp
+        src/assets/model.cpp
+        src/assets/model.hpp
         # Rendering API
         src/rendering/renderer.hpp
         src/rendering/vulkan/renderer_vulkan.cpp
@@ -32,7 +38,7 @@ add_library(bonsai_core STATIC
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
-target_link_libraries(bonsai_core PUBLIC glm::glm spdlog::spdlog)
+target_link_libraries(bonsai_core PUBLIC glm::glm spdlog::spdlog tinyobjloader)
 target_extended_warnings(bonsai_core)
 
 if (BONSAI_USE_SDL)
@@ -63,6 +69,7 @@ if (BONSAI_TEST)
             tests/platform_tests.cpp
             tests/world_tests.cpp
             tests/renderer_tests.cpp
+            tests/assets_tests.cpp
     )
     target_compile_features(bonsai_tests PRIVATE cxx_std_17)
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)

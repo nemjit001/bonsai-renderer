@@ -1,18 +1,21 @@
-# GLM
-add_subdirectory("glm" EXCLUDE_FROM_ALL SYSTEM)
+# Configure GLM
+add_subdirectory(glm EXCLUDE_FROM_ALL SYSTEM)
 
-# GoogleTest
+# Configure GoogleTest
 set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
-add_subdirectory("googletest" EXCLUDE_FROM_ALL SYSTEM)
+add_subdirectory(googletest EXCLUDE_FROM_ALL SYSTEM)
 
-# SDL3
-add_subdirectory("SDL" EXCLUDE_FROM_ALL SYSTEM)
+# Configure SDL3
+add_subdirectory(SDL EXCLUDE_FROM_ALL SYSTEM)
 
-# SPDLog
-add_subdirectory("spdlog" EXCLUDE_FROM_ALL SYSTEM)
+# Configure SPDLog
+add_subdirectory(spdlog EXCLUDE_FROM_ALL SYSTEM)
 
-# Volk
-add_subdirectory("volk" EXCLUDE_FROM_ALL SYSTEM)
+# Configure TinyObjLoader
+add_subdirectory(tinyobjloader EXCLUDE_FROM_ALL SYSTEM)
 
-# VMA
-add_subdirectory("VMA" EXCLUDE_FROM_ALL SYSTEM)
+# Configure Volk
+add_subdirectory(volk EXCLUDE_FROM_ALL SYSTEM)
+
+# Configure VMA
+add_subdirectory(VMA EXCLUDE_FROM_ALL SYSTEM)
