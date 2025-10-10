@@ -26,6 +26,8 @@ add_library(bonsai_core STATIC
         src/world/world.cpp
         src/world/world.hpp
         # Asset API
+        src/assets/material.cpp
+        src/assets/material.hpp
         src/assets/mesh.cpp
         src/assets/mesh.hpp
         src/assets/model.cpp

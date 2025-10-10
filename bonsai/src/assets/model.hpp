@@ -4,7 +4,15 @@
 
 #include <string>
 #include <vector>
+#include "material.hpp"
 #include "mesh.hpp"
+
+/// @brief Model mesh segment, contains a mesh with an associated material.
+struct ModelMesh
+{
+    Mesh        mesh;
+    Material    material;
+};
 
 /// @brief 3D model asset, contains mesh and material data used for rendering.
 class Model
@@ -16,17 +24,17 @@ public:
     static Model from_file(std::string const& path);
 
     Model() = default;
-    explicit Model(std::vector<Mesh> const& meshes)
+    explicit Model(std::vector<ModelMesh> const& meshes)
         : m_meshes(meshes) {}
     ~Model() = default;
 
     Model(Model const&) = default;
     Model& operator=(Model const&) = default;
 
-    std::vector<Mesh> const& meshes() const { return m_meshes; }
+    std::vector<ModelMesh> const& meshes() const { return m_meshes; }
 
 private:
-    std::vector<Mesh> m_meshes{};
+    std::vector<ModelMesh> m_meshes{};
 };
 
 #endif //BONSAI_RENDERER_MODEL_HPP
