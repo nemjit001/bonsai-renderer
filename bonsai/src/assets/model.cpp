@@ -33,8 +33,9 @@ Model Model::from_file(std::string const& path)
     model_materials.reserve(materials.size());
     for (auto const& material : materials)
     {
-        // TODO(nemjit001): Parse material spec from model file
-        model_materials.emplace_back();
+        Material model_material{};
+        model_material.diffuse = glm::vec3{ material.diffuse[0], material.diffuse[1], material.diffuse[2] };
+        model_materials.push_back(model_material);
     }
 
     std::vector<Mesh> meshes{};
