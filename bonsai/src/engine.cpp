@@ -40,7 +40,7 @@ Engine::Engine()
         bonsai::die("Failed to create application surface");
     }
 
-    // Initialize empty world
+    // Initialize render world
     BONSAI_LOG_INFO("Initializing World");
     m_world = new World(World::from_file("assets/CornellBox.bonsai")); // FIXME(nemjit001): Temp world loading on startup, replace with scene select GUI
     BONSAI_LOG_INFO("Active world: {}", m_world->get_name());
