@@ -32,6 +32,11 @@ add_library(bonsai_core STATIC
         src/assets/mesh.hpp
         src/assets/model.cpp
         src/assets/model.hpp
+        # Component API
+        src/components/camera_component.cpp
+        src/components/camera_component.hpp
+        src/components/render_component.cpp
+        src/components/render_component.hpp
         # Rendering API
         src/rendering/renderer.hpp
         src/rendering/vulkan/renderer_vulkan.cpp
@@ -40,7 +45,7 @@ add_library(bonsai_core STATIC
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
-target_link_libraries(bonsai_core PUBLIC glm::glm spdlog::spdlog tinyobjloader)
+target_link_libraries(bonsai_core PUBLIC glm::glm nlohmann_json::nlohmann_json spdlog::spdlog tinyobjloader)
 target_extended_warnings(bonsai_core)
 
 if (BONSAI_USE_SDL)

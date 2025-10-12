@@ -2,6 +2,7 @@
 #ifndef BONSAI_RENDERER_MODEL_HPP
 #define BONSAI_RENDERER_MODEL_HPP
 
+#include <filesystem>
 #include <string>
 #include <vector>
 #include "material.hpp"
@@ -21,7 +22,7 @@ public:
     /// @brief Load a model asset from disk.
     /// @param path Path to the model asset.
     /// @return A new model asset.
-    static Model from_file(std::string const& path);
+    static Model from_file(std::filesystem::path const& path);
 
     Model() = default;
     explicit Model(std::vector<ModelMesh> const& meshes)

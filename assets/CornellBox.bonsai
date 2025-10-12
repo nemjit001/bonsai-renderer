@@ -1,0 +1,25 @@
+{
+    "name": "Cornell Box Scene",
+    "entities": [
+        {
+            "name": "Camera",
+            "transform": {
+                "position": [ 0, -5, 0 ]
+            },
+            "components": [
+                { "type": "camera_component", "data": { "perspective": { "fov": 60 } } }
+            ],
+            "children": []
+        },
+        {
+            "name": "Cornell Box",
+            "transform": {
+                "position": [ 0, 0, 0 ]
+            },
+            "components": [
+                { "type": "render_component", "data": { "model": "./CornellBox.obj" } }
+            ],
+            "children": []
+        }
+    ]
+}

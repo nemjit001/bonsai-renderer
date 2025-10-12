@@ -6,14 +6,14 @@
 #include "core/assert.hpp"
 #include "core/logger.hpp"
 
-Model Model::from_file(std::string const& path)
+Model Model::from_file(std::filesystem::path const& path)
 {
     tinyobj::ObjReaderConfig reader_config{};
     reader_config.triangulate = true;
     reader_config.triangulation_method = "earcut";
 
     tinyobj::ObjReader reader{};
-    if (!reader.ParseFromFile(path, reader_config))
+    if (!reader.ParseFromFile(path.string(), reader_config))
     {
         std::string const error = reader.Error().empty() ? "Unknown Error" : reader.Error();
         BONSAI_LOG_ERROR("Failed to load OBJ file: {}", error);
