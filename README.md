@@ -21,8 +21,11 @@ version.
 
 - GLM (v1.0.1)
 - GoogleTest (v1.17.0)
+- NLohmann JSON (v3.12.0)
 - SDL3 (v3.2.x)
 - SPDLog (v1.15.3)
+- Tiny Object Loader (v2.0.0rc13)
+- Vulkan Memory Allocator (v3.3.0)
 - Volk (v1.4.321)
 
 ## License
