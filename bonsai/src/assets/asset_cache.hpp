@@ -24,10 +24,14 @@ public:
     static AssetHandle<AssetType> load(std::filesystem::path const& path);
 
     /// @brief Unload an asset file, removing it from the asset cache.
-    static void unload(std::filesystem::path const& path);
+    /// @tparam AssetType Asset type to unload.
+    /// @param asset Asset to unload from cache.
+    template<typename AssetType>
+    static void unload(AssetHandle<AssetType> asset);
 
 private:
     static std::unordered_map<std::string, AssetHandle<Asset>> s_assets;
+    static std::unordered_map<AssetHandle<Asset>, std::string> s_paths;
 };
 
 #pragma region implementation
@@ -46,7 +50,19 @@ AssetHandle<AssetType> AssetCache::load(std::filesystem::path const& path)
 
     AssetHandle<AssetType> const asset = std::make_shared<AssetType>(AssetLoader<AssetType>::load(path.lexically_normal()));
     s_assets[key] = asset;
+    s_paths[asset] = key;
     return asset;
+}
+
+template<typename AssetType>
+void AssetCache::unload(AssetHandle<AssetType> asset)
+{
+    auto const iter = s_paths.find(asset);
+    if (iter != s_paths.end())
+    {
+        s_assets.erase(iter->second);
+        s_paths.erase(iter);
+    }
 }
 
 #pragma endregion
