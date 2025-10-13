@@ -32,22 +32,22 @@ public:
     /// @param level Minimum log level to show.
     void set_min_log_level(LogLevel const& level);
 
-    template <typename... Args>
+    template<typename... Args>
     void trace(Args&&... args);
 
-    template <typename... Args>
+    template<typename... Args>
     void debug(Args&&... args);
 
-    template <typename... Args>
+    template<typename... Args>
     void info(Args&&... args);
 
-    template <typename... Args>
+    template<typename... Args>
     void warning(Args&&... args);
 
-    template <typename... Args>
+    template<typename... Args>
     void error(Args&&... args);
 
-    template <typename... Args>
+    template<typename... Args>
     void critical(Args&&... args);
 
 private:
@@ -63,37 +63,37 @@ private:
 
 #pragma region implementation
 
-template <typename... Args>
+template<typename... Args>
 void Logger::trace(Args&&... args)
 {
     spdlog::trace(std::forward<Args>(args)...);
 }
 
-template <typename... Args>
+template<typename... Args>
 void Logger::debug(Args&&... args)
 {
     spdlog::debug(std::forward<Args>(args)...);
 }
 
-template <typename... Args>
+template<typename... Args>
 void Logger::info(Args&&... args)
 {
     spdlog::info(std::forward<Args>(args)...);
 }
 
-template <typename... Args>
+template<typename... Args>
 void Logger::warning(Args&&... args)
 {
     spdlog::warn(std::forward<Args>(args)...);
 }
 
-template <typename... Args>
+template<typename... Args>
 void Logger::error(Args&&... args)
 {
     spdlog::error(std::forward<Args>(args)...);
 }
 
-template <typename... Args>
+template<typename... Args>
 void Logger::critical(Args&&... args)
 {
     spdlog::critical(std::forward<Args>(args)...);
