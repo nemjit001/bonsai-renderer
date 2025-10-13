@@ -6,7 +6,8 @@
 #include "core/assert.hpp"
 #include "core/logger.hpp"
 
-Model Model::from_file(std::filesystem::path const& path)
+template<>
+Model AssetLoader<Model>::load(std::filesystem::path const& path)
 {
     tinyobj::ObjReaderConfig reader_config{};
     reader_config.triangulate = true;

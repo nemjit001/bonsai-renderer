@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include "core/assert.hpp"
 #include "core/logger.hpp"
+#include "assets/asset_cache.hpp"
 #include "components/camera_component.hpp"
 #include "components/render_component.hpp"
 
@@ -54,7 +55,7 @@ static void parse_entity_component(Entity::Ref& entity, nlohmann::json const& co
             model_path = parent_directory / model_path;
         }
         model_path = model_path.lexically_normal();
-        entity->add_component<RenderComponent>(Model::from_file(model_path));
+        entity->add_component<RenderComponent>(AssetCache::load<Model>(model_path));
     }
     else if (component_type == "camera_component")
     {

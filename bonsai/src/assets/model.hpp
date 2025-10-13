@@ -3,8 +3,8 @@
 #define BONSAI_RENDERER_MODEL_HPP
 
 #include <filesystem>
-#include <string>
 #include <vector>
+#include "asset_cache.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
 
@@ -16,14 +16,9 @@ struct ModelMesh
 };
 
 /// @brief 3D model asset, contains mesh and material data used for rendering.
-class Model
+class Model : public Asset
 {
 public:
-    /// @brief Load a model asset from disk.
-    /// @param path Path to the model asset.
-    /// @return A new model asset.
-    static Model from_file(std::filesystem::path const& path);
-
     Model() = default;
     explicit Model(std::vector<ModelMesh> const& meshes)
         : m_meshes(meshes) {}

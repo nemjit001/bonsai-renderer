@@ -20,18 +20,20 @@ add_library(bonsai_core STATIC
         src/platform/sdl/platform_sdl.hpp
         src/platform/sdl/platform_vulkan_sdl.cpp
         src/platform/sdl/platform_win32_sdl.cpp
-        # World API
-        src/world/entity.cpp
-        src/world/entity.hpp
-        src/world/world.cpp
-        src/world/world.hpp
         # Asset API
+        src/assets/asset_cache.cpp
+        src/assets/asset_cache.hpp
         src/assets/material.cpp
         src/assets/material.hpp
         src/assets/mesh.cpp
         src/assets/mesh.hpp
         src/assets/model.cpp
         src/assets/model.hpp
+        # World API
+        src/world/entity.cpp
+        src/world/entity.hpp
+        src/world/world.cpp
+        src/world/world.hpp
         # Component API
         src/components/camera_component.cpp
         src/components/camera_component.hpp

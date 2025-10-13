@@ -1,6 +1,6 @@
 #include "render_component.hpp"
 
-RenderComponent::RenderComponent(Model const& model)
+RenderComponent::RenderComponent(AssetHandle<Model> model)
     :
     m_model(model)
 {
