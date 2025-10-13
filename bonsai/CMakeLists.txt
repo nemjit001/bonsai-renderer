@@ -21,6 +21,7 @@ add_library(bonsai_core STATIC
         src/platform/sdl/platform_vulkan_sdl.cpp
         src/platform/sdl/platform_win32_sdl.cpp
         # Asset API
+        src/assets/asset.hpp
         src/assets/asset_cache.cpp
         src/assets/asset_cache.hpp
         src/assets/material.cpp

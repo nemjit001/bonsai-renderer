@@ -2,9 +2,8 @@
 #ifndef BONSAI_RENDERER_MODEL_HPP
 #define BONSAI_RENDERER_MODEL_HPP
 
-#include <filesystem>
 #include <vector>
-#include "asset_cache.hpp"
+#include "asset.hpp"
 #include "material.hpp"
 #include "mesh.hpp"
 

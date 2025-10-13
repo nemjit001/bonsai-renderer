@@ -6,18 +6,12 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include "asset.hpp"
 
 /// @brief Templated asset handle, returned by the asset cache.
 /// @tparam AssetType
 template<typename AssetType>
 using AssetHandle = std::shared_ptr<AssetType>;
-
-/// @brief Base asset type, used to implement asset loading behaviour.
-class Asset
-{
-public:
-    virtual ~Asset() = default;
-};
 
 /// @brief The AssetCache handles loading assets from disk.
 class AssetCache
@@ -34,16 +28,6 @@ public:
 
 private:
     static std::unordered_map<std::string, AssetHandle<Asset>> s_assets;
-};
-
-/// @brief The AssetLoader structure can be specialized in order to implement asset loading for
-/// an asset type.
-/// @param AssetType Type of asset to load.
-template<typename AssetType>
-struct AssetLoader
-{
-    /// @brief Load an asset from disk.
-    static AssetType load(std::filesystem::path const& path);
 };
 
 #pragma region implementation
