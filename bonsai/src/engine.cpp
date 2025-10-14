@@ -43,7 +43,7 @@ Engine::Engine()
     // Initialize render world
     BONSAI_LOG_INFO("Initializing World Manager");
     m_world_manager = new WorldManager();
-    m_world_manager->load_world("assets/CornellBox.bonsai");
+    m_world_manager->load_world("assets/CornellBox.bonsai"); // TODO(nemjit001): Show world selection GUI on startup instead of defaulting to a hardcoded world.
     BONSAI_LOG_INFO("Active world: {}", m_world_manager->get_active_world()->get_name());
 
     // Initialize rendering system
