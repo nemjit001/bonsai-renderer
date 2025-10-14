@@ -35,6 +35,8 @@ add_library(bonsai_core STATIC
         src/world/entity.hpp
         src/world/world.cpp
         src/world/world.hpp
+        src/world/world_manager.cpp
+        src/world/world_manager.hpp
         # Component API
         src/components/camera_component.cpp
         src/components/camera_component.hpp

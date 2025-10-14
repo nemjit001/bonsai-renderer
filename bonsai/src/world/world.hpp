@@ -4,17 +4,13 @@
 
 #include <filesystem>
 #include <string>
+#include "assets/asset.hpp"
 #include "entity.hpp"
 
 /// @brief World, represents a collection of entities that together form a scene.
-class World
+class World : public Asset
 {
 public:
-    /// @brief Load a world asset from disk.
-    /// @param path Path to the world asset.
-    /// @return A new world asset.
-    static World from_file(std::filesystem::path const& path);
-
     /// @brief Update the world state, updating all entities in the world in the process.
     /// @param delta Time delta between this and last update in milliseconds.
     void update(double delta);

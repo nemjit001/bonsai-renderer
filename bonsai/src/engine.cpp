@@ -9,8 +9,8 @@ Engine::~Engine()
     // Clean up renderer system
     delete m_renderer;
 
-    // Clean up world
-    delete m_world;
+    // Clean up world manager
+    delete m_world_manager;
 
     // Clean up platform system
     if (m_platform != nullptr)
@@ -41,9 +41,10 @@ Engine::Engine()
     }
 
     // Initialize render world
-    BONSAI_LOG_INFO("Initializing World");
-    m_world = new World(World::from_file("assets/CornellBox.bonsai")); // FIXME(nemjit001): Temp world loading on startup, replace with scene select GUI
-    BONSAI_LOG_INFO("Active world: {}", m_world->get_name());
+    BONSAI_LOG_INFO("Initializing World Manager");
+    m_world_manager = new WorldManager();
+    m_world_manager->load_world("assets/CornellBox.bonsai");
+    BONSAI_LOG_INFO("Active world: {}", m_world_manager->get_active_world()->get_name());
 
     // Initialize rendering system
     BONSAI_LOG_INFO("Initializing Renderer");
@@ -83,7 +84,8 @@ void Engine::run()
         double const delta_milliseconds = m_timer.delta_milliseconds().count();
 
         m_platform->pump_messages();
-        m_world->update(delta_milliseconds);
-        m_renderer->render(*m_world, delta_milliseconds);
+        AssetHandle<World> const active_world = m_world_manager->get_active_world();
+        active_world->update(delta_milliseconds);
+        m_renderer->render(*active_world, delta_milliseconds);
     }
 }

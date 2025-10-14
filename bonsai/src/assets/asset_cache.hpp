@@ -17,9 +17,17 @@ using AssetHandle = std::shared_ptr<AssetType>;
 class AssetCache
 {
 public:
+    /// @brief Create an asset in the cache.
+    /// @tparam AssetType Type of asset to create.
+    /// @param name Asset name.
+    /// @return An AssetHandle.
+    template<typename AssetType, typename... Args>
+    static AssetHandle<AssetType> create(std::string const& name, Args&&... args);
+
     /// @brief Load an asset from disk, returning the cached version if it was already loaded.
     /// @tparam AssetType Type of asset to load.
     /// @param path Path to the asset file to load.
+    /// @return An AssetHandle.
     template<typename AssetType>
     static AssetHandle<AssetType> load(std::filesystem::path const& path);
 
@@ -35,6 +43,16 @@ private:
 };
 
 #pragma region implementation
+
+template<typename AssetType, typename... Args>
+AssetHandle<AssetType> AssetCache::create(std::string const& name, Args&&... args)
+{
+    static_assert(std::is_base_of_v<Asset, AssetType> && "AssetType must inherit from Asset!");
+    AssetHandle<AssetType> const asset = std::make_shared<AssetType>(std::forward<Args>(args)...);
+    s_assets[name] = asset;
+    s_paths[asset] = name;
+    return asset;
+}
 
 template<typename AssetType>
 AssetHandle<AssetType> AssetCache::load(std::filesystem::path const& path)
@@ -57,6 +75,7 @@ AssetHandle<AssetType> AssetCache::load(std::filesystem::path const& path)
 template<typename AssetType>
 void AssetCache::unload(AssetHandle<AssetType> asset)
 {
+    static_assert(std::is_base_of_v<Asset, AssetType> && "AssetType must inherit from Asset!");
     auto const iter = s_paths.find(asset);
     if (iter != s_paths.end())
     {

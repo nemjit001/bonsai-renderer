@@ -78,7 +78,8 @@ static void parse_entity_component(Entity::Ref& entity, nlohmann::json const& co
     }
 }
 
-World World::from_file(std::filesystem::path const& path)
+template<>
+World AssetLoader<World>::load(std::filesystem::path const& path)
 {
     std::ifstream file(path);
     if (!file)
