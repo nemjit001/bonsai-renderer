@@ -4,22 +4,6 @@
 #include "core/logger.hpp"
 #include "bonsai_config.hpp"
 
-Engine::~Engine()
-{
-    // Clean up renderer system
-    delete m_renderer;
-
-    // Clean up world manager
-    delete m_world_manager;
-
-    // Clean up platform system
-    if (m_platform != nullptr)
-    {
-        m_platform->destroy_surface(m_surface);
-    }
-    delete m_platform;
-}
-
 Engine::Engine()
 {
     // Initialize global logger state
@@ -74,6 +58,22 @@ Engine::Engine()
     m_running = true;
     m_timer.reset();
     BONSAI_LOG_INFO("Initialized Bonsai! (v{})", BONSAI_VERSION);
+}
+
+Engine::~Engine()
+{
+    // Clean up renderer system
+    delete m_renderer;
+
+    // Clean up world manager
+    delete m_world_manager;
+
+    // Clean up platform system
+    if (m_platform != nullptr)
+    {
+        m_platform->destroy_surface(m_surface);
+    }
+    delete m_platform;
 }
 
 void Engine::run()
