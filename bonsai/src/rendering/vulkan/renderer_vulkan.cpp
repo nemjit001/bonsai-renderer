@@ -3,74 +3,12 @@
 
 #include <cstring>
 #include <unordered_set>
-#include <vector>
-#include <volk.h>
-#include <vk_mem_alloc.h>
 #include "core/die.hpp"
 #include "core/logger.hpp"
 #include "platform/platform.hpp"
 #include "platform/platform_vulkan.hpp"
+#include "renderer_vulkan.hpp"
 #include "bonsai_config.hpp"
-
-/// @brief Minimum supported Vulkan API version against which Bonsai is written.
-static constexpr uint32_t   BONSAI_MINIMUM_VULKAN_VERSION   = VK_API_VERSION_1_3;
-/// @brief Number of frames in flight that Bonsai initializes with.
-static constexpr size_t     BONSAI_FRAMES_IN_FLIGHT         = 2;
-
-/// @brief Swap chain capabilities, contains possible config values that can be used to initialize the SwapchainConfig.
-struct SwapchainCapabilities
-{
-    VkSurfaceCapabilitiesKHR surface_capabilities;
-    std::vector<VkSurfaceFormatKHR> surface_formats;
-    std::vector<VkPresentModeKHR> present_infos;
-};
-
-/// @brief Swap chain configuration state, selected from swap capabilities.
-struct SwapchainConfig
-{
-    VkSurfaceKHR surface;
-    uint32_t image_count;
-    VkExtent2D extent;
-    VkFormat preferred_format;
-    VkColorSpaceKHR preferred_color_space;
-    VkPresentModeKHR preferred_present_mode;
-    VkSurfaceTransformFlagBitsKHR current_transform;
-};
-
-/// @brief Vulkan frame state, contains state that is better kept separated between frames.
-struct FrameState
-{
-    VkFence frame_ready;
-    VkSemaphore swap_available;
-    VkSemaphore rendering_finished;
-    VkCommandPool graphics_pool;
-    VkCommandPool compute_pool;
-    VkCommandPool transfer_pool;
-    VkCommandBuffer frame_commands;
-};
-
-/// @brief Vulkan Renderer implementation.
-struct Renderer::Impl
-{
-    VkInstance instance;
-    VkDebugUtilsMessengerEXT debug_messenger;
-    VkSurfaceKHR surface;
-    VkPhysicalDevice physical_device;
-    uint32_t graphics_queue_family;
-    uint32_t compute_queue_family;
-    uint32_t transfer_queue_family;
-    VkDevice device;
-    VkQueue graphics_queue;
-    VkQueue compute_queue;
-    VkQueue transfer_queue;
-    VmaAllocator allocator;
-    SwapchainConfig swap_config;
-    VkSwapchainKHR swapchain;
-    std::vector<VkImage> swap_images;
-    std::vector<VkImageView> swap_image_views;
-    std::vector<FrameState> frame_states;
-    uint64_t frame_index;
-};
 
 /// @brief Vulkan debug callback for routing validation data through logger.
 static VKAPI_ATTR VkBool32 VKAPI_CALL vulkan_debug_callback(
@@ -285,79 +223,6 @@ static uint32_t find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface,
 
     return UINT32_MAX;
 }
-/// @brief Get the swap chain capabilities for a surface and physical device.
-/// @param device
-/// @param surface
-/// @return A SwapchainCapabilities structure containing capability info.
-static SwapchainCapabilities get_swap_capabilities(VkPhysicalDevice device, VkSurfaceKHR surface)
-{
-    VkSurfaceCapabilitiesKHR surface_capabilities{};
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &surface_capabilities);
-
-    uint32_t format_count = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
-    std::vector<VkSurfaceFormatKHR> surface_formats(format_count);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, surface_formats.data());
-
-    uint32_t mode_count = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, nullptr);
-    std::vector<VkPresentModeKHR> present_modes(mode_count);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, present_modes.data());
-
-    SwapchainCapabilities capabilities{};
-    capabilities.surface_capabilities = surface_capabilities;
-    capabilities.surface_formats = surface_formats;
-    capabilities.present_infos = present_modes;
-    return capabilities;
-}
-
-/// @brief Get a swap chain configuration from a physical device and surface.
-/// @param device Physical device to use for configuration query.
-/// @param surface Surface to use for configuration query.
-/// @param width Surface width in pixels.
-/// @param height Surface height in pixels.
-/// @return A new SwapchainConfig structure.
-static SwapchainConfig get_swap_configuration(VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height)
-{
-    SwapchainCapabilities const capabilities = get_swap_capabilities(device, surface);
-    uint32_t image_count = capabilities.surface_capabilities.minImageCount + 1;
-    if (image_count > capabilities.surface_capabilities.maxImageCount && capabilities.surface_capabilities.maxImageCount != 0)
-    {
-        image_count = capabilities.surface_capabilities.maxImageCount;
-    }
-
-    VkExtent2D image_extent = capabilities.surface_capabilities.currentExtent;
-    if (image_extent.width == UINT32_MAX || image_extent.height == UINT32_MAX)
-    {
-        image_extent = VkExtent2D { width, height };
-    }
-
-    VkSurfaceFormatKHR preferred_surface_format = capabilities.surface_formats[0]; // Default to 1st available format
-    for (auto const& format : capabilities.surface_formats)
-    {
-        if (format.format == VK_FORMAT_R8G8B8A8_SRGB || format.format == VK_FORMAT_B8G8R8A8_SRGB)
-        {
-            preferred_surface_format = format;
-            break;
-        }
-
-        if (format.format == VK_FORMAT_R8G8B8A8_UNORM || format.format == VK_FORMAT_B8G8R8A8_UNORM)
-        {
-            preferred_surface_format = format;
-            break;
-        }
-    }
-
-    SwapchainConfig config{};
-    config.surface = surface;
-    config.image_count = image_count;
-    config.extent = image_extent;
-    config.preferred_format = preferred_surface_format.format;
-    config.preferred_color_space = preferred_surface_format.colorSpace;
-    config.preferred_present_mode = VK_PRESENT_MODE_FIFO_KHR; // Always supported
-    config.current_transform = capabilities.surface_capabilities.currentTransform;
-    return config;
-}
 
 /// @brief Create a swap chain using a given swap chain configuration.
 /// @param device Logical device to use for swap chain creation.
@@ -439,6 +304,70 @@ static void create_swapchain_image_resources(
         }
         out_swap_image_views.push_back(view);
     }
+}
+
+SwapchainCapabilities SwapchainCapabilities::get(VkPhysicalDevice device, VkSurfaceKHR surface)
+{
+    VkSurfaceCapabilitiesKHR surface_capabilities{};
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &surface_capabilities);
+
+    uint32_t format_count = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
+    std::vector<VkSurfaceFormatKHR> surface_formats(format_count);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, surface_formats.data());
+
+    uint32_t mode_count = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, nullptr);
+    std::vector<VkPresentModeKHR> present_modes(mode_count);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &mode_count, present_modes.data());
+
+    SwapchainCapabilities capabilities{};
+    capabilities.surface_capabilities = surface_capabilities;
+    capabilities.surface_formats = surface_formats;
+    capabilities.present_infos = present_modes;
+    return capabilities;
+}
+
+SwapchainConfig SwapchainConfig::get(VkPhysicalDevice device, VkSurfaceKHR surface, uint32_t width, uint32_t height)
+{
+    SwapchainCapabilities const capabilities = SwapchainCapabilities::get(device, surface);
+    uint32_t image_count = capabilities.surface_capabilities.minImageCount + 1;
+    if (image_count > capabilities.surface_capabilities.maxImageCount && capabilities.surface_capabilities.maxImageCount != 0)
+    {
+        image_count = capabilities.surface_capabilities.maxImageCount;
+    }
+
+    VkExtent2D image_extent = capabilities.surface_capabilities.currentExtent;
+    if (image_extent.width == UINT32_MAX || image_extent.height == UINT32_MAX)
+    {
+        image_extent = VkExtent2D { width, height };
+    }
+
+    VkSurfaceFormatKHR preferred_surface_format = capabilities.surface_formats[0]; // Default to 1st available format
+    for (auto const& format : capabilities.surface_formats)
+    {
+        if (format.format == VK_FORMAT_R8G8B8A8_SRGB || format.format == VK_FORMAT_B8G8R8A8_SRGB)
+        {
+            preferred_surface_format = format;
+            break;
+        }
+
+        if (format.format == VK_FORMAT_R8G8B8A8_UNORM || format.format == VK_FORMAT_B8G8R8A8_UNORM)
+        {
+            preferred_surface_format = format;
+            break;
+        }
+    }
+
+    SwapchainConfig config{};
+    config.surface = surface;
+    config.image_count = image_count;
+    config.extent = image_extent;
+    config.preferred_format = preferred_surface_format.format;
+    config.preferred_color_space = preferred_surface_format.colorSpace;
+    config.preferred_present_mode = VK_PRESENT_MODE_FIFO_KHR; // Always supported
+    config.current_transform = capabilities.surface_capabilities.currentTransform;
+    return config;
 }
 
 Renderer::Renderer(Surface const* surface)
@@ -630,7 +559,7 @@ Renderer::Renderer(Surface const* surface)
 
     uint32_t surface_width = 0, surface_height = 0;
     surface->get_size(surface_width, surface_height);
-    m_impl->swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, surface_width, surface_height);
+    m_impl->swap_config = SwapchainConfig::get(m_impl->physical_device, m_impl->surface, surface_width, surface_height);
     if (create_swapchain(m_impl->device, m_impl->swap_config, VK_NULL_HANDLE, &m_impl->swapchain) != VK_SUCCESS)
     {
         bonsai::die("Failed to create Vulkan swap chain");
@@ -737,7 +666,7 @@ Renderer::~Renderer()
 void Renderer::on_resize(uint32_t width, uint32_t height)
 {
     vkDeviceWaitIdle(m_impl->device);
-    m_impl->swap_config = get_swap_configuration(m_impl->physical_device, m_impl->surface, width, height);
+    m_impl->swap_config = SwapchainConfig::get(m_impl->physical_device, m_impl->surface, width, height);
     if (width == 0 || height == 0)
     {
         return;

@@ -40,7 +40,7 @@ public:
     [[nodiscard]] Entity const& parent_entity() const   { return *m_entity; }
 
 private:
-    Entity* m_entity = nullptr;
+    Entity* m_entity    = nullptr;
 };
 
 /// @brief Base entity class, represents anything that can be stored in the world.
@@ -102,7 +102,7 @@ public:
 
     /// @brief Set the local entity transform.
     /// @param transform New entity transform.
-    void set_transform(Transform const& transform) { m_transform = transform; }
+    void set_transform(Transform const& transform);
 
     /// @brief Get the local entity transform.
     /// @return The entity transform.

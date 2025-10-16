@@ -102,6 +102,11 @@ glm::mat4 Entity::get_world_space_transform() const
     return m_transform.matrix() * parent_transform;
 }
 
+void Entity::set_transform(Transform const& transform)
+{
+    m_transform = transform;
+}
+
 void Entity::remove_component_by_index(size_t index)
 {
     if (index >= m_components.size())
