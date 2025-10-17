@@ -1,11 +1,12 @@
 #pragma once
-#ifndef BONSAI_RENDERER_RENDERER_VULKAN_HPP
-#define BONSAI_RENDERER_RENDERER_VULKAN_HPP
+#ifndef BONSAI_RENDERER_RENDER_BACKEND_VULKAN_HPP
+#define BONSAI_RENDERER_RENDER_BACKEND_VULKAN_HPP
+#if BONSAI_USE_VULKAN
 
 #include <vector>
 #include <volk.h>
 #include <vk_mem_alloc.h>
-#include "rendering/renderer.hpp"
+#include "rendering/render_backend.hpp"
 
 /// @brief Minimum supported Vulkan API version against which Bonsai is written.
 static constexpr uint32_t   BONSAI_MINIMUM_VULKAN_VERSION   = VK_API_VERSION_1_3;
@@ -56,10 +57,12 @@ struct FrameState
     VkCommandPool compute_pool;
     VkCommandPool transfer_pool;
     VkCommandBuffer frame_commands;
+    uint32_t swap_image_idx;
+    uint32_t frame_idx;
 };
 
 /// @brief Vulkan Renderer implementation.
-struct Renderer::Impl
+struct RenderBackendImpl
 {
     VkInstance instance;
     VkDebugUtilsMessengerEXT debug_messenger;
@@ -81,4 +84,5 @@ struct Renderer::Impl
     uint64_t frame_index;
 };
 
-#endif //BONSAI_RENDERER_RENDERER_VULKAN_HPP
+#endif //BONSAI_USE_VULKAN
+#endif //BONSAI_RENDERER_RENDER_BACKEND_VULKAN_HPP

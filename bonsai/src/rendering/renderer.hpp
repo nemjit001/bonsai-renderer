@@ -3,6 +3,7 @@
 #define BONSAI_RENDERER_RENDERER_HPP
 
 #include <cstdint>
+#include "render_backend.hpp"
 
 class Surface;
 class World;
@@ -28,8 +29,7 @@ public:
     void render(World const& render_world, double delta);
 
 private:
-    struct Impl;
-    Impl* m_impl = nullptr;
+    RenderBackend* m_render_backend = nullptr;
 };
 
 #endif //BONSAI_RENDERER_RENDERER_HPP
