@@ -58,7 +58,7 @@ struct FrameState
     VkCommandPool transfer_pool;
     VkCommandBuffer frame_commands;
     uint32_t swap_image_idx;
-    uint32_t frame_idx;
+    uint32_t frame_offset; // Frame offset relative to number of frames in flight. Always ranged in [0, n - 1] for n frames.
 };
 
 /// @brief Vulkan Renderer implementation.

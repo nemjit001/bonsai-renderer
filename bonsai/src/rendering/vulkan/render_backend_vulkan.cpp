@@ -175,7 +175,8 @@ static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR s
 
         vkGetPhysicalDeviceFeatures2(device, &device_features2);
         if (device_features2.features.samplerAnisotropy == VK_FALSE
-            || vulkan13_features.synchronization2 == VK_FALSE)
+            || vulkan13_features.synchronization2 == VK_FALSE
+            || vulkan13_features.dynamicRendering == VK_FALSE)
         {
             continue;
         }
@@ -482,6 +483,7 @@ RenderBackend::RenderBackend(Surface const* surface)
     VkPhysicalDeviceVulkan13Features vulkan13_features{};
     vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     vulkan13_features.synchronization2 = VK_TRUE;
+    vulkan13_features.dynamicRendering = VK_TRUE;
 
     VkPhysicalDeviceFeatures2 device_features2{};
     device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
@@ -689,13 +691,13 @@ void RenderBackend::on_resize(uint32_t width, uint32_t height)
 
 FrameState const* RenderBackend::start_frame()
 {
-    size_t const current_frame_index = m_impl->frame_index % m_impl->frame_states.size();
+    size_t const current_frame_offset = m_impl->frame_index % m_impl->frame_states.size();
     if (m_impl->swap_config.extent.width == 0 || m_impl->swap_config.extent.height == 0)
     {
         return nullptr;
     }
 
-    FrameState& frame_state = m_impl->frame_states[current_frame_index];
+    FrameState& frame_state = m_impl->frame_states[current_frame_offset];
     vkWaitForFences(m_impl->device, 1, &frame_state.frame_ready, VK_TRUE, UINT64_MAX);
 
     uint32_t swap_image_idx = 0;
@@ -703,10 +705,9 @@ FrameState const* RenderBackend::start_frame()
     {
         bonsai::die("Failed to acquire swap image");
     }
-    vkResetFences(m_impl->device, 1, &frame_state.frame_ready);
 
     frame_state.swap_image_idx = swap_image_idx;
-    frame_state.frame_idx = m_impl->frame_index;
+    frame_state.frame_offset = current_frame_offset;
     return &frame_state;
 }
 
