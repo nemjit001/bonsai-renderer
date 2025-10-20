@@ -1,5 +1,7 @@
 #include "entity.hpp"
 
+#include <algorithm>
+
 glm::mat4 Transform::matrix() const
 {
     return glm::translate(glm::identity<glm::mat4>(), position)
