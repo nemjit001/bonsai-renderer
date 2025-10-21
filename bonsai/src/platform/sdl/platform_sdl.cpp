@@ -92,6 +92,15 @@ void Platform::pump_messages()
                 m_impl->surface_resize_callback(surface->m_impl->user_data, 0, 0);
             }
             break;
+        case SDL_EVENT_WINDOW_MAXIMIZED:
+            if (m_impl->surface_resize_callback)
+            {
+                Surface const* surface = m_impl->surfaces[event.window.windowID];
+                int width = 0, height = 0;
+                SDL_GetWindowSize(surface->m_impl->window, &width, &height);
+                m_impl->surface_resize_callback(surface->m_impl->user_data, width, height);
+            }
+            break;
         case SDL_EVENT_WINDOW_RESTORED:
             if (m_impl->surface_resize_callback)
             {
@@ -111,7 +120,7 @@ void Platform::pump_messages()
         // Handle key events
         case SDL_EVENT_KEY_DOWN:
         case SDL_EVENT_KEY_UP:
-            {
+            if (m_impl->surface_key_callback) {
                 Surface const* surface = m_impl->surfaces[event.key.windowID];
                 m_impl->surface_key_callback(surface->m_impl->user_data, static_cast<int32_t>(event.key.key), static_cast<int32_t>(event.key.scancode), event.key.down);
             }

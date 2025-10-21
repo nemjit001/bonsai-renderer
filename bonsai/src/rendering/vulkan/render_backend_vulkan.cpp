@@ -388,7 +388,6 @@ RenderBackend::RenderBackend(Surface const* surface)
     std::vector<char const*> layer_names{};
 #ifndef NDEBUG
     layer_names.push_back("VK_LAYER_KHRONOS_validation");
-    layer_names.push_back("VK_LAYER_KHRONOS_synchronization2");
 #endif //NDEBUG
     if (!has_validation_layers(layer_names))
     {
