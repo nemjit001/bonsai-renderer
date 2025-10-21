@@ -51,6 +51,7 @@ struct SwapchainConfig
 struct FrameState
 {
     VkFence frame_ready;
+    VkFence swap_ready;
     VkSemaphore swap_available;
     VkSemaphore rendering_finished;
     VkCommandPool graphics_pool;

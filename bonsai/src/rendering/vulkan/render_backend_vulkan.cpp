@@ -166,8 +166,12 @@ static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR s
         }
 
         // Check required device features
+        VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR swapchain_maintenance1_features{};
+        swapchain_maintenance1_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR;
+
         VkPhysicalDeviceVulkan13Features vulkan13_features{};
         vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+        vulkan13_features.pNext = &swapchain_maintenance1_features;
 
         VkPhysicalDeviceFeatures2 device_features2{};
         device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
@@ -176,7 +180,8 @@ static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR s
         vkGetPhysicalDeviceFeatures2(device, &device_features2);
         if (device_features2.features.samplerAnisotropy == VK_FALSE
             || vulkan13_features.synchronization2 == VK_FALSE
-            || vulkan13_features.dynamicRendering == VK_FALSE)
+            || vulkan13_features.dynamicRendering == VK_FALSE
+            || swapchain_maintenance1_features.swapchainMaintenance1 == VK_FALSE)
         {
             continue;
         }
@@ -474,13 +479,19 @@ RenderBackend::RenderBackend(Surface const* surface)
 
     std::vector<char const*> device_extension_names{};
     device_extension_names.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    device_extension_names.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
     if (!has_device_extensions(m_impl->physical_device, device_extension_names))
     {
         bonsai::die("Not all required Vulkan device extensions are available");
     }
 
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR swapchain_maintenance1_features{};
+    swapchain_maintenance1_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR;
+    swapchain_maintenance1_features.swapchainMaintenance1 = VK_TRUE;
+
     VkPhysicalDeviceVulkan13Features vulkan13_features{};
     vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    vulkan13_features.pNext = &swapchain_maintenance1_features;
     vulkan13_features.synchronization2 = VK_TRUE;
     vulkan13_features.dynamicRendering = VK_TRUE;
 
@@ -584,6 +595,7 @@ RenderBackend::RenderBackend(Surface const* surface)
         semaphore_create_info.flags = 0;
 
         if (vkCreateFence(m_impl->device, &frame_fence_create_info, nullptr, &frame_state.frame_ready) != VK_SUCCESS
+            || vkCreateFence(m_impl->device, &frame_fence_create_info, nullptr, &frame_state.swap_ready) != VK_SUCCESS
             || vkCreateSemaphore(m_impl->device, &semaphore_create_info, nullptr, &frame_state.swap_available) != VK_SUCCESS
             || vkCreateSemaphore(m_impl->device, &semaphore_create_info, nullptr, &frame_state.rendering_finished) != VK_SUCCESS)
         {
@@ -643,9 +655,10 @@ RenderBackend::~RenderBackend()
         vkDestroyCommandPool(m_impl->device, frame_state.compute_pool, nullptr);
         vkDestroyCommandPool(m_impl->device, frame_state.graphics_pool, nullptr);
 
-        vkDestroyFence(m_impl->device, frame_state.frame_ready, nullptr);
-        vkDestroySemaphore(m_impl->device, frame_state.swap_available, nullptr);
         vkDestroySemaphore(m_impl->device, frame_state.rendering_finished, nullptr);
+        vkDestroySemaphore(m_impl->device, frame_state.swap_available, nullptr);
+        vkDestroyFence(m_impl->device, frame_state.swap_ready, nullptr);
+        vkDestroyFence(m_impl->device, frame_state.frame_ready, nullptr);
     }
 
     for (auto const& view : m_impl->swap_image_views)
@@ -697,7 +710,8 @@ FrameState const* RenderBackend::start_frame()
     }
 
     FrameState& frame_state = m_impl->frame_states[current_frame_offset];
-    vkWaitForFences(m_impl->device, 1, &frame_state.frame_ready, VK_TRUE, UINT64_MAX);
+    VkFence const frame_fences[] = { frame_state.frame_ready, frame_state.swap_ready, };
+    vkWaitForFences(m_impl->device, std::size(frame_fences), frame_fences, VK_TRUE, UINT64_MAX);
 
     uint32_t swap_image_idx = 0;
     if (vkAcquireNextImageKHR(m_impl->device, m_impl->swapchain, UINT64_MAX, frame_state.swap_available, VK_NULL_HANDLE, &swap_image_idx) != VK_SUCCESS)
@@ -712,9 +726,17 @@ FrameState const* RenderBackend::start_frame()
 
 void RenderBackend::present(FrameState const* frame_state)
 {
+    vkResetFences(m_impl->device, 1, &frame_state->swap_ready);
+
+    VkSwapchainPresentFenceInfoKHR present_fence_info = {};
+    present_fence_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_KHR;
+    present_fence_info.pNext = nullptr;
+    present_fence_info.swapchainCount = 1;
+    present_fence_info.pFences = &frame_state->swap_ready;
+
     VkPresentInfoKHR present_info{};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.pNext = nullptr;
+    present_info.pNext = &present_fence_info;
     present_info.waitSemaphoreCount = 1;
     present_info.pWaitSemaphores = &frame_state->rendering_finished;
     present_info.swapchainCount = 1;
