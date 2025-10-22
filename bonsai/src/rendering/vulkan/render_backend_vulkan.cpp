@@ -166,8 +166,8 @@ static VkPhysicalDevice pick_physical_device(VkInstance instance, VkSurfaceKHR s
         }
 
         // Check required device features
-        VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR swapchain_maintenance1_features{};
-        swapchain_maintenance1_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR;
+        VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchain_maintenance1_features{};
+        swapchain_maintenance1_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT;
 
         VkPhysicalDeviceVulkan13Features vulkan13_features{};
         vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
@@ -485,8 +485,8 @@ RenderBackend::RenderBackend(Surface const* surface)
         bonsai::die("Not all required Vulkan device extensions are available");
     }
 
-    VkPhysicalDeviceSwapchainMaintenance1FeaturesKHR swapchain_maintenance1_features{};
-    swapchain_maintenance1_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_KHR;
+    VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchain_maintenance1_features{};
+    swapchain_maintenance1_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT;
     swapchain_maintenance1_features.swapchainMaintenance1 = VK_TRUE;
 
     VkPhysicalDeviceVulkan13Features vulkan13_features{};
@@ -728,8 +728,8 @@ void RenderBackend::present(FrameState const* frame_state)
 {
     vkResetFences(m_impl->device, 1, &frame_state->swap_ready);
 
-    VkSwapchainPresentFenceInfoKHR present_fence_info = {};
-    present_fence_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_KHR;
+    VkSwapchainPresentFenceInfoEXT present_fence_info = {};
+    present_fence_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_FENCE_INFO_EXT;
     present_fence_info.pNext = nullptr;
     present_fence_info.swapchainCount = 1;
     present_fence_info.pFences = &frame_state->swap_ready;
