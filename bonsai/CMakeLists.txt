@@ -24,12 +24,12 @@ add_library(bonsai_core STATIC
         src/assets/asset.hpp
         src/assets/asset_cache.cpp
         src/assets/asset_cache.hpp
-        src/assets/material.cpp
-        src/assets/material.hpp
-        src/assets/mesh.cpp
-        src/assets/mesh.hpp
         src/assets/model.cpp
         src/assets/model.hpp
+        src/assets/model/material.cpp
+        src/assets/model/material.hpp
+        src/assets/model/mesh.cpp
+        src/assets/model/mesh.hpp
         # World API
         src/world/entity.cpp
         src/world/entity.hpp
@@ -44,6 +44,7 @@ add_library(bonsai_core STATIC
         src/components/render_component.hpp
         # Rendering API
         src/rendering/render_backend.hpp
+        src/rendering/render_world.cpp
         src/rendering/render_world.hpp
         src/rendering/renderer.hpp
         src/rendering/vulkan/render_backend_vulkan.cpp

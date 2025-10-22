@@ -3,17 +3,16 @@
 #define BONSAI_RENDERER_RENDERER_HPP
 
 #include <cstdint>
-#include "render_backend.hpp"
 
-class Surface;
+class RenderBackend;
 class World;
 
 /// @brief Renderer, implements the complete render pipeline for Bonsai.
 class Renderer
 {
 public:
-    explicit Renderer(Surface const* surface);
-    ~Renderer();
+    explicit Renderer(RenderBackend* render_backend);
+    ~Renderer() = default;
 
     Renderer(Renderer const&) = delete;
     Renderer& operator=(Renderer const&) = delete;

@@ -4,8 +4,8 @@
 
 #include <vector>
 #include "asset.hpp"
-#include "material.hpp"
-#include "mesh.hpp"
+#include "model/material.hpp"
+#include "model/mesh.hpp"
 
 /// @brief Model mesh segment, contains a mesh with an associated material.
 struct ModelMesh

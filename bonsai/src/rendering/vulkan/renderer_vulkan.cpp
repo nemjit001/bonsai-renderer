@@ -5,16 +5,11 @@
 #include "core/die.hpp"
 #include "render_backend_vulkan.hpp"
 
-Renderer::Renderer(Surface const* surface)
+Renderer::Renderer(RenderBackend* render_backend)
     :
-    m_render_backend(new RenderBackend(surface))
+    m_render_backend(render_backend)
 {
     //
-}
-
-Renderer::~Renderer()
-{
-    delete m_render_backend;
 }
 
 void Renderer::on_resize(uint32_t width, uint32_t height)

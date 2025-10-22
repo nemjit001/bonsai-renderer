@@ -2,6 +2,8 @@
 #ifndef BONSAI_RENDERER_RENDER_BACKEND_HPP
 #define BONSAI_RENDERER_RENDER_BACKEND_HPP
 
+#include <cstdint>
+
 class Surface;
 struct FrameState;
 

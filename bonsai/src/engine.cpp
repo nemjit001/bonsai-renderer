@@ -24,15 +24,18 @@ Engine::Engine()
         bonsai::die("Failed to create application surface");
     }
 
-    // Initialize render world
+    // Initialize world
     BONSAI_LOG_INFO("Initializing World Manager");
     m_world_manager = new WorldManager();
     m_world_manager->load_world("assets/CornellBox.bonsai"); // TODO(nemjit001): Show world selection GUI on startup instead of defaulting to a hardcoded world.
     BONSAI_LOG_INFO("Active world: {}", m_world_manager->get_active_world()->get_name());
 
-    // Initialize rendering system
+    // Initialize rendering systems
+    BONSAI_LOG_INFO("Initializing Render Backend");
+    m_render_backend = new RenderBackend(m_surface);
+
     BONSAI_LOG_INFO("Initializing Renderer");
-    m_renderer = new Renderer(m_surface);
+    m_renderer = new Renderer(m_render_backend);
 
     // Set surface handlers
     m_surface->set_user_data(m_renderer);
@@ -62,8 +65,10 @@ Engine::Engine()
 
 Engine::~Engine()
 {
-    // Clean up renderer system
+    BONSAI_LOG_INFO("Shutting down...");
+    // Clean up renderer systems
     delete m_renderer;
+    delete m_render_backend;
 
     // Clean up world manager
     delete m_world_manager;
