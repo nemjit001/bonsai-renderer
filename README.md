@@ -9,8 +9,8 @@ High level layers may only depend on lower-level layers.
 
 Bonsai's API layers in order from low-level to high-level:
 
-- **core** contains core code that other layers can build on. It is only dependent on external libraries.
-- **platform** contains platform specific code such as window handling and filesystem access.
+- **platform** contains platform specific code such as window handling, logging, and filesystem access.
+- **core** contains core code that other layers can build on.
 - **assets** contains the asset API for host-side asset loading and management.
 - **world** contains the host-side render world representation.
 - **components** contains entity components that define behaviour.

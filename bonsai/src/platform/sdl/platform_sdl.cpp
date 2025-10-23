@@ -3,7 +3,7 @@
 #if BONSAI_PLATFORM_SDL
 
 #include "core/die.hpp"
-#include "core/logger.hpp"
+#include "../logger.hpp"
 
 static int get_sdl_window_flags(SurfaceConfig const& config)
 {

@@ -3,16 +3,10 @@ project("Bonsai" VERSION 0.1.0)
 # Set up bonsai core library
 configure_file(bonsai_config.hpp.in bonsai_config.hpp)
 add_library(bonsai_core STATIC
-        # Engine API
-        src/engine.cpp
-        src/engine.hpp
-        # Core API
-        src/core/assert.hpp
-        src/core/die.hpp
-        src/core/logger.cpp
-        src/core/logger.hpp
-        src/core/timer.hpp
         # Platform API
+        src/platform/assert.hpp
+        src/platform/logger.cpp
+        src/platform/logger.hpp
         src/platform/platform.hpp
         src/platform/platform_vulkan.hpp
         src/platform/platform_win32.hpp
@@ -20,6 +14,9 @@ add_library(bonsai_core STATIC
         src/platform/sdl/platform_sdl.hpp
         src/platform/sdl/platform_vulkan_sdl.cpp
         src/platform/sdl/platform_win32_sdl.cpp
+        # Core API
+        src/core/die.hpp
+        src/core/timer.hpp
         # Asset API
         src/assets/asset.hpp
         src/assets/asset_cache.cpp
@@ -52,6 +49,9 @@ add_library(bonsai_core STATIC
         src/rendering/vulkan/renderer_vulkan.cpp
         src/rendering/vulkan/use_vma.cpp
         src/rendering/vulkan/use_volk.cpp
+        # Engine API
+        src/engine.cpp
+        src/engine.hpp
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(bonsai_core PUBLIC cxx_std_17)

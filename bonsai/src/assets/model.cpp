@@ -3,8 +3,8 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <glm/glm.hpp>
 #include <tiny_obj_loader.h>
-#include "core/assert.hpp"
-#include "core/logger.hpp"
+#include "../platform/assert.hpp"
+#include "../platform/logger.hpp"
 
 template<>
 Model AssetLoader<Model>::load(std::filesystem::path const& path)

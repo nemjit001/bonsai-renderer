@@ -3,10 +3,10 @@
 
 #include <cstring>
 #include <unordered_set>
-#include "core/die.hpp"
-#include "core/logger.hpp"
+#include "platform/logger.hpp"
 #include "platform/platform.hpp"
 #include "platform/platform_vulkan.hpp"
+#include "core/die.hpp"
 #include "bonsai_config.hpp"
 
 /// @brief Vulkan debug callback for routing validation data through logger.

@@ -2,8 +2,8 @@
 
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include "core/assert.hpp"
-#include "core/logger.hpp"
+#include "platform/assert.hpp"
+#include "platform/logger.hpp"
 #include "assets/asset_cache.hpp"
 #include "components/camera_component.hpp"
 #include "components/render_component.hpp"

@@ -4,7 +4,7 @@
 
 #include <cstdint>
 #include <cstdlib>
-#include "core/logger.hpp"
+#include "platform/logger.hpp"
 
 enum KillCodes : uint8_t
 {
