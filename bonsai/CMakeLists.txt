@@ -15,6 +15,8 @@ add_library(bonsai_core STATIC
         src/platform/sdl/platform_vulkan_sdl.cpp
         src/platform/sdl/platform_win32_sdl.cpp
         # Core API
+        src/core/allocator.cpp
+        src/core/allocator.hpp
         src/core/die.hpp
         src/core/timer.hpp
         # Asset API
@@ -84,6 +86,7 @@ if (BONSAI_TEST)
     add_executable(bonsai_tests
             tests/sanity.cpp
             tests/platform_tests.cpp
+            tests/core_allocator_tests.cpp
             tests/world_tests.cpp
             tests/renderer_tests.cpp
             tests/assets_tests.cpp

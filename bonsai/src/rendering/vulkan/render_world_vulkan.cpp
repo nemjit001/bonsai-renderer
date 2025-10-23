@@ -26,9 +26,10 @@ void RenderWorld::sync(World const& world)
 
         if (current->has_component<RenderComponent>())
         {
-            // TODO(nemjit001): Check if model is synced with render world
             ComponentHandle<RenderComponent> const rc = current->get_component<RenderComponent>();
             AssetHandle<Model> const model = rc->get_model();
+
+            // TODO(nemjit001): Check if model has an allocation in the model cache
         }
 
         // Submit children for sync

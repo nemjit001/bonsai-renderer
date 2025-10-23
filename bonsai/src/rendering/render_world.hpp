@@ -22,11 +22,6 @@ public:
 
 private:
     RenderBackend* m_render_backend = nullptr;
-    // buddy allocator for mesh data (verts + indices) on single GPU buffer per page
-    // buddy allocator for acceleration structure data on single GPU buffer per page
-    // pool allocator for object data (transform, material id, etc.) on single GPU buffer per page
-    // pool allocator for material data (fixed params + texture IDs) on single GPU buffer per page
-    // pool allocator for textures w/ allocations per texture per page
 };
 
 #endif //BONSAI_RENDERER_RENDER_WORLD_HPP
