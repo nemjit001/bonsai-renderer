@@ -5,7 +5,7 @@ TEST(core_allocator, bump_alloctor_construct_class)
 {
     class Foo {};
     size_t const memory_size = 1 * sizeof(Foo);
-    void* memory = malloc(memory_size);
+    void* memory = std::malloc(memory_size);
 
     BumpAllocator alloc(memory_size, memory);
     Foo* foo = alloc.alloc_object<Foo>();
@@ -15,7 +15,7 @@ TEST(core_allocator, bump_alloctor_construct_class)
     EXPECT_EQ(foo_null, nullptr);
 
     alloc.destroy(foo);
-    free(memory);
+    std::free(memory);
 }
 
 TEST(core_allocator, bump_allocator_allocate)
