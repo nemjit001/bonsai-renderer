@@ -44,11 +44,11 @@ add_library(bonsai_core STATIC
         src/components/render_component.hpp
         # Rendering API
         src/rendering/render_backend.hpp
-        src/rendering/render_world.cpp
         src/rendering/render_world.hpp
         src/rendering/renderer.hpp
         src/rendering/vulkan/render_backend_vulkan.cpp
         src/rendering/vulkan/render_backend_vulkan.hpp
+        src/rendering/vulkan/render_world_vulkan.cpp
         src/rendering/vulkan/renderer_vulkan.cpp
         src/rendering/vulkan/use_vma.cpp
         src/rendering/vulkan/use_volk.cpp

@@ -43,12 +43,15 @@ private:
     Entity* m_entity    = nullptr;
 };
 
+template<typename ComponentType>
+using ComponentHandle = std::shared_ptr<ComponentType>;
+
 /// @brief Base entity class, represents anything that can be stored in the world.
 class Entity
 {
 public:
     using Ref = std::shared_ptr<Entity>;
-    using ComponentRef = std::shared_ptr<Component>;
+    using ComponentRef = ComponentHandle<Component>;
 
     /// @brief Create a new entity or derived entity.
     /// @tparam EntityType Entity type to create.
@@ -129,7 +132,7 @@ public:
     /// @tparam ComponentType Component type to retrieve.
     /// @return A ComponentRef, or an empty ref if no component was found.
     template <typename ComponentType>
-    [[nodiscard]] ComponentRef get_component() const;
+    [[nodiscard]] ComponentHandle<ComponentType> get_component() const;
 
     /// @brief Get all components associated with this entity.
     /// @return A vector of ComponentRefs associated with this entity.
@@ -173,7 +176,7 @@ bool Entity::has_component() const
 {
     for (auto const& component : m_components)
     {
-        if (component != nullptr && typeid(*component) == typeid(ComponentType))
+        if (ComponentHandle<ComponentType> comp = std::dynamic_pointer_cast<ComponentType>(component))
         {
             return true;
         }
@@ -183,13 +186,13 @@ bool Entity::has_component() const
 }
 
 template <typename ComponentType>
-Entity::ComponentRef Entity::get_component() const
+ComponentHandle<ComponentType> Entity::get_component() const
 {
     for (auto const& component : m_components)
     {
-        if (component != nullptr && typeid(*component) == typeid(ComponentType))
+        if (ComponentHandle<ComponentType> comp = std::dynamic_pointer_cast<ComponentType>(component))
         {
-            return component;
+            return comp;
         }
     }
 
