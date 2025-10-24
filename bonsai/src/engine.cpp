@@ -31,23 +31,13 @@ Engine::Engine()
     BONSAI_LOG_INFO("Active world: {}", m_world_manager->get_active_world()->get_name());
 
     // Initialize rendering systems
-    BONSAI_LOG_INFO("Initializing Render Backend");
-    m_render_backend = new RenderBackend(m_surface);
-
-    BONSAI_LOG_INFO("Initializing Renderer");
-    m_renderer = new Renderer(m_render_backend);
+    // TODO(nemjit001): Plan out renderer w/ world sync
 
     // Set surface handlers
-    m_surface->set_user_data(m_renderer);
+    // m_surface->set_user_data(nullptr);
     m_platform->set_platform_surface_resize_callback([]([[maybe_unused]] void* user_data, uint32_t width, uint32_t height)
     {
         BONSAI_LOG_TRACE("Window resized ({} x {})", width, height);
-        Renderer* renderer = static_cast<Renderer*>(user_data);
-        renderer->on_resize(width, height);
-    });
-    m_platform->set_platform_surface_closed_callback([]([[maybe_unused]] void* user_data)
-    {
-        BONSAI_LOG_TRACE("Window closed");
     });
 
     // Set application quit handler
@@ -66,18 +56,12 @@ Engine::Engine()
 Engine::~Engine()
 {
     BONSAI_LOG_INFO("Shutting down...");
-    // Clean up renderer systems
-    delete m_renderer;
-    delete m_render_backend;
 
     // Clean up world manager
     delete m_world_manager;
 
     // Clean up platform system
-    if (m_platform != nullptr)
-    {
-        m_platform->destroy_surface(m_surface);
-    }
+    m_platform->destroy_surface(m_surface);
     delete m_platform;
 }
 
@@ -86,11 +70,10 @@ void Engine::run()
     while (m_running)
     {
         m_timer.tick();
-        double const delta_milliseconds = m_timer.delta_milliseconds().count();
-
         m_platform->pump_messages();
+
+        double const delta_milliseconds = m_timer.delta_milliseconds().count();
         AssetHandle<World> const active_world = m_world_manager->get_active_world();
         active_world->update(delta_milliseconds);
-        m_renderer->render(*active_world, delta_milliseconds);
     }
 }

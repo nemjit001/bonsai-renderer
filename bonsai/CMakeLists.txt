@@ -41,16 +41,6 @@ add_library(bonsai_core STATIC
         src/components/camera_component.hpp
         src/components/render_component.cpp
         src/components/render_component.hpp
-        # Rendering API
-        src/rendering/render_backend.hpp
-        src/rendering/render_world.hpp
-        src/rendering/renderer.hpp
-        src/rendering/vulkan/render_backend_vulkan.cpp
-        src/rendering/vulkan/render_backend_vulkan.hpp
-        src/rendering/vulkan/render_world_vulkan.cpp
-        src/rendering/vulkan/renderer_vulkan.cpp
-        src/rendering/vulkan/use_vma.cpp
-        src/rendering/vulkan/use_volk.cpp
         # Engine API
         src/engine.cpp
         src/engine.hpp
@@ -88,7 +78,6 @@ if (BONSAI_TEST)
             tests/platform_tests.cpp
             tests/core_allocator_tests.cpp
             tests/world_tests.cpp
-            tests/renderer_tests.cpp
             tests/assets_tests.cpp
     )
     target_compile_features(bonsai_tests PRIVATE cxx_std_17)
