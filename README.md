@@ -18,7 +18,9 @@ Bonsai's API layers in order from low-level to high-level:
 ## External dependencies
 
 All of Bonsai's dependencies are included as git submodules in the repository and pinned at a specific
-version.
+version. Bonsai's dependencies are split between general dependencies and platform specific dependencies.
+
+General dependencies:
 
 - GLM (v1.0.1)
 - GoogleTest (v1.17.0)
@@ -26,6 +28,9 @@ version.
 - SDL3 (v3.2.x)
 - SPDLog (v1.15.3)
 - Tiny Object Loader (v2.0.0rc13)
+
+Vulkan dependencies:
+
 - Vulkan Memory Allocator (v3.3.0)
 - Volk (v1.4.321)
 

@@ -19,6 +19,9 @@ add_library(bonsai_core STATIC
         src/core/allocator.hpp
         src/core/die.hpp
         src/core/timer.hpp
+        # Render Graph API
+        src/render_graph/render_graph.cpp
+        src/render_graph/render_graph.hpp
         # Asset API
         src/assets/asset.hpp
         src/assets/asset_cache.cpp
@@ -77,6 +80,7 @@ if (BONSAI_TEST)
             tests/sanity.cpp
             tests/platform_tests.cpp
             tests/core_allocator_tests.cpp
+            tests/render_graph_tests.cpp
             tests/world_tests.cpp
             tests/assets_tests.cpp
     )
