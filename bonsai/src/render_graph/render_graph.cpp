@@ -5,6 +5,7 @@
 
 bool RenderGraph::build()
 {
+    // Fill processing queue
     std::vector<RenderPassEntry> pass_queue;
     pass_queue.reserve(m_render_passes.size());
     for (auto const& [name, pass] : m_render_passes)
@@ -12,14 +13,15 @@ bool RenderGraph::build()
         pass_queue.push_back(pass);
     }
 
-    std::vector<std::vector<RenderPassEntry>> dependency_graph;
+    // Build out layered dependency graph
+    m_dependency_graph.clear();
     std::vector<RenderPassEntry> next_layer_queue;
     next_layer_queue.reserve(pass_queue.size());
     while (!pass_queue.empty())
     {
         next_layer_queue.clear();
-        dependency_graph.emplace_back();
-        auto& graph_layer = dependency_graph.back();
+        m_dependency_graph.emplace_back();
+        auto& graph_layer = m_dependency_graph.back();
         for (auto const& pass : pass_queue)
         {
             if (find_pass_dependency_count(pass, pass_queue) == 0)
@@ -44,9 +46,20 @@ bool RenderGraph::build()
     return true;
 }
 
-void RenderGraph::execute()
+void RenderGraph::execute() const
 {
-    //
+    for (auto const& layer : m_dependency_graph)
+    {
+        for (auto const& pass : layer)
+        {
+            // TODO(nemjit001): Transition pass resources here + set up RenderPassResources structure
+            RenderPassResources pass_resources;
+            if (pass.commands)
+            {
+                pass.commands(pass_resources);
+            }
+        }
+    }
 }
 
 void RenderGraph::insert_render_pass(std::string const& name)

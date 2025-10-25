@@ -52,3 +52,24 @@ TEST(render_graph, shared_dependencies)
 
     EXPECT_TRUE(rg.build());
 }
+
+TEST(render_graph, dependency_cycle)
+{
+    RenderGraph rg;
+
+    RGResourceHandle buffer_resource_a = 0;
+    RGResourceHandle buffer_resource_b = 0;
+
+    RenderPass pass1(&rg, "pass 1");
+    pass1.write(buffer_resource_a)
+        .commands([](RenderPassResources const&){});
+
+    RenderPass pass2(&rg, "pass 2");
+    pass2.read(buffer_resource_a)
+        .write(buffer_resource_b)
+        .commands([](RenderPassResources const&){});
+
+    pass1.read(buffer_resource_b);
+
+    EXPECT_FALSE(rg.build());
+}

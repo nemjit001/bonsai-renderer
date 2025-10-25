@@ -42,12 +42,21 @@ class RenderGraph
 public:
     friend class RenderPass;
 
+    RenderGraph() = default;
+    ~RenderGraph() = default;
+
+    RenderGraph(RenderGraph const&) = delete;
+    RenderGraph& operator=(RenderGraph const&) = delete;
+
+    RenderGraph(RenderGraph&&) noexcept = default;
+    RenderGraph& operator=(RenderGraph&&) noexcept = default;
+
     /// @brief Build the render graph.
     /// @return True on successful build, false otherwise.
     [[nodiscard]] bool build();
 
     /// @brief Execute the render graph. The graph needs to be built before execution.
-    void execute();
+    void execute() const;
 
 private:
     /// @brief Versioned resource handle to track read/write dependencies in render pass entries, along with resource
@@ -95,7 +104,8 @@ private:
     int32_t find_pass_dependency_count(RenderPassEntry const& entry, std::vector<RenderPassEntry> const& pass_queue);
 
 private:
-    std::unordered_map<std::string, RenderPassEntry> m_render_passes;
+    std::unordered_map<std::string, RenderPassEntry>    m_render_passes;
+    std::vector<std::vector<RenderPassEntry>>           m_dependency_graph;
 };
 
 /// @brief Resources available to a single render pass, declared using the RenderPass read/write functionality.
