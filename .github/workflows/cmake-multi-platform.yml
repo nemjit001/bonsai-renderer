@@ -41,10 +41,11 @@ jobs:
       with:
         submodules: 'recursive'
 
-    - uses: humbletim/install-vulkan-sdk@v1.2
+    - uses: humbletim/setup-vulkan-sdk@v1.2.1
       with:
-        version: 1.4.321.0
-        cache: true
+        vulkan-query-version: latest
+        vulkan-components: Vulkan-Headers, Vulkan-Loader
+        vulkan-use-cache: true
 
     - name: Set reusable strings
       id: strings
