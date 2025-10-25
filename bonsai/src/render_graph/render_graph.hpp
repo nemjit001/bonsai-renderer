@@ -57,13 +57,13 @@ private:
     /// @brief Add a resource read to a pass.
     /// @param name Pass name.
     /// @param resource
-    /// @param texture_usage
+    /// @param resource_usage
     void add_pass_resource_read(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage);
 
     /// @brief Add a resource write to a pass.
     /// @param name Pass name.
     /// @param resource
-    /// @param texture_usage
+    /// @param resource_usage
     void add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage);
 
     /// @brief Set render pass commands.
