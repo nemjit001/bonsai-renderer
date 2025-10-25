@@ -16,6 +16,13 @@ using RGResourceHandle = uint32_t;
 /// @brief Render pass command recording function.
 using RenderPassCommands = std::function<void(ShaderDatabase const&, RenderPassResources const&)>;
 
+/// @brief Render Graph build result enum that indicates possible errors during graph build.
+enum class RGBuildResult
+{
+    Success = 0,
+    ErrorDependencyCycle,
+};
+
 /// @brief Render graph resource types.
 enum class RGResourceType : uint8_t
 {
@@ -61,8 +68,8 @@ public:
     [[nodiscard]] RGResourceHandle create_texture();
 
     /// @brief Build the render graph.
-    /// @return True on successful build, false otherwise.
-    [[nodiscard]] bool build();
+    /// @return A RenderGraphBuildResult indicating build status.
+    [[nodiscard]] RGBuildResult build();
 
     /// @brief Execute the render graph. The graph needs to be built before execution.
     /// @param shader_db Shader database containing globally loaded shader pipelines.

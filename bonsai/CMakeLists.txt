@@ -80,8 +80,8 @@ if (BONSAI_TEST)
             tests/platform_tests.cpp
             tests/core_allocator_tests.cpp
             tests/render_graph_tests.cpp
-            tests/world_tests.cpp
             tests/assets_tests.cpp
+            tests/world_tests.cpp
     )
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)
     target_extended_warnings(bonsai_tests)

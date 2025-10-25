@@ -11,6 +11,7 @@ Bonsai's API layers in order from low-level to high-level:
 
 - **platform** contains platform specific code such as window handling, logging, and filesystem access.
 - **core** contains core code that other layers can build on.
+- **render_graph** contains the render graph API that builds on top of the RHI implementation.
 - **assets** contains the asset API for host-side asset loading and management.
 - **world** contains the host-side render world representation.
 - **components** contains entity components that define behaviour.

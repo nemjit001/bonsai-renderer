@@ -25,7 +25,7 @@ RGResourceHandle RenderGraph::create_texture()
     return id;
 }
 
-bool RenderGraph::build()
+RGBuildResult RenderGraph::build()
 {
     // Fill processing queue
     std::vector<RenderPassEntry> pass_queue;
@@ -58,15 +58,14 @@ bool RenderGraph::build()
 
         if (graph_layer.empty())
         {
-            BONSAI_LOG_ERROR("Detected a cycle in the Render Graph!");
-            return false; // No passes with parents available, indicates cycle in graph!
+            return RGBuildResult::ErrorDependencyCycle; // No passes with no previous dependencies, indicates cycle in graph!
         }
 
         pass_queue = next_layer_queue;
     }
 
     // TODO(nemjit001): Allocate all render graph managed resources (if not already allocated...)
-    return true;
+    return RGBuildResult::Success;
 }
 
 void RenderGraph::execute(ShaderDatabase& shader_db) const

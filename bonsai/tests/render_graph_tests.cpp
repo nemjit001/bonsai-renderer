@@ -9,7 +9,7 @@ TEST(render_graph, single_pass)
     RenderPass(&rg, "test pass")
         .write(buffer_resource);
 
-    EXPECT_TRUE(rg.build());
+    EXPECT_EQ(rg.build(), RGBuildResult::Success);
 }
 
 TEST(render_graph, linear_dependencies)
@@ -23,7 +23,7 @@ TEST(render_graph, linear_dependencies)
     RenderPass(&rg, "pass 2")
         .read(buffer_resource);
 
-    EXPECT_TRUE(rg.build());
+    EXPECT_EQ(rg.build(), RGBuildResult::Success);
 }
 
 TEST(render_graph, shared_dependencies)
@@ -44,7 +44,7 @@ TEST(render_graph, shared_dependencies)
         .read(buffer_resource_b)
         .write(buffer_resource_c);
 
-    EXPECT_TRUE(rg.build());
+    EXPECT_EQ(rg.build(), RGBuildResult::Success);
 }
 
 TEST(render_graph, dependency_cycle)
@@ -67,5 +67,5 @@ TEST(render_graph, dependency_cycle)
         .write(buffer_resource_c);
 
     pass1.read(buffer_resource_c);
-    EXPECT_FALSE(rg.build());
+    EXPECT_EQ(rg.build(), RGBuildResult::ErrorDependencyCycle);
 }
