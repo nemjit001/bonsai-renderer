@@ -5,6 +5,42 @@
 
 bool RenderGraph::build()
 {
+    std::vector<RenderPassEntry> pass_queue;
+    pass_queue.reserve(m_render_passes.size());
+    for (auto const& [name, pass] : m_render_passes)
+    {
+        pass_queue.push_back(pass);
+    }
+
+    std::vector<std::vector<RenderPassEntry>> dependency_graph;
+    std::vector<RenderPassEntry> next_layer_queue;
+    next_layer_queue.reserve(pass_queue.size());
+    while (!pass_queue.empty())
+    {
+        next_layer_queue.clear();
+        dependency_graph.emplace_back();
+        auto& graph_layer = dependency_graph.back();
+        for (auto const& pass : pass_queue)
+        {
+            if (find_pass_dependency_count(pass, pass_queue) == 0)
+            {
+                graph_layer.push_back(pass);
+            }
+            else
+            {
+                next_layer_queue.push_back(pass);
+            }
+        }
+
+        if (graph_layer.empty())
+        {
+            BONSAI_LOG_ERROR("Detected a cycle in the Render Graph!");
+            return false; // No passes with parents available, indicates cycle in graph!
+        }
+
+        pass_queue = next_layer_queue;
+    }
+
     return true;
 }
 
@@ -40,7 +76,7 @@ void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHan
     }
 
     add_pass_resource_read(name, resource, resource_usage);
-    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, 0, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, 1, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
 }
 
 void RenderGraph::set_pass_commands(std::string const& name, RenderPassCommands const& commands)
@@ -52,6 +88,27 @@ void RenderGraph::set_pass_commands(std::string const& name, RenderPassCommands 
         return;
     }
     pass_iter->second.commands = commands;
+}
+
+int32_t RenderGraph::find_pass_dependency_count(RenderPassEntry const& entry, std::vector<RenderPassEntry> const& pass_queue)
+{
+    int32_t dependency_count = 0;
+    for (auto const& read_dependency : entry.read_resources)
+    {
+        for (auto const& entry : pass_queue)
+        {
+            for (auto const& write_dependency : entry.write_resources)
+            {
+                if (read_dependency.id == write_dependency.id
+                    && read_dependency.version == write_dependency.version)
+                {
+                    dependency_count++;
+                }
+            }
+        }
+    }
+
+    return dependency_count;
 }
 
 RenderPass::RenderPass(RenderGraph* render_graph, std::string const& name)

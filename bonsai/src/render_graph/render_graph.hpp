@@ -50,6 +50,23 @@ public:
     void execute();
 
 private:
+    /// @brief Versioned resource handle to track read/write dependencies in render pass entries, along with resource
+    /// layout transitions.
+    struct VersionedResourceHandle
+    {
+        uint32_t id;
+        uint32_t version;
+        RGResourceUsage usage;
+    };
+
+    /// @brief Internal render pass entry state.
+    struct RenderPassEntry
+    {
+        std::vector<VersionedResourceHandle> read_resources;
+        std::vector<VersionedResourceHandle> write_resources;
+        RenderPassCommands commands;
+    };
+
     /// @brief Insert a new named render pass.
     /// @param name Render pass name.
     void insert_render_pass(std::string const& name);
@@ -71,24 +88,13 @@ private:
     /// @param commands Pass command function.
     void set_pass_commands(std::string const& name, RenderPassCommands const& commands);
 
+    /// @brief Find the number of dependencies on other passes a single graph entry has.
+    /// @param entry Entry to check dependency count for.
+    /// @param pass_queue Queue of passes to check for dependencies.
+    /// @return The number of dependencies for the pass entry based on read/write dependency pairs.
+    int32_t find_pass_dependency_count(RenderPassEntry const& entry, std::vector<RenderPassEntry> const& pass_queue);
+
 private:
-    /// @brief Versioned resource handle to track read/write dependencies in render pass entries, along with resource
-    /// layout transitions.
-    struct VersionedResourceHandle
-    {
-        uint32_t id;
-        uint32_t version;
-        RGResourceUsage usage;
-    };
-
-    /// @brief Internal render pass entry state.
-    struct RenderPassEntry
-    {
-        std::vector<VersionedResourceHandle> read_resources;
-        std::vector<VersionedResourceHandle> write_resources;
-        RenderPassCommands commands;
-    };
-
     std::unordered_map<std::string, RenderPassEntry> m_render_passes;
 };
 
