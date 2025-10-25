@@ -17,9 +17,10 @@ using AssetHandle = std::shared_ptr<AssetType>;
 class AssetCache
 {
 public:
-    /// @brief Create an asset in the cache.
+    /// @brief Create or replace an asset in the cache.
     /// @tparam AssetType Type of asset to create.
     /// @param name Asset name.
+    /// @param args Asset constructor arguments.
     /// @return An AssetHandle.
     template<typename AssetType, typename... Args>
     static AssetHandle<AssetType> create(std::string const& name, Args&&... args);

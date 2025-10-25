@@ -2,21 +2,15 @@
 #include <assets/asset_cache.hpp>
 #include <assets/model.hpp>
 
-TEST(assets, load_model)
+TEST(assets, create_model)
 {
-    AssetHandle<Model> const model = AssetCache::load<Model>("assets/CornellBox.obj");
-    EXPECT_FALSE(model->meshes().empty());
-}
-
-TEST(assets, unload_model)
-{
-    AssetHandle<Model> const model = AssetCache::load<Model>("assets/CornellBox.obj");
-    EXPECT_FALSE(model->meshes().empty());
-    AssetCache::unload(model);
+    AssetHandle<Model> const test_model = AssetCache::create<Model>("test_model");
+    AssetHandle<Model> const cached_model = AssetCache::load<Model>("test_model");
+    EXPECT_EQ(test_model, cached_model);
 }
 
 TEST(assets, load_bad_model)
 {
-    AssetHandle<Model> const model = AssetCache::load<Model>("assets/DOESNOTEXIST.obj");
+    AssetHandle<Model> const model = AssetCache::load<Model>("DOESNOTEXIST.obj");
     EXPECT_TRUE(model->meshes().empty());
 }
