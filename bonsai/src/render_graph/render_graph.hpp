@@ -7,14 +7,17 @@
 #include <string>
 #include <unordered_map>
 
+#include "render_graph.hpp"
+
 class ShaderDatabase; // TODO(nemjit001): provide actual implementation of shader db for use in render graph
+class CommandBuffer; // TODO(nemjit001): Provide actual implementation of command buffer through RHI
 class RenderPassResources;
 
 /// @brief Thin resource handle to uniquely identify resources in the render graph.
 using RGResourceHandle = uint32_t;
 
 /// @brief Render pass command recording function.
-using RenderPassCommands = std::function<void(ShaderDatabase const&, RenderPassResources const&)>;
+using RenderPassCommands = std::function<void(RenderPassResources const&, ShaderDatabase const&, CommandBuffer& command_buffer)>;
 
 /// @brief Render Graph build result enum that indicates possible errors during graph build.
 enum class RGBuildResult
@@ -73,7 +76,8 @@ public:
 
     /// @brief Execute the render graph. The graph needs to be built before execution.
     /// @param shader_db Shader database containing globally loaded shader pipelines.
-    void execute(ShaderDatabase& shader_db) const;
+    /// @param command_buffer Command buffer for recording render pass commands.
+    void execute(ShaderDatabase const& shader_db, CommandBuffer& command_buffer) const;
 
     /// @brief Clear the render graph's internal data.
     void clear();

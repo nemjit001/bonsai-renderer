@@ -68,7 +68,7 @@ RGBuildResult RenderGraph::build()
     return RGBuildResult::Success;
 }
 
-void RenderGraph::execute(ShaderDatabase& shader_db) const
+void RenderGraph::execute(ShaderDatabase const& shader_db, CommandBuffer& command_buffer) const
 {
     for (auto const& layer : m_dependency_graph)
     {
@@ -78,7 +78,7 @@ void RenderGraph::execute(ShaderDatabase& shader_db) const
             RenderPassResources pass_resources;
             if (pass.commands)
             {
-                pass.commands(shader_db, pass_resources);
+                pass.commands(pass_resources, shader_db, command_buffer);
             }
         }
     }
