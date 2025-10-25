@@ -14,6 +14,17 @@ RGResourceHandle RenderGraph::create_buffer()
     return id;
 }
 
+RGResourceHandle RenderGraph::create_texture()
+{
+    ResourceMetaData resource{};
+    resource.type = RGResourceType::Texture;
+    resource.version = 0;
+
+    uint32_t const id = m_graph_resources.size();
+    m_graph_resources.push_back(resource);
+    return id;
+}
+
 bool RenderGraph::build()
 {
     // Fill processing queue
@@ -99,6 +110,19 @@ void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHand
     {
         BONSAI_LOG_WARNING("Failed to add render pass resource read: resource {} does not exist", resource);
         return;
+    }
+
+    for (auto const& read_dependency : pass_iter->second.read_resources)
+    {
+        if (read_dependency.id == resource && read_dependency.usage == resource_usage)
+        {
+            BONSAI_LOG_WARNING(
+                "Failed to add render pass resource read: resource usage {} does not match previous declared usage of {}",
+                static_cast<uint32_t>(resource_usage),
+                static_cast<uint32_t>(read_dependency.usage)
+            );
+            return;
+        }
     }
 
     ResourceMetaData const& resource_data = m_graph_resources[resource];

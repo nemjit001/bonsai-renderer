@@ -55,6 +55,10 @@ public:
     /// @return A new resource handle representing this resource.
     [[nodiscard]] RGResourceHandle create_buffer();
 
+    /// @brief Create a texture resource in the render graph.
+    /// @return A new resource handle representing this resource.
+    [[nodiscard]] RGResourceHandle create_texture();
+
     /// @brief Build the render graph.
     /// @return True on successful build, false otherwise.
     [[nodiscard]] bool build();
@@ -80,6 +84,9 @@ private:
     {
         RGResourceType type;
         uint32_t version;
+        union ResourceConfig
+        {
+        } config; /// @brief Resource configuration for managed render graph resources.
     };
 
     /// @brief Internal render pass entry state.
