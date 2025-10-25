@@ -3,6 +3,17 @@
 #include "platform/assert.hpp"
 #include "platform/logger.hpp"
 
+RGResourceHandle RenderGraph::create_buffer()
+{
+    ResourceMetaData resource{};
+    resource.type = RGResourceType::Buffer;
+    resource.version = 0;
+
+    uint32_t const id = m_graph_resources.size();
+    m_graph_resources.push_back(resource);
+    return id;
+}
+
 bool RenderGraph::build()
 {
     // Fill processing queue
@@ -43,6 +54,7 @@ bool RenderGraph::build()
         pass_queue = next_layer_queue;
     }
 
+    // TODO(nemjit001): Allocate all render graph managed resources (if not already allocated...)
     return true;
 }
 
@@ -62,6 +74,13 @@ void RenderGraph::execute() const
     }
 }
 
+void RenderGraph::clear()
+{
+    m_dependency_graph.clear();
+    m_graph_resources.clear();
+    m_dependency_graph.clear();
+}
+
 void RenderGraph::insert_render_pass(std::string const& name)
 {
     m_render_passes.insert({ name, RenderPassEntry{} });
@@ -76,7 +95,14 @@ void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHand
         return;
     }
 
-    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, 0, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    if (resource >= m_graph_resources.size())
+    {
+        BONSAI_LOG_WARNING("Failed to add render pass resource read: resource {} does not exist", resource);
+        return;
+    }
+
+    ResourceMetaData const& resource_data = m_graph_resources[resource];
+    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
 }
 
 void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage)
@@ -88,8 +114,17 @@ void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHan
         return;
     }
 
+    if (resource >= m_graph_resources.size())
+    {
+        BONSAI_LOG_WARNING("Failed to add render pass resource write: resource {} does not exist", resource);
+        return;
+    }
+
     add_pass_resource_read(name, resource, resource_usage);
-    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, 1, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    ResourceMetaData& resource_data = m_graph_resources[resource];
+    resource_data.version++;
+
+    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
 }
 
 void RenderGraph::set_pass_commands(std::string const& name, RenderPassCommands const& commands)

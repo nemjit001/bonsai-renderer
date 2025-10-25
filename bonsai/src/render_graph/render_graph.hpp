@@ -51,12 +51,19 @@ public:
     RenderGraph(RenderGraph&&) noexcept = default;
     RenderGraph& operator=(RenderGraph&&) noexcept = default;
 
+    /// @brief Create a buffer resource in the render graph.
+    /// @return A new resource handle representing this resource.
+    [[nodiscard]] RGResourceHandle create_buffer();
+
     /// @brief Build the render graph.
     /// @return True on successful build, false otherwise.
     [[nodiscard]] bool build();
 
     /// @brief Execute the render graph. The graph needs to be built before execution.
     void execute() const;
+
+    /// @brief Clear the render graph's internal data.
+    void clear();
 
 private:
     /// @brief Versioned resource handle to track read/write dependencies in render pass entries, along with resource
@@ -66,6 +73,13 @@ private:
         uint32_t id;
         uint32_t version;
         RGResourceUsage usage;
+    };
+
+    /// @brief Resource metadata used for allocating / managing graph resources.
+    struct ResourceMetaData
+    {
+        RGResourceType type;
+        uint32_t version;
     };
 
     /// @brief Internal render pass entry state.
@@ -105,6 +119,7 @@ private:
 
 private:
     std::unordered_map<std::string, RenderPassEntry>    m_render_passes;
+    std::vector<ResourceMetaData>                       m_graph_resources;
     std::vector<std::vector<RenderPassEntry>>           m_dependency_graph;
 };
 
