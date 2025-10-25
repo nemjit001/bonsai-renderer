@@ -18,8 +18,7 @@ void RenderGraph::insert_render_pass(std::string const& name)
     m_render_passes.insert({ name, RenderPassEntry{} });
 }
 
-
-void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHandle const& resource)
+void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage)
 {
     auto const pass_iter = m_render_passes.find(name);
     if (pass_iter == m_render_passes.end())
@@ -28,10 +27,10 @@ void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHand
         return;
     }
 
-    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, 0 }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, 0, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
 }
 
-void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHandle const& resource)
+void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage)
 {
     auto const pass_iter = m_render_passes.find(name);
     if (pass_iter == m_render_passes.end())
@@ -40,8 +39,8 @@ void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHan
         return;
     }
 
-    add_pass_resource_read(name, resource);
-    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, 0 }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    add_pass_resource_read(name, resource, resource_usage);
+    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, 0, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
 }
 
 void RenderGraph::set_pass_commands(std::string const& name, RenderPassCommands const& commands)
@@ -64,15 +63,15 @@ RenderPass::RenderPass(RenderGraph* render_graph, std::string const& name)
     m_render_graph->insert_render_pass(name);
 }
 
-RenderPass& RenderPass::read(RGResourceHandle const& resource)
+RenderPass& RenderPass::read(RGResourceHandle const& resource, RGResourceUsage resource_usage)
 {
-    m_render_graph->add_pass_resource_read(m_name, resource);
+    m_render_graph->add_pass_resource_read(m_name, resource, resource_usage);
     return *this;
 }
 
-RenderPass& RenderPass::write(RGResourceHandle const& resource)
+RenderPass& RenderPass::write(RGResourceHandle const& resource, RGResourceUsage resource_usage)
 {
-    m_render_graph->add_pass_resource_write(m_name, resource);
+    m_render_graph->add_pass_resource_write(m_name, resource, resource_usage);
     return *this;
 }
 
