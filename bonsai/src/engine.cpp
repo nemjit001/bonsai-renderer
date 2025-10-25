@@ -30,9 +30,6 @@ Engine::Engine()
     m_world_manager->load_world("assets/CornellBox.bonsai"); // TODO(nemjit001): Show world selection GUI on startup instead of defaulting to a hardcoded world.
     BONSAI_LOG_INFO("Active world: {}", m_world_manager->get_active_world()->get_name());
 
-    // Initialize rendering systems
-    // TODO(nemjit001): Plan out renderer w/ world sync
-
     // Set surface handlers
     // m_surface->set_user_data(nullptr);
     m_platform->set_platform_surface_resize_callback([]([[maybe_unused]] void* user_data, uint32_t width, uint32_t height)
