@@ -7,13 +7,14 @@
 #include <string>
 #include <unordered_map>
 
+class ShaderDatabase; // TODO(nemjit001): provide actual implementation of shader db for use in render graph
 class RenderPassResources;
 
 /// @brief Thin resource handle to uniquely identify resources in the render graph.
 using RGResourceHandle = uint32_t;
 
 /// @brief Render pass command recording function.
-using RenderPassCommands = std::function<void(RenderPassResources const&)>;
+using RenderPassCommands = std::function<void(ShaderDatabase const&, RenderPassResources const&)>;
 
 /// @brief Render graph resource types.
 enum class RGResourceType : uint8_t
@@ -64,7 +65,8 @@ public:
     [[nodiscard]] bool build();
 
     /// @brief Execute the render graph. The graph needs to be built before execution.
-    void execute() const;
+    /// @param shader_db Shader database containing globally loaded shader pipelines.
+    void execute(ShaderDatabase& shader_db) const;
 
     /// @brief Clear the render graph's internal data.
     void clear();

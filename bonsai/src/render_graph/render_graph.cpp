@@ -69,7 +69,7 @@ bool RenderGraph::build()
     return true;
 }
 
-void RenderGraph::execute() const
+void RenderGraph::execute(ShaderDatabase& shader_db) const
 {
     for (auto const& layer : m_dependency_graph)
     {
@@ -79,7 +79,7 @@ void RenderGraph::execute() const
             RenderPassResources pass_resources;
             if (pass.commands)
             {
-                pass.commands(pass_resources);
+                pass.commands(shader_db, pass_resources);
             }
         }
     }
