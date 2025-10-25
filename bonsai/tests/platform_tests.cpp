@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 #include <platform/platform.hpp>
 
+/// Platform surface tests, can be disabled for testing in environments where platform surfaces are not available.
+#if BONSAI_PLATFORM_SURFACE_TESTS
+
 TEST(platform, create_default_surface)
 {
     Platform platform{};
@@ -35,3 +38,5 @@ TEST(platform, query_surface_size)
 
     platform.destroy_surface(surface);
 }
+
+#endif //BONSAI_PLATFORM_SURFACE_TESTS
