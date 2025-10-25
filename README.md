@@ -1,4 +1,5 @@
 # Bonsai Renderer
+[![CI Tests](https://github.com/nemjit001/bonsai-renderer/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=main)](https://github.com/nemjit001/bonsai-renderer/actions/workflows/cmake-multi-platform.yml)
 
 High performance render engine written in C++17.
 
