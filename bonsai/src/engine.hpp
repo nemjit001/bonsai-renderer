@@ -5,8 +5,6 @@
 #include "core/timer.hpp"
 #include "platform/platform.hpp"
 #include "world/world_manager.hpp"
-#include "rendering/render_backend.hpp"
-#include "rendering/renderer.hpp"
 
 /// @brief Main engine class, handles subsystem management and lifecycle.
 class Engine
@@ -27,8 +25,6 @@ private:
     Platform*       m_platform          = nullptr;
     Surface*        m_surface           = nullptr;
     WorldManager*   m_world_manager     = nullptr;
-    RenderBackend*  m_render_backend    = nullptr;
-    Renderer*       m_renderer          = nullptr;
 };
 
 #endif //BONSAI_RENDERER_ENGINE_HPP

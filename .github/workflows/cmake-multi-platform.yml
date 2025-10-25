@@ -41,6 +41,10 @@ jobs:
       with:
         submodules: 'recursive'
 
+    - uses: humbletim/install-vulkan-sdk@v1.2
+      with:
+        version: 1.4.321.0
+
     - name: Set reusable strings
       id: strings
       shell: bash

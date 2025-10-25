@@ -19,6 +19,9 @@ add_library(bonsai_core STATIC
         src/core/allocator.hpp
         src/core/die.hpp
         src/core/timer.hpp
+        # Render Graph API
+        src/render_graph/render_graph.cpp
+        src/render_graph/render_graph.hpp
         # Asset API
         src/assets/asset.hpp
         src/assets/asset_cache.cpp
@@ -41,16 +44,6 @@ add_library(bonsai_core STATIC
         src/components/camera_component.hpp
         src/components/render_component.cpp
         src/components/render_component.hpp
-        # Rendering API
-        src/rendering/render_backend.hpp
-        src/rendering/render_world.hpp
-        src/rendering/renderer.hpp
-        src/rendering/vulkan/render_backend_vulkan.cpp
-        src/rendering/vulkan/render_backend_vulkan.hpp
-        src/rendering/vulkan/render_world_vulkan.cpp
-        src/rendering/vulkan/renderer_vulkan.cpp
-        src/rendering/vulkan/use_vma.cpp
-        src/rendering/vulkan/use_volk.cpp
         # Engine API
         src/engine.cpp
         src/engine.hpp
@@ -75,7 +68,6 @@ add_executable(bonsai
         src/main.cpp
 )
 target_include_directories(bonsai PRIVATE src/)
-target_compile_features(bonsai PRIVATE cxx_std_17)
 target_link_libraries(bonsai PRIVATE bonsai_core)
 target_extended_warnings(bonsai)
 target_track_dll_dependencies(bonsai)
@@ -87,11 +79,10 @@ if (BONSAI_TEST)
             tests/sanity.cpp
             tests/platform_tests.cpp
             tests/core_allocator_tests.cpp
-            tests/world_tests.cpp
-            tests/renderer_tests.cpp
+            tests/render_graph_tests.cpp
             tests/assets_tests.cpp
+            tests/world_tests.cpp
     )
-    target_compile_features(bonsai_tests PRIVATE cxx_std_17)
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)
     target_extended_warnings(bonsai_tests)
     target_track_dll_dependencies(bonsai_tests)
