@@ -68,7 +68,6 @@ add_executable(bonsai
         src/main.cpp
 )
 target_include_directories(bonsai PRIVATE src/)
-target_compile_features(bonsai PRIVATE cxx_std_17)
 target_link_libraries(bonsai PRIVATE bonsai_core)
 target_extended_warnings(bonsai)
 target_track_dll_dependencies(bonsai)
@@ -84,7 +83,6 @@ if (BONSAI_TEST)
             tests/world_tests.cpp
             tests/assets_tests.cpp
     )
-    target_compile_features(bonsai_tests PRIVATE cxx_std_17)
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai_core)
     target_extended_warnings(bonsai_tests)
     target_track_dll_dependencies(bonsai_tests)
