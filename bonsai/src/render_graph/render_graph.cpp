@@ -9,7 +9,7 @@ RGResourceHandle RenderGraph::create_buffer()
     resource.type = RGResourceType::Buffer;
     resource.version = 0;
 
-    uint32_t const id = m_graph_resources.size();
+    uint32_t const id = static_cast<uint32_t>(m_graph_resources.size());
     m_graph_resources.push_back(resource);
     return id;
 }
@@ -20,7 +20,7 @@ RGResourceHandle RenderGraph::create_texture()
     resource.type = RGResourceType::Texture;
     resource.version = 0;
 
-    uint32_t const id = m_graph_resources.size();
+    uint32_t const id = static_cast<uint32_t>(m_graph_resources.size());
     m_graph_resources.push_back(resource);
     return id;
 }
@@ -68,7 +68,7 @@ RGBuildResult RenderGraph::build()
     return RGBuildResult::Success;
 }
 
-void RenderGraph::execute(ShaderDatabase const& shader_db, CommandBuffer& command_buffer) const
+void RenderGraph::execute(ShaderDatabase const& shader_db, CommandBufferHandle& command_buffer) const
 {
     for (auto const& layer : m_dependency_graph)
     {

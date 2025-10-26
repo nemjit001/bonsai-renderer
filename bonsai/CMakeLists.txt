@@ -19,6 +19,16 @@ add_library(bonsai_core STATIC
         src/core/allocator.hpp
         src/core/die.hpp
         src/core/timer.hpp
+        # RHI API
+        src/rhi/rhi.hpp
+        src/rhi/rhi_vulkan.cpp
+        src/rhi/rhi_vulkan.hpp
+        src/rhi/vulkan/vulkan_buffer.cpp
+        src/rhi/vulkan/vulkan_buffer.hpp
+        src/rhi/vulkan/vulkan_command_buffer.cpp
+        src/rhi/vulkan/vulkan_command_buffer.hpp
+        src/rhi/vulkan/vulkan_texture.cpp
+        src/rhi/vulkan/vulkan_texture.hpp
         # Render Graph API
         src/render_graph/render_graph.cpp
         src/render_graph/render_graph.hpp
@@ -79,6 +89,7 @@ if (BONSAI_TEST)
             tests/sanity.cpp
             tests/platform_tests.cpp
             tests/core_allocator_tests.cpp
+            tests/rhi_tests.cpp
             tests/render_graph_tests.cpp
             tests/assets_tests.cpp
             tests/world_tests.cpp
