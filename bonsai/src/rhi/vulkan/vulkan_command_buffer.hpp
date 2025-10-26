@@ -9,8 +9,8 @@
 class VulkanCommandBuffer : public ICommandBuffer
 {
 public:
-    VulkanCommandBuffer(VkCommandBuffer command_buffer);
-    ~VulkanCommandBuffer() = default;
+    explicit VulkanCommandBuffer(VkCommandBuffer command_buffer);
+    ~VulkanCommandBuffer() override = default;
 
     VulkanCommandBuffer(VulkanCommandBuffer const&) = delete;
     VulkanCommandBuffer& operator=(VulkanCommandBuffer const&) = delete;

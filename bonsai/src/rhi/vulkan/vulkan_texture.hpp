@@ -11,7 +11,7 @@ class VulkanTexture : public ITexture
 {
 public:
     VulkanTexture(VmaAllocator allocator, VkImage image, VmaAllocation allocation);
-    ~VulkanTexture();
+    ~VulkanTexture() override;
 
     VulkanTexture(VulkanTexture const&) = delete;
     VulkanTexture& operator=(VulkanTexture const&) = delete;

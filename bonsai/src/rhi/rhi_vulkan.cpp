@@ -6,10 +6,38 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include <vector>
+#include "platform/assert.hpp"
 #include "platform/logger.hpp"
 #include "platform/platform_vulkan.hpp"
 #include "core/die.hpp"
 #include "bonsai_config.hpp"
+
+VulkanRenderDevice::VulkanRenderDevice(
+    VkPhysicalDevice physical_device,
+    VulkanQueueFamilies const& queue_families,
+    VkDevice device,
+    VmaAllocator allocator
+)
+    :
+    m_physical_device(physical_device),
+    m_queue_families(queue_families),
+    m_device(device),
+    m_allocator(allocator)
+{
+    BONSAI_ASSERT(m_physical_device != VK_NULL_HANDLE && "Vulkan physical device was null!");
+    BONSAI_ASSERT(m_device != VK_NULL_HANDLE && "Vulkan device was null!");
+    BONSAI_ASSERT(m_allocator != VK_NULL_HANDLE && "Vulkan allocator was null!");
+
+    vkGetDeviceQueue(m_device, queue_families.graphicsFamily, 0, &m_graphics_queue);
+    vkGetDeviceQueue(m_device, queue_families.transferFamily, 0, &m_transfer_queue);
+    vkGetDeviceQueue(m_device, queue_families.computeFamily, 0, &m_compute_queue);
+}
+
+VulkanRenderDevice::~VulkanRenderDevice()
+{
+    vmaDestroyAllocator(m_allocator);
+    vkDestroyDevice(m_device, nullptr);
+}
 
 bool VulkanRenderDevice::is_headless() const
 {
@@ -151,7 +179,7 @@ VulkanRHIInstance::~VulkanRHIInstance()
 
 RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc const& desc)
 {
-    return RenderDeviceHandle(new VulkanRenderDevice());
+    return RenderDeviceHandle(new VulkanRenderDevice(VK_NULL_HANDLE, {}, VK_NULL_HANDLE, VK_NULL_HANDLE));
 }
 
 #endif //BONSAI_USE_VULKAN

@@ -11,7 +11,7 @@ class VulkanBuffer : public IBuffer
 {
 public:
     VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, size_t size);
-    ~VulkanBuffer();
+    ~VulkanBuffer() override;
 
     VulkanBuffer(VulkanBuffer const&) = delete;
     VulkanBuffer& operator=(VulkanBuffer const&) = delete;
