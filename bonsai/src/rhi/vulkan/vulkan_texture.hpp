@@ -16,6 +16,21 @@ public:
     VulkanTexture(VulkanTexture const&) = delete;
     VulkanTexture& operator=(VulkanTexture const&) = delete;
 
+    /// @brief Get the Vulkan image type for a texture type.
+    /// @param texture_type
+    /// @return
+    static VkImageType get_vulkan_image_type(TextureType texture_type);
+
+    /// @brief Get the Vulkan image usage flags for texture usage flags.
+    /// @param usage_flags
+    /// @return
+    static VkImageUsageFlags get_vulkan_usage_flags(TextureUsageFlags usage_flags);
+
+    /// @brief Get the Vulkan sample count flags for a given sample count.
+    /// @param sample_count MUST be a multiple of 2 in range [1, 64]
+    /// @return
+    static VkSampleCountFlagBits get_vulkan_sample_count(size_t sample_count);
+
 protected:
     void* get_raw_object() const override { return m_image; }
 
