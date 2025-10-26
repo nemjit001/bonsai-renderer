@@ -13,6 +13,7 @@ constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
 /// @brief Vulkan queue families available in a device.
 struct VulkanQueueFamilies
 {
+    /// @brief Get a list of unique queue family indices from the queue setup.
     [[nodiscard]] std::vector<uint32_t> get_unique() const;
 
     uint32_t graphicsFamily; // Used as direct queue (graphics + transfer + compute workloads)
