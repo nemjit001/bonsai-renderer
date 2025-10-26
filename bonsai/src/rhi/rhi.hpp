@@ -134,11 +134,6 @@ public:
     /// @param desc Texture resource descriptor.
     /// @return A new texture resource handle.
     virtual TextureHandle create_texture(TextureDesc& desc) = 0;
-
-    /// @brief Create a new command buffer for command recording.
-    /// @param queue Target queues to use for this command buffer.
-    /// @return A new command buffer handle.
-    virtual CommandBufferHandle create_command_buffer(CommandQueueType queue) = 0;
 };
 using RenderDeviceHandle = std::shared_ptr<IRenderDevice>;
 

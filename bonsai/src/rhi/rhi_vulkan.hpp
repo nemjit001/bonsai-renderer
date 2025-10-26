@@ -42,8 +42,6 @@ public:
 
     TextureHandle create_texture(TextureDesc& desc) override;
 
-    CommandBufferHandle create_command_buffer(CommandQueueType queue) override;
-
 private:
     bool                m_headless          = true;
     VkPhysicalDevice    m_physical_device   = VK_NULL_HANDLE;

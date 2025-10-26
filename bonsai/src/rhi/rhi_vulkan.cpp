@@ -12,6 +12,7 @@
 #include "vulkan/vulkan_buffer.hpp"
 #include "vulkan/vulkan_helpers.hpp"
 #include "bonsai_config.hpp"
+#include "vulkan/vulkan_texture.hpp"
 
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
 {
@@ -83,12 +84,37 @@ BufferHandle VulkanRenderDevice::create_buffer(BufferDesc& desc)
 
 TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
 {
-    return {};
-}
+    VkImageCreateInfo image_create_info{};
+    image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    image_create_info.pNext = nullptr;
+    image_create_info.flags = 0;
+    image_create_info.imageType = VK_IMAGE_TYPE_2D; // TODO(nemjit001): Set based on type in desc
+    image_create_info.format = VK_FORMAT_UNDEFINED; // TODO(nemjit001): Set based on format in desc
+    image_create_info.extent.width = desc.width;
+    image_create_info.extent.height = desc.height;
+    image_create_info.extent.depth = 1; // TODO(nemjit001): Set depth or array layers based on image type
+    image_create_info.mipLevels = desc.mip_levels;
+    image_create_info.arrayLayers = 1;
+    image_create_info.samples = VK_SAMPLE_COUNT_1_BIT; // TODO(nemjit001): Set based on sample counts in desc
+    image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    image_create_info.usage = 0; // TODO(nemjit001): Set based on usage in desc
+    image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    image_create_info.queueFamilyIndexCount = 0;
+    image_create_info.pQueueFamilyIndices = nullptr;
+    image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-CommandBufferHandle VulkanRenderDevice::create_command_buffer(CommandQueueType queue)
-{
-    return {};
+    VmaAllocationCreateInfo allocation_create_info{};
+    allocation_create_info.flags = 0;
+    allocation_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+
+    VkImage image = VK_NULL_HANDLE;
+    VmaAllocation allocation = VK_NULL_HANDLE;
+    if (vmaCreateImage(m_allocator, &image_create_info, &allocation_create_info, &image, &allocation, nullptr) != VK_SUCCESS)
+    {
+        return {};
+    }
+
+    return TextureHandle(new VulkanTexture(m_allocator, image, allocation, desc));
 }
 
 RHIInstanceHandle create_rhi_instance()

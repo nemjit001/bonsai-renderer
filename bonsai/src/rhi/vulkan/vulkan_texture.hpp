@@ -10,7 +10,7 @@
 class VulkanTexture : public ITexture
 {
 public:
-    VulkanTexture(VmaAllocator allocator, VkImage image, VmaAllocation allocation);
+    VulkanTexture(VmaAllocator allocator, VkImage image, VmaAllocation allocation, TextureDesc const& desc);
     ~VulkanTexture() override;
 
     VulkanTexture(VulkanTexture const&) = delete;
@@ -23,6 +23,7 @@ private:
     VmaAllocator    m_allocator     = VK_NULL_HANDLE;
     VkImage         m_image         = VK_NULL_HANDLE;
     VmaAllocation   m_allocation    = VK_NULL_HANDLE;
+    TextureDesc     m_desc          = {};
 };
 
 #endif //BONSAI_USE_VULKAN
