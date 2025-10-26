@@ -15,7 +15,6 @@ public:
     }
 
 protected:
-    Platform            platform; // Needed for Vulkan symbol resolution
     RHIInstanceHandle   rhi_instance;
     RenderDeviceHandle  render_device;
 };
