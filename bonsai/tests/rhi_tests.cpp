@@ -29,9 +29,24 @@ TEST_F(rhi, create_buffer_resource)
 {
     BufferDesc buffer_desc{};
     buffer_desc.size = 128;
-    buffer_desc.usage = BufferUsage::VertexBuffer | BufferUsage::IndexBuffer;
+    buffer_desc.usage = BufferUsageVertexBuffer | BufferUsageTransferDst;
 
     BufferHandle buffer = render_device->create_buffer(buffer_desc);
     EXPECT_NE(buffer, nullptr);
     EXPECT_EQ(buffer->size(), buffer_desc.size);
+}
+
+TEST_F(rhi, create_texture_resource)
+{
+    TextureDesc texture_desc{};
+    texture_desc.type = TextureType::Type2D;
+    texture_desc.width  = 128;
+    texture_desc.height = 128;
+    texture_desc.depth_or_layers = 1;
+    texture_desc.mip_levels = 1;
+    texture_desc.sample_count = 1;
+    texture_desc.usage = TextureUsageSampled | TextureUsageTransferDst;
+
+    TextureHandle texture = render_device->create_texture(texture_desc);
+    EXPECT_NE(texture, nullptr);
 }

@@ -9,6 +9,8 @@
 #include "platform/logger.hpp"
 #include "platform/platform_vulkan.hpp"
 #include "core/die.hpp"
+#include "vulkan/vulkan_buffer.hpp"
+#include "vulkan/vulkan_helpers.hpp"
 #include "bonsai_config.hpp"
 
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
@@ -55,7 +57,28 @@ bool VulkanRenderDevice::is_headless() const
 
 BufferHandle VulkanRenderDevice::create_buffer(BufferDesc& desc)
 {
-    return {};
+    VkBufferCreateInfo buffer_create_info{};
+    buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer_create_info.pNext = nullptr;
+    buffer_create_info.flags = 0;
+    buffer_create_info.size = desc.size;
+    buffer_create_info.usage = VulkanBuffer::get_vulkan_usage_flags(desc.usage);
+    buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    buffer_create_info.queueFamilyIndexCount = 0;
+    buffer_create_info.pQueueFamilyIndices = nullptr;
+
+    VmaAllocationCreateInfo allocation_create_info{};
+    allocation_create_info.flags = 0; // TODO(nemjit001): Add mapping & host access flags
+    allocation_create_info.usage = VMA_MEMORY_USAGE_AUTO;
+
+    VkBuffer buffer = VK_NULL_HANDLE;
+    VmaAllocation allocation = VK_NULL_HANDLE;
+    if (vmaCreateBuffer(m_allocator, &buffer_create_info, &allocation_create_info, &buffer, &allocation, nullptr) != VK_SUCCESS)
+    {
+        return {};
+    }
+
+    return BufferHandle(new VulkanBuffer(m_allocator, buffer, allocation, desc));
 }
 
 TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
@@ -183,6 +206,11 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
 
     // Get physical device & required queue families
     VkPhysicalDevice physical_device = find_physical_device(m_instance, compatible_surface);
+    if (physical_device == VK_NULL_HANDLE)
+    {
+        bonsai::die("Failed to find suitable Vulkan physical device");
+    }
+
     VulkanQueueFamilies queue_families{};
     queue_families.graphicsFamily = find_queue_family(physical_device, VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 0, compatible_surface);
     queue_families.transferFamily = find_queue_family(physical_device, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_GRAPHICS_BIT, VK_NULL_HANDLE);
@@ -194,12 +222,23 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
     queue_families.computeFamily = (queue_families.computeFamily == VK_QUEUE_FAMILY_IGNORED) ?
         find_queue_family(physical_device, VK_QUEUE_COMPUTE_BIT, 0, VK_NULL_HANDLE) : queue_families.computeFamily;
 
-    // Enable required extensions & set up device features
+    // Enable required extensions
     std::vector<char const*> enabled_extensions;
     if (!is_headless)
     {
         enabled_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
+
+    // Enable required device features
+    VkPhysicalDeviceVulkan12Features vulkan12_features{};
+    vulkan12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    vulkan12_features.pNext = nullptr;
+    vulkan12_features.bufferDeviceAddress = true;
+
+    VkPhysicalDeviceFeatures2 enabled_features2{};
+    enabled_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    enabled_features2.pNext = &vulkan12_features;
+    enabled_features2.features.samplerAnisotropy = true;
 
     // Set up device queue create infos
     std::vector<uint32_t> unique_queue_families = queue_families.get_unique();
@@ -223,7 +262,7 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
 
     VkDeviceCreateInfo device_create_info{};
     device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_create_info.pNext = nullptr;
+    device_create_info.pNext = &enabled_features2;
     device_create_info.flags = 0;
     device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
     device_create_info.pQueueCreateInfos = queue_create_infos.data();
@@ -296,8 +335,8 @@ VkPhysicalDevice VulkanRHIInstance::find_physical_device(VkInstance instance, Vk
         // Test device properties
         VkPhysicalDeviceProperties2 properties2{};
         properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-        vkGetPhysicalDeviceProperties2(device, &properties2);
 
+        vkGetPhysicalDeviceProperties2(device, &properties2);
         if (properties2.properties.apiVersion < BONSAI_VULKAN_VERSION)
         {
             continue;
@@ -306,9 +345,16 @@ VkPhysicalDevice VulkanRHIInstance::find_physical_device(VkInstance instance, Vk
         // Test device features
         VkPhysicalDeviceFeatures2 features2{};
         features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-        vkGetPhysicalDeviceFeatures2(device, &features2);
+        features2.pNext = nullptr;
 
-        if (features2.features.samplerAnisotropy == VK_FALSE)
+        VkPhysicalDeviceVulkan12Features vulkan12_features{};
+        vulkan12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+        vulkan12_features.pNext = nullptr;
+        rhi_vk::extend_pnext_chain(features2, vulkan12_features);
+
+        vkGetPhysicalDeviceFeatures2(device, &features2);
+        if (features2.features.samplerAnisotropy == VK_FALSE
+            || vulkan12_features.bufferDeviceAddress == VK_FALSE)
         {
             continue;
         }

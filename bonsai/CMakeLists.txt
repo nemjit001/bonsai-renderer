@@ -57,6 +57,7 @@ add_library(bonsai_core STATIC
         # Engine API
         src/engine.cpp
         src/engine.hpp
+        src/rhi/vulkan/vulkan_helpers.hpp
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(bonsai_core PUBLIC cxx_std_17)

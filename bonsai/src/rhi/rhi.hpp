@@ -7,11 +7,6 @@
 #include <memory>
 #include "platform/platform.hpp"
 
-#define BONSAI_ENUM_FLAGS(FlagsType, EnumType) \
-    inline FlagsType operator| (EnumType lhs, EnumType rhs) { return static_cast<FlagsType>(lhs) | static_cast<FlagsType>(rhs); } \
-    inline FlagsType operator& (EnumType lhs, EnumType rhs) { return static_cast<FlagsType>(lhs) & static_cast<FlagsType>(rhs); } \
-    inline FlagsType operator^ (EnumType lhs, EnumType rhs) { return static_cast<FlagsType>(lhs) ^ static_cast<FlagsType>(rhs); }
-
 /// @brief RHI resource interface, provides access to internal render types.
 class IResource
 {
@@ -28,20 +23,19 @@ protected:
 };
 
 /// @brief Buffer usage values.
-enum class BufferUsage
+enum BufferUsage
 {
-    TransferSrc         = 0x0001,
-    TransferDst         = 0x0002,
-    UniformTexelBuffer  = 0x0004,
-    StorageTexelBuffer  = 0x0008,
-    UniformBuffer       = 0x0010,
-    StorageBuffer       = 0x0020,
-    IndexBuffer         = 0x0040,
-    VertexBuffer        = 0x0080,
-    IndirectBuffer      = 0x0100,
+    BufferUsageTransferSrc          = 0x0001,
+    BufferUsageTransferDst          = 0x0002,
+    BufferUsageUniformTexelBuffer   = 0x0004,
+    BufferUsageStorageTexelBuffer   = 0x0008,
+    BufferUsageUniformBuffer        = 0x0010,
+    BufferUsageStorageBuffer        = 0x0020,
+    BufferUsageIndexBuffer          = 0x0040,
+    BufferUsageVertexBuffer         = 0x0080,
+    BufferUsageIndirectBuffer       = 0x0100,
 };
 typedef uint32_t BufferUsageFlags;
-BONSAI_ENUM_FLAGS(BufferUsageFlags, BufferUsage);
 
 /// @brief Buffer description for resource creation.
 struct BufferDesc
@@ -67,17 +61,16 @@ enum class TextureType
 };
 
 /// @brief Texture usage values.
-enum class TextureUsage
+enum TextureUsage
 {
-    TransferSrc                 = 0x01,
-    TransferDst                 = 0x02,
-    Sampled                     = 0x04,
-    Storage                     = 0x08,
-    ColorAttachment             = 0x10,
-    DepthStencilAttachment      = 0x20,
+    TextureUsageTransferSrc             = 0x01,
+    TextureUsageTransferDst             = 0x02,
+    TextureUsageSampled                 = 0x04,
+    TextureUsageStorage                 = 0x08,
+    TextureUsageColorAttachment         = 0x10,
+    TextureUsageDepthStencilAttachment  = 0x20,
 };
 typedef uint32_t TextureUsageFlags;
-BONSAI_ENUM_FLAGS(TextureUsageFlags, TextureUsage);
 
 /// @brief Texture description for resource creation.
 struct TextureDesc

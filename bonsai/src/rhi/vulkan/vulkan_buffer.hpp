@@ -10,13 +10,18 @@
 class VulkanBuffer : public IBuffer
 {
 public:
-    VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, size_t size);
+    VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, BufferDesc const& desc);
     ~VulkanBuffer() override;
 
     VulkanBuffer(VulkanBuffer const&) = delete;
     VulkanBuffer& operator=(VulkanBuffer const&) = delete;
 
-    size_t size() const override { return m_buffer_size; }
+    /// @brief Convert BufferUsageFlags to Vulkan buffer usage flags.
+    /// @param usage_flags
+    /// @return
+    static VkBufferUsageFlags get_vulkan_usage_flags(BufferUsageFlags usage_flags);
+
+    size_t size() const override { return m_desc.size; }
 
 protected:
     void* get_raw_object() const override { return m_buffer; }
@@ -25,7 +30,7 @@ private:
     VmaAllocator    m_allocator     = VK_NULL_HANDLE;
     VkBuffer        m_buffer        = VK_NULL_HANDLE;
     VmaAllocation   m_allocation    = VK_NULL_HANDLE;
-    size_t          m_buffer_size   = 0;
+    BufferDesc      m_desc          = {};
 };
 
 #endif //BONSAI_USE_VULKAN
