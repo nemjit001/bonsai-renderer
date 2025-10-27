@@ -94,3 +94,15 @@ TEST_F(render_graph, dependency_cycle)
     pass1.read(buffer_resource_c);
     EXPECT_EQ(rg.build(render_device), RGBuildResult::ErrorDependencyCycle);
 }
+
+TEST_F(render_graph, import_resources)
+{
+    BufferDesc buffer_desc{};
+    buffer_desc.size = 1024;
+    buffer_desc.usage = BufferUsageStorageBuffer;
+
+    BufferHandle imported_buffer = render_device->create_buffer(buffer_desc);
+    RGResourceHandle buffer_resource = rg.import_buffer(imported_buffer);
+
+    EXPECT_EQ(rg.build(render_device), RGBuildResult::Success);
+}

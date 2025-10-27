@@ -71,6 +71,16 @@ public:
     /// @return A new resource handle representing this resource.
     [[nodiscard]] RGResourceHandle create_texture(TextureDesc const& desc);
 
+    /// @brief Import a buffer resource into the render graph.
+    /// @param buffer
+    /// @return A new resource handle representing this resource.
+    [[nodiscard]] RGResourceHandle import_buffer(BufferHandle buffer);
+
+    /// @brief Import a texture resource into the render graph.
+    /// @param texture
+    /// @return A new resource handle representing this resource.
+    [[nodiscard]] RGResourceHandle import_texture(TextureHandle texture);
+
     /// @brief Build the render graph.
     /// @param render_device RHI render device to use for resource allocations during graph construction.
     /// @return A RenderGraphBuildResult indicating build status.

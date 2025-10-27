@@ -27,6 +27,30 @@ RGResourceHandle RenderGraph::create_texture(TextureDesc const& desc)
     return id;
 }
 
+RGResourceHandle RenderGraph::import_buffer(BufferHandle buffer)
+{
+    ResourceMetaData resource{};
+    resource.type = RGResourceType::ImportedBuffer;
+    resource.version = 0;
+    resource.handle.buffer_handle = std::move(buffer);
+
+    uint32_t const id = static_cast<uint32_t>(m_graph_resources.size());
+    m_graph_resources.push_back(resource);
+    return id;
+}
+
+RGResourceHandle RenderGraph::import_texture(TextureHandle texture)
+{
+    ResourceMetaData resource{};
+    resource.type = RGResourceType::ImportedTexture;
+    resource.version = 0;
+    resource.handle.texture_handle = std::move(texture);
+
+    uint32_t const id = static_cast<uint32_t>(m_graph_resources.size());
+    m_graph_resources.push_back(resource);
+    return id;
+}
+
 RGBuildResult RenderGraph::build(RenderDeviceHandle& render_device)
 {
     // Fill processing queue
