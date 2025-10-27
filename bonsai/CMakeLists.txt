@@ -27,6 +27,7 @@ add_library(bonsai_core STATIC
         src/rhi/vulkan/vulkan_buffer.hpp
         src/rhi/vulkan/vulkan_command_buffer.cpp
         src/rhi/vulkan/vulkan_command_buffer.hpp
+        src/rhi/vulkan/vulkan_helpers.hpp
         src/rhi/vulkan/vulkan_texture.cpp
         src/rhi/vulkan/vulkan_texture.hpp
         # Render Graph API
@@ -57,7 +58,6 @@ add_library(bonsai_core STATIC
         # Engine API
         src/engine.cpp
         src/engine.hpp
-        src/rhi/vulkan/vulkan_helpers.hpp
 )
 target_include_directories(bonsai_core PUBLIC src/ ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
