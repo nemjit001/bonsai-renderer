@@ -46,6 +46,7 @@ TEST_F(rhi, create_texture_resource)
     texture_desc.depth_or_layers = 1;
     texture_desc.mip_levels = 1;
     texture_desc.sample_count = 1;
+    texture_desc.tiling = TextureTiling::Optimal;
     texture_desc.usage = TextureUsageSampled | TextureUsageTransferDst;
 
     TextureHandle texture = render_device->create_texture(texture_desc);

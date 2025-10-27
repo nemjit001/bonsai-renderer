@@ -10,7 +10,7 @@
 /// @brief Available data format values, used for textures or data layout specification.
 enum class Format
 {
-    Undefined = 0,
+    Undefined,
 
     R8_UINT,
     R8_SINT,
@@ -128,6 +128,13 @@ enum TextureUsage
 };
 typedef uint32_t TextureUsageFlags;
 
+/// @brief The texture tiling modes, only linear tiling textures can be written to directly from the host.
+enum class TextureTiling
+{
+    Optimal,
+    Linear,
+};
+
 /// @brief Texture description for resource creation.
 struct TextureDesc
 {
@@ -138,6 +145,7 @@ struct TextureDesc
     size_t depth_or_layers;
     size_t mip_levels;
     size_t sample_count;
+    TextureTiling tiling;
     TextureUsageFlags usage;
 };
 

@@ -27,6 +27,8 @@ VkImageType VulkanTexture::get_vulkan_image_type(TextureType texture_type)
     case TextureType::Type3D:
         return VK_IMAGE_TYPE_3D;
     }
+
+    return VK_IMAGE_TYPE_MAX_ENUM;
 }
 
 VkFormat VulkanTexture::get_vulkan_format(Format format)
@@ -168,4 +170,17 @@ VkImageUsageFlags VulkanTexture::get_vulkan_usage_flags(TextureUsageFlags usage_
 VkSampleCountFlagBits VulkanTexture::get_vulkan_sample_count(size_t sample_count)
 {
     return static_cast<VkSampleCountFlagBits>(sample_count);
+}
+
+VkImageTiling VulkanTexture::get_vulkan_image_tiling(TextureTiling tiling)
+{
+    switch (tiling)
+    {
+    case TextureTiling::Optimal:
+        return VK_IMAGE_TILING_OPTIMAL;
+    case TextureTiling::Linear:
+        return VK_IMAGE_TILING_LINEAR;
+    }
+
+    return VK_IMAGE_TILING_MAX_ENUM;
 }

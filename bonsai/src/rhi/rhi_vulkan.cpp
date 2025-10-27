@@ -109,7 +109,7 @@ TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
     image_create_info.mipLevels = desc.mip_levels;
     image_create_info.arrayLayers = image_array_layers;
     image_create_info.samples = VulkanTexture::get_vulkan_sample_count(desc.sample_count);
-    image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL; // FIXME(nemjit001): Check how this should be set based on image reqs
+    image_create_info.tiling = VulkanTexture::get_vulkan_image_tiling(desc.tiling);
     image_create_info.usage = VulkanTexture::get_vulkan_usage_flags(desc.usage);
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     image_create_info.queueFamilyIndexCount = 0;

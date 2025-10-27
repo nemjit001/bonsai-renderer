@@ -36,6 +36,11 @@ public:
     /// @return
     static VkSampleCountFlagBits get_vulkan_sample_count(size_t sample_count);
 
+    /// @brief Get the Vulkan tiling value for a given texture tiling.
+    /// @param tiling
+    /// @return
+    static VkImageTiling get_vulkan_image_tiling(TextureTiling tiling);
+
 protected:
     void* get_raw_object() const override { return m_image; }
 
