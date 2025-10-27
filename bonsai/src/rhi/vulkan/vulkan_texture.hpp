@@ -10,6 +10,16 @@
 class VulkanTexture : public ITexture
 {
 public:
+    /// Create an imported VulkanTexture without access to the backing allocator, useful for e.g. swap chain image handles.
+    /// @param image Image to use for texture creation.
+    /// @param desc Descriptor that matches the image creation parameters.
+    VulkanTexture(VkImage image, TextureDesc const& desc);
+
+    /// @brief Create an allocated VulkanTexture.
+    /// @param allocator Allocator used for allocation.
+    /// @param image Managed image.
+    /// @param allocation Associated image memory.
+    /// @param desc Texture descriptor used to create image.
     VulkanTexture(VmaAllocator allocator, VkImage image, VmaAllocation allocation, TextureDesc const& desc);
     ~VulkanTexture() override;
 
@@ -45,6 +55,7 @@ protected:
     void* get_raw_object() const override { return m_image; }
 
 private:
+    bool            m_imported      = false;
     VmaAllocator    m_allocator     = VK_NULL_HANDLE;
     VkImage         m_image         = VK_NULL_HANDLE;
     VmaAllocation   m_allocation    = VK_NULL_HANDLE;

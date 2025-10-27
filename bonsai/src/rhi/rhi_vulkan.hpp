@@ -42,6 +42,9 @@ public:
 
     TextureHandle create_texture(TextureDesc& desc) override;
 
+protected:
+    void* get_raw_object() const override { return m_device; }
+
 private:
     bool                m_headless          = true;
     VkPhysicalDevice    m_physical_device   = VK_NULL_HANDLE;
@@ -63,6 +66,9 @@ public:
     VulkanRHIInstance& operator=(VulkanRHIInstance const&) = delete;
 
     RenderDeviceHandle create_render_device(RenderDeviceDesc const& desc) override;
+
+protected:
+    void* get_raw_object() const override { return m_instance; }
 
 private:
     /// @brief Get the default Vulkan debug messenger create info for the RHI backend.

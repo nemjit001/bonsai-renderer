@@ -174,6 +174,49 @@ public:
 };
 using CommandBufferHandle = std::shared_ptr<ICommandBuffer>;
 
+/// @brief Swap chain description for swap chain management for non-headless render devices.
+struct SwapChainDesc
+{
+    Surface* surface;
+    uint32_t image_count;
+    Format format;
+    uint32_t width;
+    uint32_t height;
+    TextureUsageFlags usage;
+};
+
+/// @brief Swap chain type, used to manage swap images for a render device on a given surface.
+class ISwapChain : public IResource
+{
+public:
+    /// @brief Resize the swap buffers managed by this swap chain, all references to the swap buffers must be released.
+    /// @param width New width in pixels.
+    /// @param height New height in pixels
+    virtual void resize_swap_buffers(uint32_t width, uint32_t height) = 0;
+
+    /// @brief Acquire the next swap chain image.
+    /// @return True on success, false otherwise.
+    virtual bool acquire_next_image() = 0;
+
+    /// @brief Present the next swap chain image.
+    /// @return True on success, false otherwise.
+    virtual bool present() = 0;
+
+    /// @brief Return the currently acquired image index.
+    /// @return
+    virtual uint32_t current_image_idx() = 0;
+
+    /// @brief Return the number of swap chain images.
+    /// @return
+    virtual uint32_t swap_image_count() = 0;
+
+    /// @brief Get a swap image by index.
+    /// @param idx Swap image index to retrieve.
+    /// @return A TextureHandle for the swap image, or a null handle if the image does not exist (e.g. index was out of range).
+    virtual TextureHandle get_swap_image(uint32_t idx) = 0;
+};
+using SwapChainHandle = std::shared_ptr<ISwapChain>;
+
 /// @brief Render device description for device creation.
 struct RenderDeviceDesc
 {
@@ -181,11 +224,9 @@ struct RenderDeviceDesc
 };
 
 /// @brief Backend render device interface, used for render resource allocation.
-class IRenderDevice
+class IRenderDevice : public IResource
 {
 public:
-    virtual ~IRenderDevice() = default;
-
     /// @brief Check if this render device was created as a headless device (i.e. no compatible surface was specified).
     /// @return A boolean indicating headless state.
     virtual bool is_headless() const = 0;
@@ -203,11 +244,9 @@ public:
 using RenderDeviceHandle = std::shared_ptr<IRenderDevice>;
 
 /// @brief RHI instance, handles graphics API initialization steps needed before device creation.
-class IRHIInstance
+class IRHIInstance : public IResource
 {
 public:
-    virtual ~IRHIInstance() = default;
-
     /// @brief Create a render device on the RHI.
     /// @param desc Render device descriptor.
     /// @return A new render device handle.
