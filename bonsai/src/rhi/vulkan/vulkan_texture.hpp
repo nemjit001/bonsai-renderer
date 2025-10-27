@@ -51,6 +51,8 @@ public:
     /// @return
     static VkImageTiling get_vulkan_image_tiling(TextureTiling tiling);
 
+    TextureDesc get_desc() const override { return m_desc; }
+
 protected:
     void* get_raw_object() const override { return m_image; }
 

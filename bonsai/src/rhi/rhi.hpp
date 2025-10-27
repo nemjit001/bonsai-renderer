@@ -104,7 +104,12 @@ struct BufferDesc
 class IBuffer : public IResource
 {
 public:
+    /// @brief Get the buffer size in bytes.
     virtual size_t size() const = 0;
+
+    /// @brief Get the buffer descriptor that was used to create this buffer.
+    /// @return
+    virtual BufferDesc get_desc() const = 0;
 };
 using BufferHandle = std::shared_ptr<IBuffer>;
 
@@ -153,7 +158,9 @@ struct TextureDesc
 class ITexture : public IResource
 {
 public:
-    //
+    /// @brief Get the texture descriptor that was used to create this texture.
+    /// @return
+    virtual TextureDesc get_desc() const = 0;
 };
 using TextureHandle = std::shared_ptr<ITexture>;
 
@@ -174,6 +181,14 @@ public:
 };
 using CommandBufferHandle = std::shared_ptr<ICommandBuffer>;
 
+/// @brief Swap chain present modes for present synchronization.
+enum class SwapPresentMode
+{
+    FiFo,
+    Mailbox,
+    Immediate,
+};
+
 /// @brief Swap chain description for swap chain management for non-headless render devices.
 struct SwapChainDesc
 {
@@ -183,6 +198,7 @@ struct SwapChainDesc
     uint32_t width;
     uint32_t height;
     TextureUsageFlags usage;
+    SwapPresentMode present_mode;
 };
 
 /// @brief Swap chain type, used to manage swap images for a render device on a given surface.
@@ -192,7 +208,8 @@ public:
     /// @brief Resize the swap buffers managed by this swap chain, all references to the swap buffers must be released.
     /// @param width New width in pixels.
     /// @param height New height in pixels
-    virtual void resize_swap_buffers(uint32_t width, uint32_t height) = 0;
+    /// @param present_mode Updated present mode for the swap chain.
+    virtual void resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode) = 0;
 
     /// @brief Acquire the next swap chain image.
     /// @return True on success, false otherwise.
@@ -214,6 +231,10 @@ public:
     /// @param idx Swap image index to retrieve.
     /// @return A TextureHandle for the swap image, or a null handle if the image does not exist (e.g. index was out of range).
     virtual TextureHandle get_swap_image(uint32_t idx) = 0;
+
+    /// @brief Get the swap chain descriptor that represents this swap chain in the current state.
+    /// @return
+    virtual SwapChainDesc get_desc() const = 0;
 };
 using SwapChainHandle = std::shared_ptr<ISwapChain>;
 
