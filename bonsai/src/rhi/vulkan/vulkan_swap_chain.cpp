@@ -181,12 +181,32 @@ bool VulkanSwapChain::resize_swap_buffers(uint32_t width, uint32_t height, SwapP
 
 bool VulkanSwapChain::acquire_next_image()
 {
-    return false;
+    if (vkAcquireNextImageKHR(m_device, m_swap_chain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &m_active_image_idx) != VK_SUCCESS)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 bool VulkanSwapChain::present()
 {
-    return false;
+    VkPresentInfoKHR present_info{};
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.pNext = nullptr;
+    present_info.waitSemaphoreCount = 0; // TODO(nemjit001): Wait on render semaphore, needs RHI sync capabilities
+    present_info.pWaitSemaphores = nullptr;
+    present_info.swapchainCount = 1;
+    present_info.pSwapchains = &m_swap_chain;
+    present_info.pImageIndices = &m_active_image_idx;
+    present_info.pResults = nullptr;
+
+    if (vkQueuePresentKHR(m_present_queue, &present_info) != VK_SUCCESS)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 uint32_t VulkanSwapChain::current_image_idx()
