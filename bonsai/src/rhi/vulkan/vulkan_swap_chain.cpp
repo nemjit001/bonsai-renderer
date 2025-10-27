@@ -123,9 +123,60 @@ VkPresentModeKHR VulkanSwapChain::get_vulkan_present_mode(SwapPresentMode presen
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-void VulkanSwapChain::resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode)
+bool VulkanSwapChain::resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode)
 {
-    //
+    vkDeviceWaitIdle(m_device);
+
+    SwapChainDesc desc = m_desc;
+    desc.width  = width;
+    desc.height = height;
+    desc.present_mode = present_mode;
+    VulkanSurfaceCapabilities surface_capabilities = get_surface_capabilities(m_physical_device, m_surface, desc);
+    VkPresentModeKHR chosen_present_mode = get_vulkan_present_mode(desc.present_mode);
+    if (!surface_capabilities.is_present_mode_supported(desc.present_mode))
+    {
+        chosen_present_mode = VK_PRESENT_MODE_FIFO_KHR;
+    }
+
+    VkSwapchainKHR old_swap_chain = m_swap_chain;
+    VkSwapchainCreateInfoKHR swap_chain_create_info{};
+    swap_chain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swap_chain_create_info.pNext = nullptr;
+    swap_chain_create_info.flags = 0;
+    swap_chain_create_info.surface = m_surface;
+    swap_chain_create_info.minImageCount = surface_capabilities.preferred_image_count;
+    swap_chain_create_info.imageFormat = VulkanTexture::get_vulkan_format(desc.format);
+    swap_chain_create_info.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    swap_chain_create_info.imageExtent.width = surface_capabilities.width;
+    swap_chain_create_info.imageExtent.height = surface_capabilities.height;
+    swap_chain_create_info.imageArrayLayers = 1;
+    swap_chain_create_info.imageUsage = VulkanTexture::get_vulkan_usage_flags(desc.usage);
+    swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    swap_chain_create_info.queueFamilyIndexCount = 0;
+    swap_chain_create_info.pQueueFamilyIndices = nullptr;
+    swap_chain_create_info.preTransform = surface_capabilities.current_transform;
+    swap_chain_create_info.compositeAlpha = surface_capabilities.composite_alpha;
+    swap_chain_create_info.presentMode = chosen_present_mode;
+    swap_chain_create_info.clipped = VK_FALSE;
+    swap_chain_create_info.oldSwapchain = old_swap_chain;
+
+    VkSwapchainKHR swap_chain = VK_NULL_HANDLE;
+    if (vkCreateSwapchainKHR(m_device, &swap_chain_create_info, nullptr, &swap_chain) != VK_SUCCESS)
+    {
+        return false;
+    }
+    vkDestroySwapchainKHR(m_device, old_swap_chain, nullptr);
+
+    // Update swap chain and desc handles
+    m_swap_chain = swap_chain;
+    m_desc = desc;
+
+    // Fetch swap images
+    uint32_t image_count = 0;
+    vkGetSwapchainImagesKHR(m_device, m_swap_chain, &image_count, nullptr);
+    m_swap_images.resize(image_count);
+    vkGetSwapchainImagesKHR(m_device, m_swap_chain, &image_count, m_swap_images.data());
+    return true;
 }
 
 bool VulkanSwapChain::acquire_next_image()

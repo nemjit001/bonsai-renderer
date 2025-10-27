@@ -58,7 +58,7 @@ TEST_F(rhi_tests, create_texture_resource)
     EXPECT_NE(texture, nullptr);
 }
 
-TEST_F(rhi_tests, create_swapchain)
+TEST_F(rhi_tests, create_swap_chain)
 {
     SwapChainDesc swap_chain_desc{};
     swap_chain_desc.surface = surface;
@@ -70,4 +70,20 @@ TEST_F(rhi_tests, create_swapchain)
     swap_chain_desc.present_mode = SwapPresentMode::FiFo;
 
     EXPECT_NE(render_device->create_swap_chain(swap_chain_desc), nullptr);
+}
+
+TEST_F(rhi_tests, resize_swap_chain)
+{
+    SwapChainDesc swap_chain_desc{};
+    swap_chain_desc.surface = surface;
+    swap_chain_desc.image_count = 3;
+    swap_chain_desc.format = Format::RGBA8_UNORM_SRGB;
+    swap_chain_desc.width = 1280;
+    swap_chain_desc.height = 720;
+    swap_chain_desc.usage = TextureUsageColorAttachment;
+    swap_chain_desc.present_mode = SwapPresentMode::FiFo;
+
+    SwapChainHandle swap_chain = render_device->create_swap_chain(swap_chain_desc);
+    EXPECT_NE(swap_chain, nullptr);
+    EXPECT_TRUE(swap_chain->resize_swap_buffers(1280, 720, SwapPresentMode::FiFo));
 }

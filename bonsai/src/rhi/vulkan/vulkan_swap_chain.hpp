@@ -58,7 +58,7 @@ public:
     /// @return
     static VkPresentModeKHR get_vulkan_present_mode(SwapPresentMode present_mode);
 
-    void resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode) override;
+    bool resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode) override;
 
     bool acquire_next_image() override;
 

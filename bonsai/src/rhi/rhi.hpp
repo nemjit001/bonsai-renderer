@@ -209,7 +209,8 @@ public:
     /// @param width New width in pixels.
     /// @param height New height in pixels
     /// @param present_mode Updated present mode for the swap chain.
-    virtual void resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode) = 0;
+    /// @return True on successful resize, false otherwise.
+    virtual bool resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode) = 0;
 
     /// @brief Acquire the next swap chain image.
     /// @return True on success, false otherwise.
