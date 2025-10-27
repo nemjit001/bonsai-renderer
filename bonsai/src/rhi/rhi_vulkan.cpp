@@ -130,11 +130,6 @@ TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
     return TextureHandle(new VulkanTexture(m_allocator, image, allocation, desc));
 }
 
-RHIInstanceHandle create_rhi_instance()
-{
-    return RHIInstanceHandle(new VulkanRHIInstance());
-}
-
 /// @brief Default Vulkan debug callback for the RHI.
 static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -391,7 +386,7 @@ VkPhysicalDevice VulkanRHIInstance::find_physical_device(VkInstance instance, Vk
         VkPhysicalDeviceVulkan12Features vulkan12_features{};
         vulkan12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
         vulkan12_features.pNext = nullptr;
-        rhi_vk::extend_pnext_chain(features2, vulkan12_features);
+        rhi::vk::extend_pnext_chain(features2, vulkan12_features);
 
         vkGetPhysicalDeviceFeatures2(device, &features2);
         if (features2.features.samplerAnisotropy == VK_FALSE
@@ -432,5 +427,13 @@ uint32_t VulkanRHIInstance::find_queue_family(VkPhysicalDevice physical_device, 
 
     return VK_QUEUE_FAMILY_IGNORED;
 }
+
+namespace rhi
+{
+    RHIInstanceHandle create_instance()
+    {
+        return RHIInstanceHandle(new VulkanRHIInstance());
+    }
+} //namespace rhi
 
 #endif //BONSAI_USE_VULKAN

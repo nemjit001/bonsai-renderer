@@ -215,7 +215,10 @@ public:
 };
 using RHIInstanceHandle = std::shared_ptr<IRHIInstance>;
 
-/// @brief Create a new RHI instance.
-RHIInstanceHandle create_rhi_instance();
+namespace rhi
+{
+    /// @brief Create a new RHI instance.
+    RHIInstanceHandle create_instance();
+} //namespace rhi
 
 #endif //BONSAI_RENDERER_RHI_HPP

@@ -4,7 +4,7 @@
 /// Platform surface tests that should not execute in CI testing environment
 #if !BONSAI_TESTING_IN_CI
 
-TEST(platform, create_default_surface)
+TEST(platform_tests, create_default_surface)
 {
     Platform platform{};
     Surface* surface = platform.create_surface("Test Surface", 512, 512, SurfaceConfig{});
@@ -13,7 +13,7 @@ TEST(platform, create_default_surface)
     platform.destroy_surface(surface);
 }
 
-TEST(platform, create_multiple_surfaces)
+TEST(platform_tests, create_multiple_surfaces)
 {
     Platform platform{};
     Surface* surface1 = platform.create_surface("Test Surface 1", 512, 512, SurfaceConfig{});
@@ -25,7 +25,7 @@ TEST(platform, create_multiple_surfaces)
     platform.destroy_surface(surface2);
 }
 
-TEST(platform, query_surface_size)
+TEST(platform_tests, query_surface_size)
 {
     Platform platform{};
     Surface* surface = platform.create_surface("Test Surface", 512, 256, SurfaceConfig{});

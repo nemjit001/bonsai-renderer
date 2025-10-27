@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <core/allocator.hpp>
 
-TEST(core_allocator, bump_alloctor_construct_class)
+TEST(core_allocator_tests, bump_alloctor_construct_class)
 {
     class Foo {};
     size_t const memory_size = 1 * sizeof(Foo);
@@ -18,21 +18,21 @@ TEST(core_allocator, bump_alloctor_construct_class)
     std::free(memory);
 }
 
-TEST(core_allocator, bump_allocator_allocate)
+TEST(core_allocator_tests, bump_allocator_allocate)
 {
     BumpAllocator alloc(2048);
     void* addr = alloc.allocate(1024, 16);
     EXPECT_EQ(BONSAI_ALIGN_ADDR(reinterpret_cast<uintptr_t>(addr), 16), reinterpret_cast<uintptr_t>(addr));
 }
 
-TEST(core_allocator, bump_allocator_allocate_alignment_larger_than_allocation)
+TEST(core_allocator_tests, bump_allocator_allocate_alignment_larger_than_allocation)
 {
     BumpAllocator alloc(2048);
     void* addr = alloc.allocate(64, 256);
     EXPECT_EQ(BONSAI_ALIGN_ADDR(reinterpret_cast<uintptr_t>(addr), 256), reinterpret_cast<uintptr_t>(addr));
 }
 
-TEST(core_allocator, bump_allocator_reset)
+TEST(core_allocator_tests, bump_allocator_reset)
 {
     BumpAllocator alloc(2048);
     void* addr1 = alloc.allocate(512, 256);

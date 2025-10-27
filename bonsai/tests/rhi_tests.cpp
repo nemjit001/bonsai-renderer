@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 #include <rhi/rhi.hpp>
 
-class rhi : public ::testing::Test
+class rhi_tests : public testing::Test
 {
 public:
-    rhi()
+    rhi_tests()
     {
         // Create rhi instance
-        rhi_instance = create_rhi_instance();
+        rhi_instance = rhi::create_instance();
 
         // Create headless render device
         RenderDeviceDesc render_device_desc{};
@@ -19,13 +19,13 @@ protected:
     RenderDeviceHandle  render_device;
 };
 
-TEST_F(rhi, create_render_device)
+TEST_F(rhi_tests, create_render_device)
 {
     EXPECT_NE(render_device, nullptr);
     EXPECT_EQ(render_device->is_headless(), true);
 }
 
-TEST_F(rhi, create_buffer_resource)
+TEST_F(rhi_tests, create_buffer_resource)
 {
     BufferDesc buffer_desc{};
     buffer_desc.size = 128;
@@ -36,7 +36,7 @@ TEST_F(rhi, create_buffer_resource)
     EXPECT_EQ(buffer->size(), buffer_desc.size);
 }
 
-TEST_F(rhi, create_texture_resource)
+TEST_F(rhi_tests, create_texture_resource)
 {
     TextureDesc texture_desc{};
     texture_desc.type = TextureType::Type2D;

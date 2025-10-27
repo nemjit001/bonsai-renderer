@@ -3,7 +3,7 @@
 #define BONSAI_RENDERER_VULKAN_HELPERS_HPP
 #if BONSAI_USE_VULKAN
 
-namespace rhi_vk
+namespace rhi::vk
 {
     /// @brief Extend the pNext chain for a Vulkan struct, keeping the old pNext value intact.
     /// @param target Target struct to extend.
@@ -15,7 +15,7 @@ namespace rhi_vk
         target.pNext = &extension;
         extension.pNext = temp;
     }
-}
+} //namespace rhi::vk
 
 #endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_VULKAN_HELPERS_HPP

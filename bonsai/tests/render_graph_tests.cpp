@@ -2,12 +2,12 @@
 #include <rhi/rhi.hpp>
 #include <render_graph/render_graph.hpp>
 
-class render_graph : public ::testing::Test
+class render_graph_tests : public ::testing::Test
 {
 public:
-    render_graph()
+    render_graph_tests()
     {
-        rhi_instance = create_rhi_instance();
+        rhi_instance = rhi::create_instance();
         render_device = rhi_instance->create_render_device({});
         rg = RenderGraph();
     }
@@ -18,7 +18,7 @@ protected:
     RenderGraph         rg;
 };
 
-TEST_F(render_graph, single_pass)
+TEST_F(render_graph_tests, single_pass)
 {
     BufferDesc buffer_desc{};
     buffer_desc.size = 1024;
@@ -31,7 +31,7 @@ TEST_F(render_graph, single_pass)
     EXPECT_EQ(rg.build(render_device), RGBuildResult::Success);
 }
 
-TEST_F(render_graph, linear_dependencies)
+TEST_F(render_graph_tests, linear_dependencies)
 {
     BufferDesc buffer_desc{};
     buffer_desc.size = 1024;
@@ -47,7 +47,7 @@ TEST_F(render_graph, linear_dependencies)
     EXPECT_EQ(rg.build(render_device), RGBuildResult::Success);
 }
 
-TEST_F(render_graph, shared_dependencies)
+TEST_F(render_graph_tests, shared_dependencies)
 {
     BufferDesc buffer_desc{};
     buffer_desc.size = 1024;
@@ -70,7 +70,7 @@ TEST_F(render_graph, shared_dependencies)
     EXPECT_EQ(rg.build(render_device), RGBuildResult::Success);
 }
 
-TEST_F(render_graph, dependency_cycle)
+TEST_F(render_graph_tests, dependency_cycle)
 {
     BufferDesc buffer_desc{};
     buffer_desc.size = 1024;
@@ -95,7 +95,7 @@ TEST_F(render_graph, dependency_cycle)
     EXPECT_EQ(rg.build(render_device), RGBuildResult::ErrorDependencyCycle);
 }
 
-TEST_F(render_graph, import_resources)
+TEST_F(render_graph_tests, import_resources)
 {
     BufferDesc buffer_desc{};
     buffer_desc.size = 1024;

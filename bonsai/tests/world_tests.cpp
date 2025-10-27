@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 #include <world/world.hpp>
 
-TEST(world, spawn_entity)
+TEST(world_tests, spawn_entity)
 {
     World world{};
     world.get_root()->add_child(Entity::create<Entity>("child"));
     EXPECT_TRUE(world.get_root()->has_child("child"));
 }
 
-TEST(world, spawn_multiple_entities)
+TEST(world_tests, spawn_multiple_entities)
 {
     World world{};
     Entity::Ref const root = world.get_root();
@@ -18,7 +18,7 @@ TEST(world, spawn_multiple_entities)
     EXPECT_TRUE(world.get_root()->has_child("child2"));
 }
 
-TEST(world, remove_entity)
+TEST(world_tests, remove_entity)
 {
     World world{};
     Entity::Ref const root = world.get_root();
@@ -32,7 +32,7 @@ TEST(world, remove_entity)
     EXPECT_FALSE(world.get_root()->has_child("child2"));
 }
 
-TEST(world, correctly_handle_name_collision)
+TEST(world_tests, correctly_handle_name_collision)
 {
     World world{};
     world.get_root()->add_child(Entity::create<Entity>("child"));
@@ -42,7 +42,7 @@ TEST(world, correctly_handle_name_collision)
     EXPECT_TRUE(world.get_root()->has_child("child1"));
 }
 
-TEST(world, rename_node)
+TEST(world_tests, rename_node)
 {
     World world{};
     world.get_root()->add_child(Entity::create<Entity>("child"));
@@ -53,7 +53,7 @@ TEST(world, rename_node)
     EXPECT_TRUE(world.get_root()->has_child("child1"));
 }
 
-TEST(world, move_entity)
+TEST(world_tests, move_entity)
 {
     World world{};
     Entity::Ref const root = world.get_root();
@@ -74,7 +74,7 @@ TEST(world, move_entity)
     EXPECT_TRUE(child2->has_child("child3"));
 }
 
-TEST(world, iter_children_mutably)
+TEST(world_tests, iter_children_mutably)
 {
     World world{};
     Entity::Ref const root = world.get_root();
@@ -92,7 +92,7 @@ TEST(world, iter_children_mutably)
     EXPECT_TRUE(root->has_child("node2"));
 }
 
-TEST(world, add_component)
+TEST(world_tests, add_component)
 {
     World world{};
     world.get_root()->add_component<Component>();
@@ -100,7 +100,7 @@ TEST(world, add_component)
     EXPECT_NE(world.get_root()->get_component<Component>(), nullptr);
 }
 
-TEST(world, add_custom_component)
+TEST(world_tests, add_custom_component)
 {
     class CustomComponent : public Component
     {
@@ -113,7 +113,7 @@ TEST(world, add_custom_component)
     EXPECT_NE(world.get_root()->get_component<CustomComponent>(), nullptr);
 }
 
-TEST(world, remove_component)
+TEST(world_tests, remove_component)
 {
     World world{};
     world.get_root()->add_component<Component>();
@@ -128,7 +128,7 @@ TEST(world, remove_component)
     EXPECT_EQ(world.get_root()->get_component<Component>(), nullptr);
 }
 
-TEST(world, single_timestep_modify_entity)
+TEST(world_tests, single_timestep_modify_entity)
 {
     class RemoverComponent : public Component
     {
