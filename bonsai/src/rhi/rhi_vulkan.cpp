@@ -5,13 +5,13 @@
 #define VMA_IMPLEMENTATION
 #include <volk.h>
 #include <vk_mem_alloc.h>
+#include "bonsai_config.hpp"
 #include "platform/assert.hpp"
 #include "platform/logger.hpp"
 #include "platform/platform_vulkan.hpp"
 #include "core/die.hpp"
 #include "vulkan/vulkan_buffer.hpp"
 #include "vulkan/vulkan_helpers.hpp"
-#include "bonsai_config.hpp"
 #include "vulkan/vulkan_texture.hpp"
 
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
@@ -84,6 +84,19 @@ BufferHandle VulkanRenderDevice::create_buffer(BufferDesc& desc)
 
 TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
 {
+    uint32_t image_depth = desc.depth_or_layers;
+    uint32_t image_array_layers = desc.depth_or_layers;
+    if (desc.type == TextureType::Type2D)
+    {
+        image_depth = 1;
+        image_array_layers = desc.depth_or_layers;
+    }
+    else if (desc.type == TextureType::Type3D)
+    {
+        image_depth = desc.depth_or_layers;
+        image_array_layers = 1;
+    }
+
     VkImageCreateInfo image_create_info{};
     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_create_info.pNext = nullptr;
@@ -92,9 +105,9 @@ TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
     image_create_info.format = VulkanTexture::get_vulkan_format(desc.format);
     image_create_info.extent.width = desc.width;
     image_create_info.extent.height = desc.height;
-    image_create_info.extent.depth = 1; // TODO(nemjit001): Set depth or array layers based on image type
+    image_create_info.extent.depth = image_depth;
     image_create_info.mipLevels = desc.mip_levels;
-    image_create_info.arrayLayers = 1;
+    image_create_info.arrayLayers = image_array_layers;
     image_create_info.samples = VulkanTexture::get_vulkan_sample_count(desc.sample_count);
     image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL; // FIXME(nemjit001): Check how this should be set based on image reqs
     image_create_info.usage = VulkanTexture::get_vulkan_usage_flags(desc.usage);

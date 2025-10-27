@@ -1,8 +1,8 @@
 #include "engine.hpp"
 
+#include "bonsai_config.hpp"
 #include "platform/logger.hpp"
 #include "core/die.hpp"
-#include "bonsai_config.hpp"
 
 Engine::Engine()
 {
