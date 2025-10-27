@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <platform/platform.hpp>
 
-/// Platform surface tests, can be disabled for testing in environments where platform surfaces are not available.
-#if BONSAI_PLATFORM_SURFACE_TESTS
+/// Platform surface tests that should not execute in CI testing environment
+#if !BONSAI_TESTING_IN_CI
 
 TEST(platform, create_default_surface)
 {
@@ -39,4 +39,4 @@ TEST(platform, query_surface_size)
     platform.destroy_surface(surface);
 }
 
-#endif //BONSAI_PLATFORM_SURFACE_TESTS
+#endif //BONSAI_TESTING_IN_CI

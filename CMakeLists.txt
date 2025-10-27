@@ -4,7 +4,7 @@ enable_testing()
 
 # Options
 option(BONSAI_TEST "Enable unit test targets" ON)
-option(BONSAI_PLATFORM_SURFACE_TESTS "Enable surface handling tests for the selected platform" ON)
+option(BONSAI_TESTING_IN_CI "Enable to indicate that tests are running on a CI test server" OFF)
 option(BONSAI_USE_SDL "Use SDL as the platform layer backend" ON)
 option(BONSAI_USE_VULKAN "Use Vulkan for rendering" ON)
 
