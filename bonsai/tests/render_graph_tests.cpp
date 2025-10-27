@@ -104,5 +104,8 @@ TEST_F(render_graph, import_resources)
     BufferHandle imported_buffer = render_device->create_buffer(buffer_desc);
     RGResourceHandle buffer_resource = rg.import_buffer(imported_buffer);
 
+    RenderPass(&rg, "test pass")
+        .write(buffer_resource);
+
     EXPECT_EQ(rg.build(render_device), RGBuildResult::Success);
 }
