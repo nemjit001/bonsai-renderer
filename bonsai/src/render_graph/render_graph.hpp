@@ -6,7 +6,6 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
-
 #include "rhi/rhi.hpp"
 
 class ShaderDatabase; // TODO(nemjit001): provide actual implementation of shader db for use in render graph
@@ -23,6 +22,7 @@ enum class RGBuildResult
 {
     Success = 0,
     ErrorDependencyCycle,
+    ErrorResourceAllocation,
 };
 
 /// @brief Render graph resource types.
@@ -62,16 +62,19 @@ public:
     RenderGraph& operator=(RenderGraph&&) noexcept = default;
 
     /// @brief Create a buffer resource in the render graph.
+    /// @param desc Descriptor of the managed buffer.
     /// @return A new resource handle representing this resource.
-    [[nodiscard]] RGResourceHandle create_buffer();
+    [[nodiscard]] RGResourceHandle create_buffer(BufferDesc const& desc);
 
     /// @brief Create a texture resource in the render graph.
+    /// @param desc Descriptor of the managed texture.
     /// @return A new resource handle representing this resource.
-    [[nodiscard]] RGResourceHandle create_texture();
+    [[nodiscard]] RGResourceHandle create_texture(TextureDesc const& desc);
 
     /// @brief Build the render graph.
+    /// @param render_device RHI render device to use for resource allocations during graph construction.
     /// @return A RenderGraphBuildResult indicating build status.
-    [[nodiscard]] RGBuildResult build();
+    [[nodiscard]] RGBuildResult build(RenderDeviceHandle& render_device);
 
     /// @brief Execute the render graph. The graph needs to be built before execution.
     /// @param shader_db Shader database containing globally loaded shader pipelines.
@@ -98,7 +101,14 @@ private:
         uint32_t version;
         union ResourceConfig
         {
+            BufferDesc buffer_desc;
+            TextureDesc texture_desc;
         } config; /// @brief Resource configuration for managed render graph resources.
+        struct ResourceHandles
+        {
+            BufferHandle buffer_handle;
+            TextureHandle texture_handle;
+        } handle; /// @brief Resource handles that are populated according to RGResourceType.
     };
 
     /// @brief Internal render pass entry state.

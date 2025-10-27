@@ -3,29 +3,31 @@
 #include "platform/assert.hpp"
 #include "platform/logger.hpp"
 
-RGResourceHandle RenderGraph::create_buffer()
+RGResourceHandle RenderGraph::create_buffer(BufferDesc const& desc)
 {
     ResourceMetaData resource{};
     resource.type = RGResourceType::Buffer;
     resource.version = 0;
+    resource.config.buffer_desc = desc;
 
     uint32_t const id = static_cast<uint32_t>(m_graph_resources.size());
     m_graph_resources.push_back(resource);
     return id;
 }
 
-RGResourceHandle RenderGraph::create_texture()
+RGResourceHandle RenderGraph::create_texture(TextureDesc const& desc)
 {
     ResourceMetaData resource{};
     resource.type = RGResourceType::Texture;
     resource.version = 0;
+    resource.config.texture_desc = desc;
 
     uint32_t const id = static_cast<uint32_t>(m_graph_resources.size());
     m_graph_resources.push_back(resource);
     return id;
 }
 
-RGBuildResult RenderGraph::build()
+RGBuildResult RenderGraph::build(RenderDeviceHandle& render_device)
 {
     // Fill processing queue
     std::vector<RenderPassEntry> pass_queue;
@@ -35,7 +37,7 @@ RGBuildResult RenderGraph::build()
         pass_queue.push_back(pass);
     }
 
-    // Build out layered dependency graph
+    // Build out layered dependency graph using topological sort
     m_dependency_graph.clear();
     std::vector<RenderPassEntry> next_layer_queue;
     next_layer_queue.reserve(pass_queue.size());
@@ -64,7 +66,27 @@ RGBuildResult RenderGraph::build()
         pass_queue = next_layer_queue;
     }
 
-    // TODO(nemjit001): Allocate all render graph managed resources (if not already allocated...)
+    // Allocate managed graph resources in single pass
+    for (auto& resource : m_graph_resources)
+    {
+        if (resource.type == RGResourceType::Buffer && !resource.handle.buffer_handle)
+        {
+            resource.handle.buffer_handle = render_device->create_buffer(resource.config.buffer_desc);
+            if (!resource.handle.buffer_handle)
+            {
+                return RGBuildResult::ErrorResourceAllocation;
+            }
+        }
+        else if (resource.type == RGResourceType::Texture && !resource.handle.texture_handle)
+        {
+            resource.handle.texture_handle = render_device->create_texture(resource.config.texture_desc);
+            if (!resource.handle.texture_handle)
+            {
+                return RGBuildResult::ErrorResourceAllocation;
+            }
+        }
+    }
+
     return RGBuildResult::Success;
 }
 
