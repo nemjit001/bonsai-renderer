@@ -42,6 +42,8 @@ VkImageType VulkanTexture::get_vulkan_image_type(TextureType texture_type)
         return VK_IMAGE_TYPE_2D;
     case TextureType::Type3D:
         return VK_IMAGE_TYPE_3D;
+    default:
+        break;
     }
 
     return VK_IMAGE_TYPE_MAX_ENUM;
@@ -196,6 +198,8 @@ VkImageTiling VulkanTexture::get_vulkan_image_tiling(TextureTiling tiling)
         return VK_IMAGE_TILING_OPTIMAL;
     case TextureTiling::Linear:
         return VK_IMAGE_TILING_LINEAR;
+    default:
+        break;
     }
 
     return VK_IMAGE_TILING_MAX_ENUM;

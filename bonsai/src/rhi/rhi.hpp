@@ -261,6 +261,11 @@ public:
     /// @param desc Texture resource descriptor.
     /// @return A new texture resource handle.
     virtual TextureHandle create_texture(TextureDesc& desc) = 0;
+
+    /// @brief Create a swap chain on this device, the device MUST NOT be running as headless.
+    /// @param desc Swap chain descriptor.
+    /// @return A new swap chain handle or nullptr if the device was headless.
+    virtual SwapChainHandle create_swap_chain(SwapChainDesc const& desc) = 0;
 };
 using RenderDeviceHandle = std::shared_ptr<IRenderDevice>;
 

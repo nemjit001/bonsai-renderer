@@ -12,6 +12,7 @@
 #include "core/die.hpp"
 #include "vulkan/vulkan_buffer.hpp"
 #include "vulkan/vulkan_helpers.hpp"
+#include "vulkan/vulkan_swap_chain.hpp"
 #include "vulkan/vulkan_texture.hpp"
 
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
@@ -24,6 +25,7 @@ std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
 
 VulkanRenderDevice::VulkanRenderDevice(
     bool headless,
+    VkInstance instance,
     VkPhysicalDevice physical_device,
     VulkanQueueFamilies const& queue_families,
     VkDevice device,
@@ -31,6 +33,7 @@ VulkanRenderDevice::VulkanRenderDevice(
 )
     :
     m_headless(headless),
+    m_instance(instance),
     m_physical_device(physical_device),
     m_queue_families(queue_families),
     m_device(device),
@@ -128,6 +131,74 @@ TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
     }
 
     return TextureHandle(new VulkanTexture(m_allocator, image, allocation, desc));
+}
+
+SwapChainHandle VulkanRenderDevice::create_swap_chain(SwapChainDesc const& desc)
+{
+    if (is_headless() || desc.surface == nullptr)
+    {
+        return {};
+    }
+
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    if (!platform_create_vulkan_surface(desc.surface, m_instance, nullptr, &surface))
+    {
+        return {};
+    }
+
+    VulkanSurfaceCapabilities const surface_capabilities = VulkanSwapChain::get_surface_capabilities(m_physical_device, surface, desc);
+    if (!surface_capabilities.is_format_supported(desc.format))
+    {
+        return {};
+    }
+
+    VkPresentModeKHR chosen_present_mode = VulkanSwapChain::get_vulkan_present_mode(desc.present_mode);
+    if (!surface_capabilities.is_present_mode_supported(desc.present_mode))
+    {
+        chosen_present_mode = VK_PRESENT_MODE_FIFO_KHR; // TODO(nemjit001): Fall back to closest matching present mode or fifo.
+    }
+
+    VkSwapchainCreateInfoKHR swap_chain_create_info{};
+    swap_chain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swap_chain_create_info.pNext = nullptr;
+    swap_chain_create_info.flags = 0;
+    swap_chain_create_info.surface = surface;
+    swap_chain_create_info.minImageCount = surface_capabilities.preferred_image_count;
+    swap_chain_create_info.imageFormat = VulkanTexture::get_vulkan_format(desc.format);
+    swap_chain_create_info.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; // This is always sRGB unless VK_EXT_swapchain_colorspace is enabled
+    swap_chain_create_info.imageExtent.width = surface_capabilities.width;
+    swap_chain_create_info.imageExtent.height = surface_capabilities.height;
+    swap_chain_create_info.imageArrayLayers = 1;
+    swap_chain_create_info.imageUsage = VulkanTexture::get_vulkan_usage_flags(desc.usage);
+    swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    swap_chain_create_info.queueFamilyIndexCount = 0;
+    swap_chain_create_info.pQueueFamilyIndices = nullptr;
+    swap_chain_create_info.preTransform = surface_capabilities.current_transform;
+    swap_chain_create_info.compositeAlpha = surface_capabilities.composite_alpha;
+    swap_chain_create_info.presentMode = chosen_present_mode;
+    swap_chain_create_info.clipped = VK_FALSE;
+    swap_chain_create_info.oldSwapchain = VK_NULL_HANDLE;
+
+    VkSwapchainKHR swap_chain = VK_NULL_HANDLE;
+    if (vkCreateSwapchainKHR(m_device, &swap_chain_create_info, nullptr, &swap_chain) != VK_SUCCESS)
+    {
+        return {};
+    }
+
+    SwapChainDesc created_desc = desc;
+    created_desc.image_count = surface_capabilities.preferred_image_count;
+    created_desc.width = surface_capabilities.width;
+    created_desc.height = surface_capabilities.height;
+
+    return SwapChainHandle(new VulkanSwapChain(
+        m_instance,
+        m_physical_device,
+        m_device,
+        m_graphics_queue,
+        surface,
+        swap_chain,
+        desc
+    ));
 }
 
 /// @brief Default Vulkan debug callback for the RHI.
@@ -336,7 +407,14 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
     {
         vkDestroySurfaceKHR(m_instance, compatible_surface, nullptr);
     }
-    return RenderDeviceHandle(new VulkanRenderDevice(is_headless, physical_device, queue_families, device, allocator));
+    return RenderDeviceHandle(new VulkanRenderDevice(
+        is_headless,
+        m_instance,
+        physical_device,
+        queue_families,
+        device,
+        allocator
+    ));
 }
 
 VkDebugUtilsMessengerCreateInfoEXT VulkanRHIInstance::get_debug_messenger_create_info()

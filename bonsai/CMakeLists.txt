@@ -28,6 +28,8 @@ add_library(bonsai_core STATIC
         src/rhi/vulkan/vulkan_command_buffer.cpp
         src/rhi/vulkan/vulkan_command_buffer.hpp
         src/rhi/vulkan/vulkan_helpers.hpp
+        src/rhi/vulkan/vulkan_swap_chain.cpp
+        src/rhi/vulkan/vulkan_swap_chain.hpp
         src/rhi/vulkan/vulkan_texture.cpp
         src/rhi/vulkan/vulkan_texture.hpp
         # Render Graph API

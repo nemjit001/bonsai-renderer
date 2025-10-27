@@ -26,6 +26,7 @@ class VulkanRenderDevice : public IRenderDevice
 public:
     VulkanRenderDevice(
         bool headless,
+        VkInstance instance,
         VkPhysicalDevice physical_device,
         VulkanQueueFamilies const& queue_families,
         VkDevice device,
@@ -42,11 +43,14 @@ public:
 
     TextureHandle create_texture(TextureDesc& desc) override;
 
+    SwapChainHandle create_swap_chain(SwapChainDesc const& desc) override;
+
 protected:
     void* get_raw_object() const override { return m_device; }
 
 private:
     bool                m_headless          = true;
+    VkInstance          m_instance          = VK_NULL_HANDLE;
     VkPhysicalDevice    m_physical_device   = VK_NULL_HANDLE;
     VulkanQueueFamilies m_queue_families    = {};
     VkDevice            m_device            = VK_NULL_HANDLE;
