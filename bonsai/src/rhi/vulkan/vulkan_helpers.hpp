@@ -8,7 +8,7 @@ namespace rhi_vk
     /// @param target Target struct to extend.
     /// @param extension Struct to append.
     template<typename T, typename U>
-    static constexpr void extend_pnext_chain(T& target, U& extension)
+    constexpr void extend_pnext_chain(T& target, U& extension)
     {
         void* temp = target.pNext;
         target.pNext = &extension;

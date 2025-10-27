@@ -175,7 +175,9 @@ VulkanRHIInstance::VulkanRHIInstance()
     uint32_t window_extension_count = 0;
     char const** window_extension_names = platform_enumerate_vulkan_instance_extensions(&window_extension_count);
     std::vector<char const*> enabled_extensions(window_extension_names, window_extension_names + window_extension_count);
+#ifndef NDEBUG
     enabled_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif //NDEBUG
 
     std::vector<char const*> enabled_layers;
 #ifndef NDEBUG
