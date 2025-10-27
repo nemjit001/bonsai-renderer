@@ -21,6 +21,11 @@ public:
     /// @return
     static VkImageType get_vulkan_image_type(TextureType texture_type);
 
+    /// @brief Get the Vulkan image format for a format type.
+    /// @param format
+    /// @return
+    static VkFormat get_vulkan_format(Format format);
+
     /// @brief Get the Vulkan image usage flags for texture usage flags.
     /// @param usage_flags
     /// @return

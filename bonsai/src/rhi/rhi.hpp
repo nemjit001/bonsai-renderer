@@ -7,6 +7,62 @@
 #include <memory>
 #include "platform/platform.hpp"
 
+/// @brief Available data format values, used for textures or data layout specification.
+enum class Format
+{
+    Undefined = 0,
+
+    R8_UINT,
+    R8_SINT,
+    R8_UNORM,
+    R8_SNORM,
+    RG8_UINT,
+    RG8_SINT,
+    RG8_UNORM,
+    RG8_SNORM,
+    RGBA8_UINT,
+    RGBA8_SINT,
+    RGBA8_UNORM,
+    RGBA8_SNORM,
+    RGBA8_UNORM_SRGB,
+    BGRA8_UNORM,
+    BGRA8_UNORM_SRGB,
+
+    R16_UINT,
+    R16_SINT,
+    R16_UNORM,
+    R16_SNORM,
+    R16_FLOAT,
+    RG16_UINT,
+    RG16_SINT,
+    RG16_UNORM,
+    RG16_SNORM,
+    RG16_FLOAT,
+    RGBA16_UINT,
+    RGBA16_SINT,
+    RGBA16_UNORM,
+    RGBA16_SNORM,
+    RGBA16_FLOAT,
+
+    R32_UINT,
+    R32_SINT,
+    R32_FLOAT,
+    RG32_UINT,
+    RG32_SINT,
+    RG32_FLOAT,
+    RGB32_UINT,
+    RGB32_SINT,
+    RGB32_FLOAT,
+    RGBA32_UINT,
+    RGBA32_SINT,
+    RGBA32_FLOAT,
+
+    Depth16,
+    Depth24Stencil8,
+    Depth32,
+    Depth32Stencil8,
+};
+
 /// @brief RHI resource interface, provides access to internal render types.
 class IResource
 {
@@ -76,6 +132,7 @@ typedef uint32_t TextureUsageFlags;
 struct TextureDesc
 {
     TextureType type;
+    Format format;
     size_t width;
     size_t height;
     size_t depth_or_layers;

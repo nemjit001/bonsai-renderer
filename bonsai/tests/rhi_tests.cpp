@@ -40,6 +40,7 @@ TEST_F(rhi, create_texture_resource)
 {
     TextureDesc texture_desc{};
     texture_desc.type = TextureType::Type2D;
+    texture_desc.format = Format::RGBA32_FLOAT;
     texture_desc.width  = 128;
     texture_desc.height = 128;
     texture_desc.depth_or_layers = 1;

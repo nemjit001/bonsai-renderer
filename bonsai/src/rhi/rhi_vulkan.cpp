@@ -89,7 +89,7 @@ TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
     image_create_info.pNext = nullptr;
     image_create_info.flags = 0;
     image_create_info.imageType = VulkanTexture::get_vulkan_image_type(desc.type);
-    image_create_info.format = VK_FORMAT_UNDEFINED; // TODO(nemjit001): Set based on format in desc
+    image_create_info.format = VulkanTexture::get_vulkan_format(desc.format);
     image_create_info.extent.width = desc.width;
     image_create_info.extent.height = desc.height;
     image_create_info.extent.depth = 1; // TODO(nemjit001): Set depth or array layers based on image type
