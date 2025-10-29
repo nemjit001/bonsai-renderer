@@ -58,6 +58,15 @@ TEST_F(rhi_tests, create_texture_resource)
     EXPECT_NE(texture, nullptr);
 }
 
+TEST_F(rhi_tests, submit_command_buffer)
+{
+    CommandAllocatorHandle command_allocator = render_device->create_command_allocator(CommandQueueType::Direct);
+    CommandBufferHandle command_buffer = command_allocator->create_command_buffer();
+    EXPECT_TRUE(command_buffer->begin());
+    EXPECT_TRUE(command_buffer->close());
+    render_device->submit(CommandQueueType::Direct, 1, &command_buffer);
+}
+
 TEST_F(rhi_tests, create_swap_chain)
 {
     SwapChainDesc swap_chain_desc{};

@@ -177,9 +177,29 @@ enum class CommandQueueType : uint8_t
 class ICommandBuffer : public IResource
 {
 public:
-    //
+    /// @brief Begin recording commands on this command buffer.
+    /// @return True on successful recording start, false otherwise.
+    virtual bool begin() = 0;
+
+    /// @brief Close this command buffer, finalizing command recording.
+    /// @return True on successful close, false otherwise.
+    virtual bool close() = 0;
 };
 using CommandBufferHandle = std::shared_ptr<ICommandBuffer>;
+
+/// @brief Backend command allocator type, used to allocate command buffers for a queue.
+class ICommandAllocator : public IResource
+{
+public:
+    /// @brief Reset the command allocator, resetting all allocated command buffers in the process.
+    /// @return True on success, false otherwise.
+    virtual bool reset() = 0;
+
+    /// @brief Create a new command buffer from this command allocator.
+    /// @return A new command buffer handle.
+    virtual CommandBufferHandle create_command_buffer() = 0;
+};
+using CommandAllocatorHandle = std::shared_ptr<ICommandAllocator>;
 
 /// @brief Swap chain present modes for present synchronization.
 enum class SwapPresentMode
@@ -262,6 +282,11 @@ public:
     /// @param desc Texture resource descriptor.
     /// @return A new texture resource handle.
     virtual TextureHandle create_texture(TextureDesc& desc) = 0;
+
+    /// @brief Create a command allocator for a command queue.
+    /// @param queue Command queue type to use for command allocator.
+    /// @return A new command allocator handle.
+    virtual CommandAllocatorHandle create_command_allocator(CommandQueueType queue) = 0;
 
     /// @brief Create a swap chain on this device, the device MUST NOT be running as headless.
     /// @param desc Swap chain descriptor.

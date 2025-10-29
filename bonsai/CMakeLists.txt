@@ -25,6 +25,8 @@ add_library(bonsai_core STATIC
         src/rhi/rhi_vulkan.hpp
         src/rhi/vulkan/vulkan_buffer.cpp
         src/rhi/vulkan/vulkan_buffer.hpp
+        src/rhi/vulkan/vulkan_command_allocator.cpp
+        src/rhi/vulkan/vulkan_command_allocator.hpp
         src/rhi/vulkan/vulkan_command_buffer.cpp
         src/rhi/vulkan/vulkan_command_buffer.hpp
         src/rhi/vulkan/vulkan_helpers.hpp

@@ -15,6 +15,10 @@ public:
     VulkanCommandBuffer(VulkanCommandBuffer const&) = delete;
     VulkanCommandBuffer& operator=(VulkanCommandBuffer const&) = delete;
 
+    bool begin() override;
+
+    bool close() override;
+
 protected:
     void* get_raw_object() const override { return m_command_buffer; }
 

@@ -11,6 +11,7 @@
 #include "platform/platform_vulkan.hpp"
 #include "core/die.hpp"
 #include "vulkan/vulkan_buffer.hpp"
+#include "vulkan/vulkan_command_allocator.hpp"
 #include "vulkan/vulkan_helpers.hpp"
 #include "vulkan/vulkan_swap_chain.hpp"
 #include "vulkan/vulkan_texture.hpp"
@@ -133,6 +134,43 @@ TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
     return TextureHandle(new VulkanTexture(m_allocator, image, allocation, desc));
 }
 
+CommandAllocatorHandle VulkanRenderDevice::create_command_allocator(CommandQueueType queue)
+{
+    VkCommandPoolCreateFlags create_flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    uint32_t queue_family_idx = VK_QUEUE_FAMILY_IGNORED;
+    switch (queue)
+    {
+    case CommandQueueType::Direct:
+    case CommandQueueType::All:
+        queue_family_idx = m_queue_families.graphicsFamily;
+        break;
+    case CommandQueueType::Transfer:
+        create_flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        queue_family_idx = m_queue_families.transferFamily;
+        break;
+    case CommandQueueType::Compute:
+        create_flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        queue_family_idx = m_queue_families.computeFamily;
+        break;
+    default:
+        break;
+    }
+
+    VkCommandPoolCreateInfo command_pool_create_info{};
+    command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    command_pool_create_info.pNext = nullptr;
+    command_pool_create_info.flags = create_flags;
+    command_pool_create_info.queueFamilyIndex = queue_family_idx;
+
+    VkCommandPool command_pool = VK_NULL_HANDLE;
+    if (vkCreateCommandPool(m_device, &command_pool_create_info, nullptr, &command_pool) != VK_SUCCESS)
+    {
+        return {};
+    }
+
+    return CommandAllocatorHandle(new VulkanCommandAllocator(m_device, command_pool));
+}
+
 SwapChainHandle VulkanRenderDevice::create_swap_chain(SwapChainDesc const& desc)
 {
     if (is_headless() || desc.surface == nullptr)
@@ -206,7 +244,10 @@ void VulkanRenderDevice::submit(CommandQueueType queue, size_t count, CommandBuf
     std::vector<VkCommandBuffer> vk_command_buffers(count, VK_NULL_HANDLE);
     for (size_t i = 0; i < count; i++)
     {
-        vk_command_buffers[i] = command_buffers[i]->get_object<VkCommandBuffer>();
+        if (command_buffers[i])
+        {
+            vk_command_buffers[i] = command_buffers[i]->get_object<VkCommandBuffer>();
+        }
     }
 
     VkSubmitInfo submit_info{};
@@ -224,6 +265,7 @@ void VulkanRenderDevice::submit(CommandQueueType queue, size_t count, CommandBuf
     switch (queue)
     {
     case CommandQueueType::Direct:
+    case CommandQueueType::All:
         target_queue = m_graphics_queue;
         break;
     case CommandQueueType::Transfer:
@@ -231,9 +273,6 @@ void VulkanRenderDevice::submit(CommandQueueType queue, size_t count, CommandBuf
         break;
     case CommandQueueType::Compute:
         target_queue = m_compute_queue;
-        break;
-    case CommandQueueType::All:
-        target_queue = m_graphics_queue; // Used as fallback since it supports every operation type
         break;
     default:
         break;

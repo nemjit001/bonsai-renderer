@@ -43,6 +43,8 @@ public:
 
     TextureHandle create_texture(TextureDesc& desc) override;
 
+    CommandAllocatorHandle create_command_allocator(CommandQueueType queue) override;
+
     SwapChainHandle create_swap_chain(SwapChainDesc const& desc) override;
 
     void submit(CommandQueueType queue, size_t count, CommandBufferHandle* command_buffers) override;
