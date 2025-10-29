@@ -70,7 +70,7 @@ public:
     virtual ~IResource() = default;
 
     template<typename ObjectType>
-    ObjectType* get_object() const { return static_cast<ObjectType*>(get_raw_object()); }
+    ObjectType get_object() const { return static_cast<ObjectType>(get_raw_object()); }
 
 protected:
     /// @brief Get the underlying graphics API object for this resource.
@@ -267,6 +267,12 @@ public:
     /// @param desc Swap chain descriptor.
     /// @return A new swap chain handle or nullptr if the device was headless.
     virtual SwapChainHandle create_swap_chain(SwapChainDesc const& desc) = 0;
+
+    /// @brief Submit work to a GPU queue on the render device.
+    /// @param queue Queue type to submit work to.
+    /// @param count Number of command buffers to submit.
+    /// @param command_buffers Recorded command buffers to submit.
+    virtual void submit(CommandQueueType queue, size_t count, CommandBufferHandle* command_buffers) = 0;
 };
 using RenderDeviceHandle = std::shared_ptr<IRenderDevice>;
 

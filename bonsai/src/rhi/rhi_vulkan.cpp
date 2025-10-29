@@ -201,6 +201,47 @@ SwapChainHandle VulkanRenderDevice::create_swap_chain(SwapChainDesc const& desc)
     ));
 }
 
+void VulkanRenderDevice::submit(CommandQueueType queue, size_t count, CommandBufferHandle* command_buffers)
+{
+    std::vector<VkCommandBuffer> vk_command_buffers(count, VK_NULL_HANDLE);
+    for (size_t i = 0; i < count; i++)
+    {
+        vk_command_buffers[i] = command_buffers[i]->get_object<VkCommandBuffer>();
+    }
+
+    VkSubmitInfo submit_info{};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.pNext = nullptr;
+    submit_info.waitSemaphoreCount = 0;
+    submit_info.pWaitSemaphores = nullptr;
+    submit_info.pWaitDstStageMask = nullptr;
+    submit_info.commandBufferCount = static_cast<uint32_t>(vk_command_buffers.size());
+    submit_info.pCommandBuffers = vk_command_buffers.data();
+    submit_info.signalSemaphoreCount = 0;
+    submit_info.pSignalSemaphores = nullptr;
+
+    VkQueue target_queue = VK_NULL_HANDLE;
+    switch (queue)
+    {
+    case CommandQueueType::Direct:
+        target_queue = m_graphics_queue;
+        break;
+    case CommandQueueType::Transfer:
+        target_queue = m_transfer_queue;
+        break;
+    case CommandQueueType::Compute:
+        target_queue = m_compute_queue;
+        break;
+    case CommandQueueType::All:
+        target_queue = m_graphics_queue; // Used as fallback since it supports every operation type
+        break;
+    default:
+        break;
+    }
+
+    vkQueueSubmit(target_queue, 1, &submit_info, VK_NULL_HANDLE); // TODO(nemjit001): Do CPU/GPU sync between workloads (also for swap chain present)
+}
+
 /// @brief Default Vulkan debug callback for the RHI.
 static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -232,10 +273,17 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
 VulkanRHIInstance::VulkanRHIInstance()
 {
     volkInitialize();
-    uint32_t vk_instance_version = volkGetInstanceVersion();
+    uint32_t const vk_instance_version = volkGetInstanceVersion();
     if (vk_instance_version < BONSAI_VULKAN_VERSION)
     {
-        bonsai::die("Available Vulkan version not supported");
+        bonsai::die("Available Vulkan version not supported (v{}.{}.{} < v{}.{}.{})",
+            VK_API_VERSION_MAJOR(vk_instance_version),
+            VK_API_VERSION_MINOR(vk_instance_version),
+            VK_API_VERSION_PATCH(vk_instance_version),
+            VK_API_VERSION_MAJOR(BONSAI_VULKAN_VERSION),
+            VK_API_VERSION_MINOR(BONSAI_VULKAN_VERSION),
+            VK_API_VERSION_PATCH(BONSAI_VULKAN_VERSION)
+        );
     }
 
     uint32_t window_extension_count = 0;

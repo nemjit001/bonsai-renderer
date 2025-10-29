@@ -45,6 +45,8 @@ public:
 
     SwapChainHandle create_swap_chain(SwapChainDesc const& desc) override;
 
+    void submit(CommandQueueType queue, size_t count, CommandBufferHandle* command_buffers) override;
+
 protected:
     void* get_raw_object() const override { return m_device; }
 
