@@ -6,20 +6,49 @@
 #include <vk_mem_alloc.h>
 #include "rhi/rhi.hpp"
 
+class VulkanTextureView : public ITextureView
+{
+public:
+    VulkanTextureView(VkDevice device, VkImageView view);
+    ~VulkanTextureView() override;
+
+    VulkanTextureView(VulkanTextureView const&) = delete;
+    VulkanTextureView& operator=(VulkanTextureView const&) = delete;
+
+    /// @brief Get the Vulkan image view type for a texture view type.
+    /// @param view_type
+    /// @return
+    static VkImageViewType get_vulkan_view_type(TextureViewType view_type);
+
+    /// @brief Get the Vulkan image aspect flags for a given format.
+    /// @param format
+    /// @return
+    static VkImageAspectFlags get_vulkan_aspect_flags(Format format);
+
+protected:
+    void* get_raw_object() const override { return m_view; }
+
+private:
+    VkDevice    m_device    = VK_NULL_HANDLE;
+    VkImageView m_view      = VK_NULL_HANDLE;
+};
+
 class VulkanTexture : public ITexture
 {
 public:
     /// Create an imported VulkanTexture without access to the backing allocator, useful for e.g. swap chain image handles.
+    /// @param device Device to use for view creation.
     /// @param image Image to use for texture creation.
     /// @param desc Descriptor that matches the image creation parameters.
-    VulkanTexture(VkImage image, TextureDesc const& desc);
+    VulkanTexture(VkDevice device, VkImage image, TextureDesc const& desc);
 
     /// @brief Create an allocated VulkanTexture.
+    /// @param device Device used to create allocator.
     /// @param allocator Allocator used for allocation.
     /// @param image Managed image.
     /// @param allocation Associated image memory.
     /// @param desc Texture descriptor used to create image.
-    VulkanTexture(VmaAllocator allocator, VkImage image, VmaAllocation allocation, TextureDesc const& desc);
+    VulkanTexture(VkDevice device, VmaAllocator allocator, VkImage image, VmaAllocation allocation, TextureDesc const& desc);
     ~VulkanTexture() override;
 
     VulkanTexture(VulkanTexture const&) = delete;
@@ -50,6 +79,23 @@ public:
     /// @return
     static VkImageTiling get_vulkan_image_tiling(TextureTiling tiling);
 
+    /// @brief Get the VUlkan image layout for a texture layout.
+    /// @param layout
+    /// @return
+    static VkImageLayout get_vulkan_image_layout(TextureLayout layout);
+
+    TextureViewHandle create_view(TextureViewDesc const* view_desc) override;
+
+    TextureType type() const override { return m_desc.type; }
+
+    Format fomat() const override { return m_desc.format; }
+
+    uint32_t width() const override { return m_desc.width; }
+
+    uint32_t height() const override { return m_desc.height; }
+
+    uint32_t depth_or_layers() const override { return m_desc.depth_or_layers; }
+
     TextureDesc get_desc() const override { return m_desc; }
 
 protected:
@@ -57,6 +103,7 @@ protected:
 
 private:
     bool            m_imported      = false;
+    VkDevice        m_device        = VK_NULL_HANDLE;
     VmaAllocator    m_allocator     = VK_NULL_HANDLE;
     VkImage         m_image         = VK_NULL_HANDLE;
     VmaAllocation   m_allocation    = VK_NULL_HANDLE;

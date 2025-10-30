@@ -130,7 +130,7 @@ TextureHandle VulkanRenderDevice::create_texture(TextureDesc& desc)
         return {};
     }
 
-    return TextureHandle(new VulkanTexture(m_allocator, image, allocation, desc));
+    return TextureHandle(new VulkanTexture(m_device, m_allocator, image, allocation, desc));
 }
 
 CommandAllocatorHandle VulkanRenderDevice::create_command_allocator(CommandQueueType queue)

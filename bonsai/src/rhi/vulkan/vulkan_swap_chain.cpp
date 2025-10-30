@@ -234,5 +234,5 @@ TextureHandle VulkanSwapChain::get_swap_image(uint32_t idx)
     texture_desc.sample_count = 1;
     texture_desc.tiling = TextureTiling::Optimal;
     texture_desc.usage = m_desc.usage;
-    return TextureHandle(new VulkanTexture(m_swap_images[idx], texture_desc));
+    return TextureHandle(new VulkanTexture(m_device, m_swap_images[idx], texture_desc));
 }

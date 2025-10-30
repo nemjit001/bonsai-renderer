@@ -7,8 +7,51 @@
 #include <memory>
 #include "platform/platform.hpp"
 
+/// @brief 2D pixel offset.
+struct Offset2D
+{
+    int32_t x;
+    int32_t y;
+};
+
+/// @brief 2D image extent.
+struct Extent2D
+{
+    uint32_t width;
+    uint32_t height;
+};
+
+/// @brief 2D rectangular region.
+struct Rect2D
+{
+    Offset2D offset;
+    Extent2D extent;
+};
+
+/// @brief RGBA color value.
+union ColorValue
+{
+    float       float32[4];
+    int32_t     int32[4];
+    uint32_t    uint32[4];
+};
+
+/// @brief Depth and stencil values.
+struct DepthStencilValue
+{
+    float       depth;
+    uint32_t    stencil;
+};
+
+/// @brief Color or depth-stencil clear value.
+union ClearValue
+{
+    ColorValue          color;
+    DepthStencilValue   depth_stencil;
+};
+
 /// @brief Available data format values, used for textures or data layout specification.
-enum class Format
+enum class Format : uint32_t
 {
     Undefined,
 
@@ -63,6 +106,21 @@ enum class Format
     Depth32Stencil8,
 };
 
+/// @brief Attachment load operations.
+enum class AttachmentLoadOp
+{
+    Load,
+    Clear,
+    DontCare,
+};
+
+/// @brief Attachment store operations.
+enum class AttachmentStoreOp
+{
+    Store,
+    DontCare,
+};
+
 /// @brief RHI resource interface, provides access to internal render types.
 class IResource
 {
@@ -79,7 +137,7 @@ protected:
 };
 
 /// @brief Buffer usage values.
-enum BufferUsage
+enum BufferUsage : uint32_t
 {
     BufferUsageTransferSrc          = 0x0001,
     BufferUsageTransferDst          = 0x0002,
@@ -113,8 +171,34 @@ public:
 };
 using BufferHandle = std::shared_ptr<IBuffer>;
 
+/// @brief Texture view types.
+enum class TextureViewType
+{
+    Type1D,
+    Type2D,
+    Type3D,
+    TypeCube,
+    Type1DArray,
+    Type2DArray,
+    TypeCubeArray,
+};
+
+/// @brief Texture view description for creating views from textures.
+struct TextureViewDesc
+{
+    TextureViewType type;
+    Format format;
+    // TODO(nemjit001): Add sub resource information here
+};
+
+class ITextureView : public IResource
+{
+    //
+};
+using TextureViewHandle = std::shared_ptr<ITextureView>;
+
 /// @brief Texture type values.
-enum class TextureType
+enum class TextureType : uint32_t
 {
     Type1D,
     Type2D,
@@ -122,7 +206,7 @@ enum class TextureType
 };
 
 /// @brief Texture usage values.
-enum TextureUsage
+enum TextureUsage : uint32_t
 {
     TextureUsageTransferSrc             = 0x01,
     TextureUsageTransferDst             = 0x02,
@@ -133,8 +217,21 @@ enum TextureUsage
 };
 typedef uint32_t TextureUsageFlags;
 
+enum class TextureLayout : uint32_t
+{
+    Undefined,
+    General,
+    ColorAttachment,
+    DepthStencilAttachment,
+    DepthStencilAttachmentReadOnly,
+    ShaderResource,
+    TransferSrc,
+    TransferDst,
+    Present,
+};
+
 /// @brief The texture tiling modes, only linear tiling textures can be written to directly from the host.
-enum class TextureTiling
+enum class TextureTiling : uint32_t
 {
     Optimal,
     Linear,
@@ -158,11 +255,52 @@ struct TextureDesc
 class ITexture : public IResource
 {
 public:
+    virtual TextureViewHandle create_view(TextureViewDesc const* view_desc) = 0;
+
+    /// @brief Get the texture type.
+    /// @return
+    virtual TextureType type() const = 0;
+
+    /// @brief Get the texture foramt.
+    /// @return
+    virtual Format fomat() const = 0;
+
+    /// @brief Get the texture width.
+    /// @return
+    virtual uint32_t width() const = 0;
+
+    /// @brief Get the texture height.
+    /// @return
+    virtual uint32_t height() const = 0;
+
+    /// @brief Get the texture depth or layers.
+    virtual uint32_t depth_or_layers() const = 0;
+
     /// @brief Get the texture descriptor that was used to create this texture.
     /// @return
     virtual TextureDesc get_desc() const = 0;
 };
 using TextureHandle = std::shared_ptr<ITexture>;
+
+/// @brief Render attachment description for use with render passes.
+struct RenderAttachmentDesc
+{
+    TextureViewHandle view;
+    TextureLayout layout;
+    AttachmentLoadOp load_op;
+    AttachmentStoreOp store_op;
+    ClearValue clear_value;
+};
+
+/// @brief Render pass description for starting render passes.
+struct RenderPassDesc
+{
+    Rect2D render_area;
+    size_t color_attachment_count;
+    RenderAttachmentDesc* color_attachments;
+    RenderAttachmentDesc* depth_attachment;
+    RenderAttachmentDesc* stencil_attachment;
+};
 
 /// @brief Available command queue types.
 enum class CommandQueueType : uint8_t
@@ -184,6 +322,13 @@ public:
     /// @brief Close this command buffer, finalizing command recording.
     /// @return True on successful close, false otherwise.
     [[nodiscard]] virtual bool close() = 0;
+
+    /// @brief Begin a new render pass.
+    /// @param desc Render pass descriptor.
+    virtual void begin_render_pass(RenderPassDesc const& desc) = 0;
+
+    /// @brief End the active render pass.
+    virtual void end_render_pass() = 0;
 };
 using CommandBufferHandle = std::shared_ptr<ICommandBuffer>;
 

@@ -13,7 +13,7 @@ Renderer::Renderer(Surface* surface)
 
     RenderDeviceDesc render_device_desc{};
     render_device_desc.compatible_surface = surface;
-    render_device_desc.frames_in_flight = 2;
+    render_device_desc.frames_in_flight = 1;
     m_render_device = m_rhi_instance->create_render_device(render_device_desc);
     if (!m_render_device)
     {
@@ -63,11 +63,31 @@ void Renderer::render()
         return;
     }
 
+    uint32_t swap_image_idx = m_swap_chain->current_image_idx();
+    TextureHandle swap_texture = m_swap_chain->get_swap_image(swap_image_idx); // TODO(nemjit001): Cache swap image handles to avoid allocations
+    TextureViewHandle swap_texture_view = swap_texture->create_view(nullptr);
+
     if (!m_frame_commands->begin())
     {
         BONSAI_LOG_ERROR("Failed to begin frame command buffer");
         return;
     }
+
+    RenderAttachmentDesc color_attachment{};
+    color_attachment.view = swap_texture_view;
+    color_attachment.layout = TextureLayout::ColorAttachment;
+    color_attachment.load_op = AttachmentLoadOp::Clear;
+    color_attachment.store_op = AttachmentStoreOp::Store;
+    color_attachment.clear_value = ClearValue{{{ 0.0F, 0.0F, 0.0F, 0.0F }}};
+
+    RenderPassDesc render_pass_desc{};
+    render_pass_desc.render_area = {{ 0, 0 }, { swap_texture->width(), swap_texture->height() }};
+    render_pass_desc.color_attachment_count = 1;
+    render_pass_desc.color_attachments = &color_attachment;
+    render_pass_desc.depth_attachment = nullptr;
+    render_pass_desc.stencil_attachment = nullptr;
+    m_frame_commands->begin_render_pass(render_pass_desc);
+    m_frame_commands->end_render_pass();
 
     if (!m_frame_commands->close())
     {

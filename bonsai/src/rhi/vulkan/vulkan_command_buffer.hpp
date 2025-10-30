@@ -14,9 +14,17 @@ public:
     VulkanCommandBuffer(VulkanCommandBuffer const&) = delete;
     VulkanCommandBuffer& operator=(VulkanCommandBuffer const&) = delete;
 
+    static VkAttachmentLoadOp get_vulkan_attachment_load_op(AttachmentLoadOp load_op);
+
+    static VkAttachmentStoreOp get_vulkan_attachment_store_op(AttachmentStoreOp store_op);
+
     bool begin() override;
 
     bool close() override;
+
+    void begin_render_pass(RenderPassDesc const& desc) override;
+
+    void end_render_pass() override;
 
 protected:
     void* get_raw_object() const override { return m_command_buffer; }

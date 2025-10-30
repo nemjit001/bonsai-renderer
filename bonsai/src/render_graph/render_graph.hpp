@@ -34,18 +34,6 @@ enum class RGResourceType : uint8_t
     ImportedTexture,
 };
 
-enum class RGResourceUsage : uint32_t
-{
-    Undefined,
-    General,
-    ColorAttachment,
-    DepthStencilAttachment,
-    DepthStencilReadOnlyAttachment,
-    ShaderAttachment,
-    TransferSrc,
-    TransferDst,
-};
-
 /// @brief Retained mode render graph, stores render pass and resource state for a frame.
 class RenderGraph
 {
@@ -101,7 +89,7 @@ private:
     {
         uint32_t id;
         uint32_t version;
-        RGResourceUsage usage;
+        TextureLayout texture_usage;
     };
 
     /// @brief Resource metadata used for allocating / managing graph resources.
@@ -137,13 +125,13 @@ private:
     /// @param name Pass name.
     /// @param resource
     /// @param resource_usage
-    void add_pass_resource_read(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage);
+    void add_pass_resource_read(std::string const& name, RGResourceHandle const& resource, TextureLayout texture_usage);
 
     /// @brief Add a resource write to a pass.
     /// @param name Pass name.
     /// @param resource
     /// @param resource_usage
-    void add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage);
+    void add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, TextureLayout texture_usage);
 
     /// @brief Set render pass commands.
     /// @param name Pass name.
@@ -182,13 +170,13 @@ public:
     /// @param resource Resource to read.
     /// @param resource_usage Texture usage parameter, determines layout transitions for texture resources.
     /// @return
-    RenderPass& read(RGResourceHandle const& resource, RGResourceUsage resource_usage = RGResourceUsage::Undefined);
+    RenderPass& read(RGResourceHandle const& resource, TextureLayout texture_usage = TextureLayout::Undefined);
 
     /// @brief Add a resource write in this pass, will make resource available in RenderPassResources.
     /// @param resource Resource to write, will add a read dependency too.
     /// @param resource_usage Texture usage parameter, determines layout transitions for texture resources.
     /// @return
-    RenderPass& write(RGResourceHandle const& resource, RGResourceUsage resource_usage = RGResourceUsage::Undefined);
+    RenderPass& write(RGResourceHandle const& resource, TextureLayout texture_usage = TextureLayout::Undefined);
 
     /// @brief Set the render commands for this pass.
     /// @param commands Render commands recorded into a command buffer.

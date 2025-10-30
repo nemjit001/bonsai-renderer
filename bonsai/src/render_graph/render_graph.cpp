@@ -142,7 +142,7 @@ void RenderGraph::insert_render_pass(std::string const& name)
     m_render_passes.insert({ name, RenderPassEntry{} });
 }
 
-void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage)
+void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHandle const& resource, TextureLayout texture_usage)
 {
     auto const pass_iter = m_render_passes.find(name);
     if (pass_iter == m_render_passes.end())
@@ -159,22 +159,22 @@ void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHand
 
     for (auto const& read_dependency : pass_iter->second.read_resources)
     {
-        if (read_dependency.id == resource && read_dependency.usage == resource_usage)
+        if (read_dependency.id == resource && read_dependency.texture_usage == texture_usage)
         {
             BONSAI_LOG_WARNING(
                 "Failed to add render pass resource read: resource usage {} does not match previous declared usage of {}",
-                static_cast<uint32_t>(resource_usage),
-                static_cast<uint32_t>(read_dependency.usage)
+                static_cast<uint32_t>(texture_usage),
+                static_cast<uint32_t>(read_dependency.texture_usage)
             );
             return;
         }
     }
 
     ResourceMetaData const& resource_data = m_graph_resources[resource];
-    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, texture_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
 }
 
-void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, RGResourceUsage resource_usage)
+void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, TextureLayout texture_usage)
 {
     auto const pass_iter = m_render_passes.find(name);
     if (pass_iter == m_render_passes.end())
@@ -189,11 +189,11 @@ void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHan
         return;
     }
 
-    add_pass_resource_read(name, resource, resource_usage);
+    add_pass_resource_read(name, resource, texture_usage);
     ResourceMetaData& resource_data = m_graph_resources[resource];
     resource_data.version++;
 
-    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, resource_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, texture_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
 }
 
 void RenderGraph::set_pass_commands(std::string const& name, RenderPassCommands const& commands)
@@ -237,15 +237,15 @@ RenderPass::RenderPass(RenderGraph* render_graph, std::string const& name)
     m_render_graph->insert_render_pass(name);
 }
 
-RenderPass& RenderPass::read(RGResourceHandle const& resource, RGResourceUsage resource_usage)
+RenderPass& RenderPass::read(RGResourceHandle const& resource, TextureLayout texture_usage)
 {
-    m_render_graph->add_pass_resource_read(m_name, resource, resource_usage);
+    m_render_graph->add_pass_resource_read(m_name, resource, texture_usage);
     return *this;
 }
 
-RenderPass& RenderPass::write(RGResourceHandle const& resource, RGResourceUsage resource_usage)
+RenderPass& RenderPass::write(RGResourceHandle const& resource, TextureLayout texture_usage)
 {
-    m_render_graph->add_pass_resource_write(m_name, resource, resource_usage);
+    m_render_graph->add_pass_resource_write(m_name, resource, texture_usage);
     return *this;
 }
 
