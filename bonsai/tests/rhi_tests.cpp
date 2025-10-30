@@ -14,6 +14,7 @@ public:
         // Create render device
         RenderDeviceDesc render_device_desc{};
         render_device_desc.compatible_surface = surface;
+        render_device_desc.frames_in_flight = 2;
         render_device = rhi_instance->create_render_device(render_device_desc);
     }
 
@@ -65,6 +66,7 @@ TEST_F(rhi_tests, submit_command_buffer)
     EXPECT_TRUE(command_buffer->begin());
     EXPECT_TRUE(command_buffer->close());
     render_device->submit(CommandQueueType::Direct, 1, &command_buffer);
+    render_device->wait_idle();
 }
 
 TEST_F(rhi_tests, create_swap_chain)

@@ -49,6 +49,8 @@ public:
 
     void submit(CommandQueueType queue, size_t count, CommandBufferHandle* command_buffers) override;
 
+    void wait_idle() override;
+
 protected:
     void* get_raw_object() const override { return m_device; }
 

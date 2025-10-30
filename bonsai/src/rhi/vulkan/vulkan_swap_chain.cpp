@@ -1,4 +1,5 @@
 #include "vulkan_swap_chain.hpp"
+#if BONSAI_USE_VULKAN
 
 #include "vulkan_texture.hpp"
 
@@ -125,8 +126,6 @@ VkPresentModeKHR VulkanSwapChain::get_vulkan_present_mode(SwapPresentMode presen
 
 bool VulkanSwapChain::resize_swap_buffers(uint32_t width, uint32_t height, SwapPresentMode present_mode)
 {
-    vkDeviceWaitIdle(m_device);
-
     SwapChainDesc desc = m_desc;
     desc.width  = width;
     desc.height = height;
@@ -238,3 +237,5 @@ TextureHandle VulkanSwapChain::get_swap_image(uint32_t idx)
     texture_desc.usage = m_desc.usage;
     return TextureHandle(new VulkanTexture(m_swap_images[idx], texture_desc));
 }
+
+#endif //BONSAI_USE_VULKAN

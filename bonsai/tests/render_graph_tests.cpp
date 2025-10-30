@@ -8,7 +8,11 @@ public:
     render_graph_tests()
     {
         rhi_instance = rhi::create_instance();
-        render_device = rhi_instance->create_render_device({});
+
+        RenderDeviceDesc render_device_desc{};
+        render_device_desc.compatible_surface = nullptr;
+        render_device_desc.frames_in_flight = 1;
+        render_device = rhi_instance->create_render_device(render_device_desc);
         rg = RenderGraph();
     }
 

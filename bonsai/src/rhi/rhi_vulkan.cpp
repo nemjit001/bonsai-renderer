@@ -281,6 +281,11 @@ void VulkanRenderDevice::submit(CommandQueueType queue, size_t count, CommandBuf
     vkQueueSubmit(target_queue, 1, &submit_info, VK_NULL_HANDLE); // TODO(nemjit001): Do CPU/GPU sync between workloads (also for swap chain present)
 }
 
+void VulkanRenderDevice::wait_idle()
+{
+    vkDeviceWaitIdle(m_device);
+}
+
 /// @brief Default Vulkan debug callback for the RHI.
 static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -398,6 +403,11 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
         }
     }
 
+    if (desc.frames_in_flight == 0)
+    {
+        return {}; // Cannot create device with 0 frames in flight.
+    }
+
     // Get physical device & required queue families
     VkPhysicalDevice physical_device = find_physical_device(m_instance, compatible_surface);
     if (physical_device == VK_NULL_HANDLE)
@@ -494,6 +504,7 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
     {
         vkDestroySurfaceKHR(m_instance, compatible_surface, nullptr);
     }
+
     return RenderDeviceHandle(new VulkanRenderDevice(
         is_headless,
         m_instance,

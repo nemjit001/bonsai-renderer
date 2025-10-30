@@ -263,6 +263,7 @@ using SwapChainHandle = std::shared_ptr<ISwapChain>;
 struct RenderDeviceDesc
 {
     Surface* compatible_surface; /// @brief Optional surface pointer, if set present support for this surface is guaranteed on the device.
+    uint32_t frames_in_flight; /// @brief Number of frames to allow simultaneous command recording for.
 };
 
 /// @brief Backend render device interface, used for render resource allocation.
@@ -298,6 +299,9 @@ public:
     /// @param count Number of command buffers to submit.
     /// @param command_buffers Recorded command buffers to submit.
     virtual void submit(CommandQueueType queue, size_t count, CommandBufferHandle* command_buffers) = 0;
+
+    /// @brief Wait for the device to be idle.
+    virtual void wait_idle() = 0;
 };
 using RenderDeviceHandle = std::shared_ptr<IRenderDevice>;
 
