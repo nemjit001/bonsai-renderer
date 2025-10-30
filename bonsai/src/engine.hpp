@@ -4,7 +4,8 @@
 
 #include "core/timer.hpp"
 #include "platform/platform.hpp"
-#include "world/world_manager.hpp"
+#include "systems/renderer.hpp"
+#include "systems/world_manager.hpp"
 
 /// @brief Main engine class, handles subsystem management and lifecycle.
 class Engine
@@ -24,6 +25,7 @@ private:
     Timer           m_timer             = Timer();
     Platform*       m_platform          = nullptr;
     Surface*        m_surface           = nullptr;
+    Renderer*       m_renderer          = nullptr;
     WorldManager*   m_world_manager     = nullptr;
 };
 

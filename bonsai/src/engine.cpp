@@ -24,17 +24,24 @@ Engine::Engine()
         bonsai::die("Failed to create application surface");
     }
 
-    // Initialize world
+    // Initialize systems
+    BONSAI_LOG_INFO("Initializing Renderer");
+    m_renderer = new Renderer(m_surface);
+
     BONSAI_LOG_INFO("Initializing World Manager");
     m_world_manager = new WorldManager();
+
+    // Load startup world
     m_world_manager->load_world("assets/CornellBox.bonsai"); // TODO(nemjit001): Show world selection GUI on startup instead of defaulting to a hardcoded world.
     BONSAI_LOG_INFO("Active world: {}", m_world_manager->get_active_world()->get_name());
 
     // Set surface handlers
-    // m_surface->set_user_data(nullptr);
+    m_surface->set_user_data(m_renderer);
     m_platform->set_platform_surface_resize_callback([]([[maybe_unused]] void* user_data, uint32_t width, uint32_t height)
     {
         BONSAI_LOG_TRACE("Window resized ({} x {})", width, height);
+        Renderer* renderer = static_cast<Renderer*>(user_data);
+        renderer->on_resize(width, height);
     });
 
     // Set application quit handler
@@ -53,9 +60,12 @@ Engine::Engine()
 Engine::~Engine()
 {
     BONSAI_LOG_INFO("Shutting down...");
+    RenderDeviceHandle render_device = m_renderer->get_render_device();
+    render_device->wait_idle();
 
-    // Clean up world manager
+    // Clean up systems
     delete m_world_manager;
+    delete m_renderer;
 
     // Clean up platform system
     m_platform->destroy_surface(m_surface);
@@ -72,5 +82,7 @@ void Engine::run()
         double const delta_milliseconds = m_timer.delta_milliseconds().count();
         AssetHandle<World> const active_world = m_world_manager->get_active_world();
         active_world->update(delta_milliseconds);
+
+        m_renderer->render();
     }
 }

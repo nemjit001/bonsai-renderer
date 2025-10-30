@@ -35,5 +35,5 @@ CommandBufferHandle VulkanCommandAllocator::create_command_buffer()
         return {};
     }
 
-    return CommandBufferHandle(new VulkanCommandBuffer(command_buffer));
+    return CommandBufferHandle(new VulkanCommandBuffer(m_device, m_command_pool, command_buffer));
 }

@@ -179,11 +179,11 @@ class ICommandBuffer : public IResource
 public:
     /// @brief Begin recording commands on this command buffer.
     /// @return True on successful recording start, false otherwise.
-    virtual bool begin() = 0;
+    [[nodiscard]] virtual bool begin() = 0;
 
     /// @brief Close this command buffer, finalizing command recording.
     /// @return True on successful close, false otherwise.
-    virtual bool close() = 0;
+    [[nodiscard]] virtual bool close() = 0;
 };
 using CommandBufferHandle = std::shared_ptr<ICommandBuffer>;
 
@@ -234,11 +234,11 @@ public:
 
     /// @brief Acquire the next swap chain image.
     /// @return True on success, false otherwise.
-    virtual bool acquire_next_image() = 0;
+    [[nodiscard]] virtual bool acquire_next_image() = 0;
 
     /// @brief Present the next swap chain image.
     /// @return True on success, false otherwise.
-    virtual bool present() = 0;
+    [[nodiscard]] virtual bool present() = 0;
 
     /// @brief Return the currently acquired image index.
     /// @return

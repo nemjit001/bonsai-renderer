@@ -17,6 +17,7 @@ Bonsai's API layers in order from low-level to high-level:
 - **assets** contains the asset API for host-side asset loading and management.
 - **world** contains the host-side render world representation.
 - **components** contains entity components that define behaviour.
+- **systems** contains systems that act on the Bonsai world and components.
 
 ## External dependencies
 

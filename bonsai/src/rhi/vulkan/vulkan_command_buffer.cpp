@@ -1,11 +1,18 @@
 #include "vulkan_command_buffer.hpp"
 
-VulkanCommandBuffer::VulkanCommandBuffer(VkCommandBuffer command_buffer)
+VulkanCommandBuffer::VulkanCommandBuffer(VkDevice device, VkCommandPool command_pool, VkCommandBuffer command_buffer)
     :
     ICommandBuffer(),
+    m_device(device),
+    m_command_pool(command_pool),
     m_command_buffer(command_buffer)
 {
     //
+}
+
+VulkanCommandBuffer::~VulkanCommandBuffer()
+{
+    vkFreeCommandBuffers(m_device, m_command_pool, 1, &m_command_buffer);
 }
 
 bool VulkanCommandBuffer::begin()

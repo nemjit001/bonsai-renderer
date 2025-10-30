@@ -4,7 +4,7 @@
 
 #include <filesystem>
 #include "assets/asset_cache.hpp"
-#include "world.hpp"
+#include "world/world.hpp"
 
 /// @brief The WorldManager handles loading and unloading world assets, making sure an active world is always available.
 class WorldManager
