@@ -439,15 +439,22 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
     }
 
     // Enable required device features
+    VkPhysicalDeviceFeatures2 enabled_features2{};
+    enabled_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    enabled_features2.pNext = nullptr;
+    enabled_features2.features.samplerAnisotropy = true;
+
     VkPhysicalDeviceVulkan12Features vulkan12_features{};
     vulkan12_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     vulkan12_features.pNext = nullptr;
     vulkan12_features.bufferDeviceAddress = true;
+    rhi::vk::extend_pnext_chain(enabled_features2, vulkan12_features);
 
-    VkPhysicalDeviceFeatures2 enabled_features2{};
-    enabled_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    enabled_features2.pNext = &vulkan12_features;
-    enabled_features2.features.samplerAnisotropy = true;
+    VkPhysicalDeviceVulkan13Features vulkan13_features{};
+    vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+    vulkan13_features.pNext = nullptr;
+    vulkan13_features.dynamicRendering = true;
+    rhi::vk::extend_pnext_chain(vulkan12_features, vulkan13_features);
 
     // Set up device queue create infos
     std::vector<uint32_t> unique_queue_families = queue_families.get_unique();
@@ -569,9 +576,15 @@ VkPhysicalDevice VulkanRHIInstance::find_physical_device(VkInstance instance, Vk
         vulkan12_features.pNext = nullptr;
         rhi::vk::extend_pnext_chain(features2, vulkan12_features);
 
+        VkPhysicalDeviceVulkan13Features vulkan13_features{};
+        vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
+        vulkan13_features.pNext = nullptr;
+        rhi::vk::extend_pnext_chain(vulkan12_features, vulkan13_features);
+
         vkGetPhysicalDeviceFeatures2(device, &features2);
         if (features2.features.samplerAnisotropy == VK_FALSE
-            || vulkan12_features.bufferDeviceAddress == VK_FALSE)
+            || vulkan12_features.bufferDeviceAddress == VK_FALSE
+            || vulkan13_features.dynamicRendering == VK_FALSE)
         {
             continue;
         }

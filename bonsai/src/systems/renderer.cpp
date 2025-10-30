@@ -41,6 +41,11 @@ Renderer::Renderer(Surface* surface)
     m_frame_commands = m_command_allocator->create_command_buffer();
 }
 
+Renderer::~Renderer()
+{
+    m_render_device->wait_idle();
+}
+
 void Renderer::on_resize(uint32_t width, uint32_t height)
 {
     m_render_device->wait_idle();

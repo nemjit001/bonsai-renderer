@@ -60,8 +60,6 @@ Engine::Engine()
 Engine::~Engine()
 {
     BONSAI_LOG_INFO("Shutting down...");
-    RenderDeviceHandle render_device = m_renderer->get_render_device();
-    render_device->wait_idle();
 
     // Clean up systems
     delete m_world_manager;

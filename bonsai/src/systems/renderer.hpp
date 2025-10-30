@@ -9,7 +9,7 @@ class Renderer
 {
 public:
     explicit Renderer(Surface* surface);
-    ~Renderer() = default;
+    ~Renderer();
 
     Renderer(Renderer const&) = default;
     Renderer& operator=(Renderer const&) = default;
