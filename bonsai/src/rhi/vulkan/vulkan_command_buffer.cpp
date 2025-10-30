@@ -1,5 +1,4 @@
 #include "vulkan_command_buffer.hpp"
-#if BONSAI_USE_VULKAN
 
 VulkanCommandBuffer::VulkanCommandBuffer(VkCommandBuffer command_buffer)
     :
@@ -29,5 +28,3 @@ bool VulkanCommandBuffer::close()
 {
     return vkEndCommandBuffer(m_command_buffer) == VK_SUCCESS;
 }
-
-#endif //BONSAI_USE_VULKAN

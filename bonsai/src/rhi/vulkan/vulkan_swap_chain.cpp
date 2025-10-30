@@ -1,5 +1,4 @@
 #include "vulkan_swap_chain.hpp"
-#if BONSAI_USE_VULKAN
 
 #include "vulkan_texture.hpp"
 
@@ -237,5 +236,3 @@ TextureHandle VulkanSwapChain::get_swap_image(uint32_t idx)
     texture_desc.usage = m_desc.usage;
     return TextureHandle(new VulkanTexture(m_swap_images[idx], texture_desc));
 }
-
-#endif //BONSAI_USE_VULKAN

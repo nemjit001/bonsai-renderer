@@ -1,5 +1,4 @@
 #include "rhi_vulkan.hpp"
-#if BONSAI_USE_VULKAN
 
 #define VOLK_IMPLEMENTATION
 #define VMA_IMPLEMENTATION
@@ -611,5 +610,3 @@ namespace rhi
         return RHIInstanceHandle(new VulkanRHIInstance());
     }
 } //namespace rhi
-
-#endif //BONSAI_USE_VULKAN

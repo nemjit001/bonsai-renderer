@@ -1,5 +1,4 @@
 #include "vulkan_buffer.hpp"
-#if BONSAI_USE_VULKAN
 
 VulkanBuffer::VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, BufferDesc const& desc)
     :
@@ -59,5 +58,3 @@ VkBufferUsageFlags VulkanBuffer::get_vulkan_usage_flags(BufferUsageFlags usage_f
 
     return buffer_usage;
 }
-
-#endif //BONSAI_USE_VULKAN

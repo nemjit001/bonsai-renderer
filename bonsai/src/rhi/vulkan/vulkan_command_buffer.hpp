@@ -1,7 +1,6 @@
 #pragma once
 #ifndef BONSAI_RENDERER_VULKAN_COMMAND_BUFFER_HPP
 #define BONSAI_RENDERER_VULKAN_COMMAND_BUFFER_HPP
-#if BONSAI_USE_VULKAN
 
 #include <volk.h>
 #include "rhi/rhi.hpp"
@@ -26,5 +25,4 @@ private:
     VkCommandBuffer m_command_buffer = VK_NULL_HANDLE;
 };
 
-#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_VULKAN_COMMAND_BUFFER_HPP

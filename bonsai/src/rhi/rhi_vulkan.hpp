@@ -1,7 +1,6 @@
 #pragma once
 #ifndef BONSAI_RENDERER_RHI_VULKAN_HPP
 #define BONSAI_RENDERER_RHI_VULKAN_HPP
-#if BONSAI_USE_VULKAN
 
 #include <vector>
 #include <volk.h>
@@ -104,5 +103,4 @@ private:
     VkDebugUtilsMessengerEXT    m_debug_messenger   = VK_NULL_HANDLE;
 };
 
-#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_RHI_VULKAN_HPP

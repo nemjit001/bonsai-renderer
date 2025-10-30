@@ -1,7 +1,6 @@
 #pragma once
 #ifndef BONSAI_RENDERER_VULKAN_BUFFER_HPP
 #define BONSAI_RENDERER_VULKAN_BUFFER_HPP
-#if BONSAI_USE_VULKAN
 
 #include <volk.h>
 #include <vk_mem_alloc.h>
@@ -35,5 +34,4 @@ private:
     BufferDesc      m_desc          = {};
 };
 
-#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_VULKAN_BUFFER_HPP

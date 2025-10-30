@@ -1,5 +1,4 @@
 #include "vulkan_command_allocator.hpp"
-#if BONSAI_USE_VULKAN
 
 #include "vulkan_command_buffer.hpp"
 
@@ -38,5 +37,3 @@ CommandBufferHandle VulkanCommandAllocator::create_command_buffer()
 
     return CommandBufferHandle(new VulkanCommandBuffer(command_buffer));
 }
-
-#endif //BONSAI_USE_VULKAN

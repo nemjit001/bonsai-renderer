@@ -1,5 +1,4 @@
 #include "vulkan_texture.hpp"
-#if BONSAI_USE_VULKAN
 
 VulkanTexture::VulkanTexture(VkImage image, TextureDesc const& desc)
     :
@@ -204,5 +203,3 @@ VkImageTiling VulkanTexture::get_vulkan_image_tiling(TextureTiling tiling)
 
     return VK_IMAGE_TILING_MAX_ENUM;
 }
-
-#endif //BONSAI_USE_VULKAN

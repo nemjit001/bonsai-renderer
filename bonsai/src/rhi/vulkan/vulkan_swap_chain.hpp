@@ -1,7 +1,6 @@
 #pragma once
 #ifndef BONSAI_RENDERER_VULKAN_SWAP_CHAIN_HPP
 #define BONSAI_RENDERER_VULKAN_SWAP_CHAIN_HPP
-#if BONSAI_USE_VULKAN
 
 #include <vector>
 #include <volk.h>
@@ -87,5 +86,4 @@ private:
     uint32_t                m_active_image_idx  = 0;
 };
 
-#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_VULKAN_SWAP_CHAIN_HPP

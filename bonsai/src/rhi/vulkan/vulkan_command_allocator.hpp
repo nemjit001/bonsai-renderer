@@ -1,7 +1,6 @@
 #pragma once
 #ifndef BONSAI_RENDERER_VULKAN_COMMAND_ALLOCATOR_HPP
 #define BONSAI_RENDERER_VULKAN_COMMAND_ALLOCATOR_HPP
-#if BONSAI_USE_VULKAN
 
 #include <volk.h>
 #include "rhi/rhi.hpp"
@@ -24,5 +23,4 @@ private:
     VkCommandPool   m_command_pool  = VK_NULL_HANDLE;
 };
 
-#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_VULKAN_COMMAND_ALLOCATOR_HPP

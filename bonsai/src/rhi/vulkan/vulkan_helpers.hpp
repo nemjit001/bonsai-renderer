@@ -1,7 +1,6 @@
 #pragma once
 #ifndef BONSAI_RENDERER_VULKAN_HELPERS_HPP
 #define BONSAI_RENDERER_VULKAN_HELPERS_HPP
-#if BONSAI_USE_VULKAN
 
 namespace rhi::vk
 {
@@ -17,5 +16,4 @@ namespace rhi::vk
     }
 } //namespace rhi::vk
 
-#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_VULKAN_HELPERS_HPP

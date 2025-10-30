@@ -1,7 +1,6 @@
 #pragma once
 #ifndef BONSAI_RENDERER_VULKAN_TEXTURE_HPP
 #define BONSAI_RENDERER_VULKAN_TEXTURE_HPP
-#if BONSAI_USE_VULKAN
 
 #include <volk.h>
 #include <vk_mem_alloc.h>
@@ -64,5 +63,4 @@ private:
     TextureDesc     m_desc          = {};
 };
 
-#endif //BONSAI_USE_VULKAN
 #endif //BONSAI_RENDERER_VULKAN_TEXTURE_HPP

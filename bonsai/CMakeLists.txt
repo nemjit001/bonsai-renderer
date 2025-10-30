@@ -21,19 +21,6 @@ add_library(bonsai_core STATIC
         src/core/timer.hpp
         # RHI API
         src/rhi/rhi.hpp
-        src/rhi/rhi_vulkan.cpp
-        src/rhi/rhi_vulkan.hpp
-        src/rhi/vulkan/vulkan_buffer.cpp
-        src/rhi/vulkan/vulkan_buffer.hpp
-        src/rhi/vulkan/vulkan_command_allocator.cpp
-        src/rhi/vulkan/vulkan_command_allocator.hpp
-        src/rhi/vulkan/vulkan_command_buffer.cpp
-        src/rhi/vulkan/vulkan_command_buffer.hpp
-        src/rhi/vulkan/vulkan_helpers.hpp
-        src/rhi/vulkan/vulkan_swap_chain.cpp
-        src/rhi/vulkan/vulkan_swap_chain.hpp
-        src/rhi/vulkan/vulkan_texture.cpp
-        src/rhi/vulkan/vulkan_texture.hpp
         # Render Graph API
         src/render_graph/render_graph.cpp
         src/render_graph/render_graph.hpp
@@ -76,6 +63,22 @@ endif()
 if (BONSAI_USE_VULKAN)
     target_link_libraries(bonsai_core PUBLIC GPUOpen::VulkanMemoryAllocator volk::volk_headers)
     target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
+    target_sources(bonsai_core PUBLIC
+            # Vulkan RHI API
+            src/rhi/rhi_vulkan.cpp
+            src/rhi/rhi_vulkan.hpp
+            src/rhi/vulkan/vulkan_buffer.cpp
+            src/rhi/vulkan/vulkan_buffer.hpp
+            src/rhi/vulkan/vulkan_command_allocator.cpp
+            src/rhi/vulkan/vulkan_command_allocator.hpp
+            src/rhi/vulkan/vulkan_command_buffer.cpp
+            src/rhi/vulkan/vulkan_command_buffer.hpp
+            src/rhi/vulkan/vulkan_helpers.hpp
+            src/rhi/vulkan/vulkan_swap_chain.cpp
+            src/rhi/vulkan/vulkan_swap_chain.hpp
+            src/rhi/vulkan/vulkan_texture.cpp
+            src/rhi/vulkan/vulkan_texture.hpp
+    )
 endif()
 
 # Set up bonsai executable
