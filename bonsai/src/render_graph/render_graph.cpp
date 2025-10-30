@@ -171,7 +171,7 @@ void RenderGraph::add_pass_resource_read(std::string const& name, RGResourceHand
     }
 
     ResourceMetaData const& resource_data = m_graph_resources[resource];
-    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, texture_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    pass_iter->second.read_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, texture_usage });
 }
 
 void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHandle const& resource, TextureLayout texture_usage)
@@ -193,7 +193,7 @@ void RenderGraph::add_pass_resource_write(std::string const& name, RGResourceHan
     ResourceMetaData& resource_data = m_graph_resources[resource];
     resource_data.version++;
 
-    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, texture_usage }); // TODO(nemjit001): Retrieve version from internal resource cache.
+    pass_iter->second.write_resources.push_back(VersionedResourceHandle{ resource, resource_data.version, texture_usage });
 }
 
 void RenderGraph::set_pass_commands(std::string const& name, RenderPassCommands const& commands)
