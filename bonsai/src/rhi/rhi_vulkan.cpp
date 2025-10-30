@@ -280,6 +280,12 @@ void VulkanRenderDevice::submit(CommandQueueType queue, size_t count, CommandBuf
     vkQueueSubmit(target_queue, 1, &submit_info, VK_NULL_HANDLE); // TODO(nemjit001): Do CPU/GPU sync between workloads (also for swap chain present)
 }
 
+void VulkanRenderDevice::wait_for_queue_idle(CommandQueueType queue)
+{
+    (void)(queue);
+    wait_idle(); // Simply wait for the entire device for now...
+}
+
 void VulkanRenderDevice::wait_idle()
 {
     vkDeviceWaitIdle(m_device);

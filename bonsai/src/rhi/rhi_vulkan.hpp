@@ -15,9 +15,9 @@ struct VulkanQueueFamilies
     /// @brief Get a list of unique queue family indices from the queue setup.
     [[nodiscard]] std::vector<uint32_t> get_unique() const;
 
-    uint32_t graphicsFamily; // Used as direct queue (graphics + transfer + compute workloads)
-    uint32_t transferFamily;
-    uint32_t computeFamily;
+    uint32_t graphicsFamily = VK_QUEUE_FAMILY_IGNORED; // Used as direct queue (graphics + transfer + compute workloads)
+    uint32_t transferFamily = VK_QUEUE_FAMILY_IGNORED;
+    uint32_t computeFamily  = VK_QUEUE_FAMILY_IGNORED;
 };
 
 class VulkanRenderDevice : public IRenderDevice
@@ -47,6 +47,8 @@ public:
     SwapChainHandle create_swap_chain(SwapChainDesc const& desc) override;
 
     void submit(CommandQueueType queue, size_t count, CommandBufferHandle* command_buffers) override;
+
+    void wait_for_queue_idle(CommandQueueType queue) override;
 
     void wait_idle() override;
 
