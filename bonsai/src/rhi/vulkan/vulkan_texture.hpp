@@ -94,7 +94,11 @@ public:
 
     uint32_t height() const override { return m_desc.height; }
 
-    uint32_t depth_or_layers() const override { return m_desc.depth_or_layers; }
+    uint32_t depth() const override { return m_desc.type != TextureType::Type3D ? 1u : static_cast<uint32_t>(m_desc.depth_or_layers); }
+
+    uint32_t layers() const override { return m_desc.type == TextureType::Type3D ? 1u : static_cast<uint32_t>(m_desc.depth_or_layers); }
+
+    uint32_t mip_levels() const override { return m_desc.mip_levels; }
 
     TextureDesc get_desc() const override { return m_desc; }
 

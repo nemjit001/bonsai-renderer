@@ -22,6 +22,8 @@ public:
 
     bool close() override;
 
+    void resource_barrier(ResourceBarrier const& resource_barrier) override;
+
     void begin_render_pass(RenderPassDesc const& desc) override;
 
     void end_render_pass() override;

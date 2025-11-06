@@ -340,8 +340,8 @@ TextureViewHandle VulkanTexture::create_view(TextureViewDesc const* view_desc)
     view_create_info.components = VkComponentMapping{};
     view_create_info.subresourceRange = VkImageSubresourceRange{
         image_aspect,
-        0, static_cast<uint32_t>(m_desc.mip_levels), // TODO(nemjit001): Let creator decide subresource range for vi
-        0, m_desc.type == TextureType::Type3D ? 1u : static_cast<uint32_t>(m_desc.depth_or_layers),
+        0, static_cast<uint32_t>(m_desc.mip_levels), // TODO(nemjit001): Let creator decide subresource range for view
+        0, this->layers(),
     };
 
     VkImageView view = VK_NULL_HANDLE;

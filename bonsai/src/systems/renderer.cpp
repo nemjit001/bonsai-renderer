@@ -26,7 +26,7 @@ Renderer::Renderer(Surface* surface)
     SwapChainDesc swap_chain_desc{};
     swap_chain_desc.surface = surface;
     swap_chain_desc.image_count = 3;
-    swap_chain_desc.format = Format::RGBA8_UNORM; // Should be supported on all platforms
+    swap_chain_desc.format = Format::RGBA8_UNORM; // TODO(nemjit001): Should be supported on all platforms, add query to check support
     swap_chain_desc.width = width;
     swap_chain_desc.height = height;
     swap_chain_desc.usage = TextureUsageColorAttachment;
@@ -64,7 +64,7 @@ void Renderer::render()
     }
 
     uint32_t swap_image_idx = m_swap_chain->current_image_idx();
-    TextureHandle swap_texture = m_swap_chain->get_swap_image(swap_image_idx); // TODO(nemjit001): Cache swap image handles to avoid allocations
+    TextureHandle swap_texture = m_swap_chain->get_swap_image(swap_image_idx); // TODO(nemjit001): Cache swap image handles to avoid unnecessary allocations
     TextureViewHandle swap_texture_view = swap_texture->create_view(nullptr);
 
     if (!m_frame_commands->begin())
@@ -72,6 +72,17 @@ void Renderer::render()
         BONSAI_LOG_ERROR("Failed to begin frame command buffer");
         return;
     }
+
+    TextureResourceBarrier swap_color_barrier{};
+    swap_color_barrier.texture = swap_texture;
+    swap_color_barrier.old_layout = TextureLayout::Undefined;
+    swap_color_barrier.new_layout = TextureLayout::ColorAttachment;
+
+    ResourceBarrier swap_color_resource_barrier{};
+    swap_color_resource_barrier.type = ResourceBarrierType::Texture;
+    swap_color_resource_barrier.barrier_count = 1;
+    swap_color_resource_barrier.texture_barriers = &swap_color_barrier;
+    m_frame_commands->resource_barrier(swap_color_resource_barrier);
 
     RenderAttachmentDesc color_attachment{};
     color_attachment.view = swap_texture_view;
@@ -88,6 +99,17 @@ void Renderer::render()
     render_pass_desc.stencil_attachment = nullptr;
     m_frame_commands->begin_render_pass(render_pass_desc);
     m_frame_commands->end_render_pass();
+
+    TextureResourceBarrier swap_present_barrier{};
+    swap_present_barrier.texture = swap_texture;
+    swap_present_barrier.old_layout = TextureLayout::ColorAttachment;
+    swap_present_barrier.new_layout = TextureLayout::Present;
+
+    ResourceBarrier swap_present_resource_barrier{};
+    swap_present_resource_barrier.type = ResourceBarrierType::Texture;
+    swap_present_resource_barrier.barrier_count = 1;
+    swap_present_resource_barrier.texture_barriers = &swap_present_barrier;
+    m_frame_commands->resource_barrier(swap_present_resource_barrier);
 
     if (!m_frame_commands->close())
     {

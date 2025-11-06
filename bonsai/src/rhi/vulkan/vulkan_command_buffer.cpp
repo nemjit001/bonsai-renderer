@@ -72,6 +72,49 @@ bool VulkanCommandBuffer::close()
     return vkEndCommandBuffer(m_command_buffer) == VK_SUCCESS;
 }
 
+void VulkanCommandBuffer::resource_barrier(ResourceBarrier const& resource_barrier)
+{
+    std::vector<VkImageMemoryBarrier2> image_memory_barriers{};
+    if (resource_barrier.type == ResourceBarrierType::Texture)
+    {
+        image_memory_barriers.reserve(resource_barrier.barrier_count);
+        for (size_t i = 0; i < resource_barrier.barrier_count; i++) {
+            TextureResourceBarrier const& texture_barrier = resource_barrier.texture_barriers[i];
+            TextureHandle const texture = texture_barrier.texture;
+
+            // FIXME(nemjit001): This is suboptimal, using stage & access masks depending on layout types will probably improve transition performance
+            VkImageMemoryBarrier2 image_barrier{};
+            image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+            image_barrier.pNext = nullptr;
+            image_barrier.srcStageMask = 0;
+            image_barrier.dstStageMask = 0;
+            image_barrier.srcAccessMask = 0;
+            image_barrier.dstAccessMask = 0;
+            image_barrier.oldLayout = VulkanTexture::get_vulkan_image_layout(texture_barrier.old_layout);
+            image_barrier.newLayout = VulkanTexture::get_vulkan_image_layout(texture_barrier.new_layout);
+            image_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            image_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            image_barrier.image = texture_barrier.texture->get_object<VkImage>();
+            image_barrier.subresourceRange = VkImageSubresourceRange{
+                VulkanTextureView::get_vulkan_aspect_flags(texture->fomat()),
+                0, texture->mip_levels(),
+                0, texture->layers(),
+            };
+
+            image_memory_barriers.push_back(image_barrier);
+        }
+    }
+
+    VkDependencyInfo dependency_info{};
+    dependency_info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    dependency_info.pNext = nullptr;
+    dependency_info.dependencyFlags = 0;
+    dependency_info.imageMemoryBarrierCount = static_cast<uint32_t>(image_memory_barriers.size());
+    dependency_info.pImageMemoryBarriers = image_memory_barriers.data();
+
+    vkCmdPipelineBarrier2(m_command_buffer, &dependency_info);
+}
+
 void VulkanCommandBuffer::begin_render_pass(RenderPassDesc const& desc)
 {
     std::vector<VkRenderingAttachmentInfo> color_attachments{};

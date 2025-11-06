@@ -454,6 +454,7 @@ RenderDeviceHandle VulkanRHIInstance::create_render_device(RenderDeviceDesc cons
     vulkan13_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     vulkan13_features.pNext = nullptr;
     vulkan13_features.dynamicRendering = true;
+    vulkan13_features.synchronization2 = true;
     rhi::vk::extend_pnext_chain(vulkan12_features, vulkan13_features);
 
     // Set up device queue create infos
@@ -584,7 +585,8 @@ VkPhysicalDevice VulkanRHIInstance::find_physical_device(VkInstance instance, Vk
         vkGetPhysicalDeviceFeatures2(device, &features2);
         if (features2.features.samplerAnisotropy == VK_FALSE
             || vulkan12_features.bufferDeviceAddress == VK_FALSE
-            || vulkan13_features.dynamicRendering == VK_FALSE)
+            || vulkan13_features.dynamicRendering == VK_FALSE
+            || vulkan13_features.synchronization2 == VK_FALSE)
         {
             continue;
         }

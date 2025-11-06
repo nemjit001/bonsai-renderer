@@ -273,8 +273,17 @@ public:
     /// @return
     virtual uint32_t height() const = 0;
 
-    /// @brief Get the texture depth or layers.
-    virtual uint32_t depth_or_layers() const = 0;
+    /// @brief Get the texture depth. Almost always 1, except for 3D textures.
+    /// @return
+    virtual uint32_t depth() const = 0;
+
+    /// @brief Get the texture layers.
+    /// @return
+    virtual uint32_t layers() const = 0;
+
+    /// @brief Get the texture mip levels.
+    /// @return
+    virtual uint32_t mip_levels() const = 0;
 
     /// @brief Get the texture descriptor that was used to create this texture.
     /// @return
@@ -311,6 +320,25 @@ enum class CommandQueueType : uint8_t
     All = Direct | Transfer | Compute,
 };
 
+enum class ResourceBarrierType : uint8_t
+{
+    Texture,
+};
+
+struct TextureResourceBarrier
+{
+    TextureHandle texture;
+    TextureLayout old_layout;
+    TextureLayout new_layout;
+};
+
+struct ResourceBarrier
+{
+    ResourceBarrierType type;
+    size_t barrier_count;
+    TextureResourceBarrier* texture_barriers;
+};
+
 /// @brief Backend command buffer type, used to record render commands.
 class ICommandBuffer : public IResource
 {
@@ -322,6 +350,10 @@ public:
     /// @brief Close this command buffer, finalizing command recording.
     /// @return True on successful close, false otherwise.
     [[nodiscard]] virtual bool close() = 0;
+
+    /// @brief Insert a resource barrier.
+    /// @param resource_barrier Resource barrier to insert.
+    virtual void resource_barrier(ResourceBarrier const& resource_barrier) = 0;
 
     /// @brief Begin a new render pass.
     /// @param desc Render pass descriptor.
