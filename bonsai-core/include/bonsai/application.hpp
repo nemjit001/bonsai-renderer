@@ -5,7 +5,7 @@
 #include "bonsai_api.hpp"
 
 /// @brief The bonsai Application class can be specialized by application modules.
-class BONSAI_API Application
+class Application
 {
 public:
     Application();

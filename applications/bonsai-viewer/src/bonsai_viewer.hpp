@@ -2,7 +2,6 @@
 #ifndef BONSAI_RENDERER_BONSAI_VIEWER_HPP
 #define BONSAI_RENDERER_BONSAI_VIEWER_HPP
 
-#include <bonsai/bonsai_api.hpp>
 #include <bonsai/application.hpp>
 
 class BONSAI_API BonsaiViewer : public Application
