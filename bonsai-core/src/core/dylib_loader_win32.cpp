@@ -1,21 +1,22 @@
 #include "bonsai/core/dylib_loader.hpp"
-#if __unix__
+#if _WIN32
 
-#include <dlfcn.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 struct DylibHandle
 {
-    void* library;
+    HMODULE library;
 };
 
 std::string bonsai_lib_name(std::string const& name)
 {
-    return "lib" + name + ".so";
+    return name + ".dll";
 }
 
 DylibHandle* bonsai_load_library(std::string const& name)
 {
-    void* library = ::dlopen(name.c_str(), RTLD_NOW);
+    HMODULE library = ::LoadLibraryA(name.c_str());
     if (library == nullptr)
     {
         return nullptr;
@@ -28,7 +29,7 @@ void bonsai_unload_library(DylibHandle const* handle)
 {
     if (handle != nullptr)
     {
-        ::dlclose(handle->library);
+        ::FreeLibrary(handle->library);
         delete handle;
     }
 }
@@ -40,7 +41,7 @@ void* bonsai_get_proc_address(DylibHandle const* handle, char const* name)
         return nullptr;
     }
 
-    return ::dlsym(handle->library, name);
+    return ::GetProcAddress(handle->library, name);
 }
 
-#endif //__unix__
+#endif //_WIN32

@@ -9,6 +9,7 @@ add_library(bonsai_core STATIC
         include/bonsai/entrypoint.hpp
         # Private sources
         src/core/dylib_loader_unix.cpp
+        src/core/dylib_loader_win32.cpp
         src/application.cpp
         src/engine.cpp
 )
