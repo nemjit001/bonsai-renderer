@@ -7,7 +7,7 @@ add_library(bonsai_core STATIC
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
 target_include_directories(bonsai_core PRIVATE src PUBLIC include)
-target_link_libraries(bonsai_core PRIVATE PUBLIC)
+target_link_libraries(bonsai_core PRIVATE SDL3::SDL3 PUBLIC)
 target_extended_warnings(bonsai_core)
 
 if (BONSAI_BUILD_TESTS)
@@ -16,7 +16,7 @@ if (BONSAI_BUILD_TESTS)
             tests/sanity.cpp
     )
     target_link_libraries(bonsai_core_tests PRIVATE GTest::gtest_main bonsai_core)
-    # target_track_dll_dependencies(bonsai_core_tests)
+    target_track_dll_dependencies(bonsai_core_tests)
 
     gtest_discover_tests(bonsai_core_tests)
 endif()
