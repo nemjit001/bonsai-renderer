@@ -3,6 +3,7 @@ project("Bonsai Core" VERSION 0.1.0)
 add_library(bonsai_core STATIC
         # Public sources
         include/bonsai/core/dylib_loader.hpp
+        include/bonsai/core/platform.hpp
         include/bonsai/application.hpp
         include/bonsai/bonsai_api.hpp
         include/bonsai/engine.hpp
@@ -10,6 +11,7 @@ add_library(bonsai_core STATIC
         # Private sources
         src/core/dylib_loader_unix.cpp
         src/core/dylib_loader_win32.cpp
+        src/core/platform_sdl.cpp
         src/application.cpp
         src/engine.cpp
 )
