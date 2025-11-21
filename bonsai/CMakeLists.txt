@@ -19,7 +19,7 @@ if (BONSAI_BUILD_TESTS)
             tests/sanity.cpp
     )
     target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai)
-    target_track_dll_dependencies(bonsai_tests)
+    # target_track_dll_dependencies(bonsai_tests)
 
     gtest_discover_tests(bonsai_tests)
 endif()
