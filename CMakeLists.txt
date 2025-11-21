@@ -14,6 +14,7 @@ include(cmake/track_dll_dependencies.cmake)
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Configure sub projects
 add_subdirectory(external)

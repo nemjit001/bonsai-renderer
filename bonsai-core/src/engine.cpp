@@ -1,36 +1,30 @@
 #include "bonsai/engine.hpp"
 
-#include <cstdio>
-#include "bonsai/core/dylib_loader.hpp"
 #include "bonsai/application.hpp"
 
 Engine::Engine()
 {
-    printf("Initialized Engine\n");
+    //
 }
 
 Engine::~Engine()
 {
-    printf("Shutting down Engine\n");
+    //
 }
 
 void Engine::run(char const* app_name)
 {
-    // This loads an application library dynamically
-    DylibHandle const* app_library = bonsai_load_library(bonsai_lib_name(app_name));
-    PFN_CreateApplication const create_application = reinterpret_cast<PFN_CreateApplication>(bonsai_get_proc_address(app_library, "create_application"));
-    PFN_DestroyApplication const destroy_application = reinterpret_cast<PFN_DestroyApplication>(bonsai_get_proc_address(app_library, "destroy_application"));
-    if (create_application == nullptr || destroy_application == nullptr)
+    ApplicationModule const app_module = load_application_module(app_name);
+    Application* app = app_module.create_application();
+
+    // Enter the engine main loop
+    bool running = false;
+    while (running)
     {
-        printf("Failed to load Bonsai application symbols from %s\n", bonsai_lib_name(app_name).c_str());
-        return;
+        app->update(0.0);
     }
 
-    // This actually creates the app
-    Application* app = create_application();
-    printf("Initialized  Bonsai application: %s\n", app->name());
-
-    destroy_application(app);
-    bonsai_unload_library(app_library);
+    app_module.destroy_application(app);
+    unload_application_module(app_module);
 }
 

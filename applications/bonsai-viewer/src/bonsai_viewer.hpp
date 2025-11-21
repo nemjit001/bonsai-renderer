@@ -10,6 +10,8 @@ public:
     BonsaiViewer() = default;
     ~BonsaiViewer() override = default;
 
+    void update(double delta) override;
+
     char const* name() const override { return "Bonsai Viewer"; }
 };
 
