@@ -1,5 +1,5 @@
 # Bonsai Renderer
-[![CI Tests](https://github.com/nemjit001/bonsai-renderer/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=main)](https://github.com/nemjit001/bonsai-renderer/actions/workflows/cmake-multi-platform.yml)
+[![CI Tests](https://github.com/nemjit001/bonsai-renderer/actions/workflows/ci_tests.yml/badge.svg?branch=main)](https://github.com/nemjit001/bonsai-renderer/actions/workflows/ci_tests.yml)
 
 Flexible application / rendering framework with a focus on performance.
 Bonsai aims to be a flexible engine-like software package that allows implementing
