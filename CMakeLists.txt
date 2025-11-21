@@ -17,5 +17,5 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 
 # Configure sub projects
 add_subdirectory(external)
-add_subdirectory(bonsai)
+add_subdirectory(bonsai-core)
 add_subdirectory(applications)
