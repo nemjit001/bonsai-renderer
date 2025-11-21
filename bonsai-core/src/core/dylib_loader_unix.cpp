@@ -1,4 +1,4 @@
-#include "../../include/bonsai/core/dylib_loader.hpp"
+#include "bonsai/core/dylib_loader.hpp"
 #if __unix__
 
 #include <dlfcn.h>
@@ -13,7 +13,7 @@ std::string bonsai_lib_name(std::string const& name)
     return "lib" + name + ".so";
 }
 
-DylibHandle* bonsai_load_library(std::string name)
+DylibHandle* bonsai_load_library(std::string const& name)
 {
     void* library = dlopen(name.c_str(), RTLD_NOW);
     if (library == nullptr)
@@ -24,7 +24,7 @@ DylibHandle* bonsai_load_library(std::string name)
     return new DylibHandle{ library };
 }
 
-void bonsai_unload_library(DylibHandle* handle)
+void bonsai_unload_library(DylibHandle const* handle)
 {
     if (handle != nullptr)
     {
@@ -33,7 +33,7 @@ void bonsai_unload_library(DylibHandle* handle)
     }
 }
 
-void* bonsai_get_proc_address(DylibHandle* handle, char const* name)
+void* bonsai_get_proc_address(DylibHandle const* handle, char const* name)
 {
     if (handle == nullptr)
     {

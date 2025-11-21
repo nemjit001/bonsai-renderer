@@ -14,6 +14,10 @@ public:
     /// @brief Update the application state.
     /// @param delta Time delta between frame updates.
     virtual void update(double delta);
+
+    /// @brief Get the application name.
+    /// @return
+    virtual char const* name() const { return "Bonsai Application"; }
 };
 
 typedef Application*(BONSAI_APICALL *PFN_CreateApplication)();

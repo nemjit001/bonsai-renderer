@@ -5,9 +5,12 @@ add_library(bonsai_core STATIC
         include/bonsai/core/dylib_loader.hpp
         include/bonsai/application.hpp
         include/bonsai/bonsai_api.hpp
+        include/bonsai/engine.hpp
+        include/bonsai/entrypoint.hpp
         # Private sources
         src/core/dylib_loader_unix.cpp
         src/application.cpp
+        src/engine.cpp
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
 target_include_directories(bonsai_core PRIVATE src PUBLIC include)

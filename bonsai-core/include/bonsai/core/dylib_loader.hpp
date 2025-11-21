@@ -15,16 +15,16 @@ std::string bonsai_lib_name(std::string const& name);
 /// @brief Load a dynamic library.
 /// @param name Library name generated using `bonsai_lib_name`.
 /// @return A new DylibHandle object, nullptr on failure.
-DylibHandle* bonsai_load_library(char const* name);
+DylibHandle* bonsai_load_library(std::string const& name);
 
 /// @brief Unload a dynamic library.
 /// @param handle Library handle to unload.
-void bonsai_unload_library(DylibHandle* handle);
+void bonsai_unload_library(DylibHandle const* handle);
 
 /// @brief Get a library symbol by name.
 /// @param handle Dynamic library handle.
 /// @param name Symbol name.
 /// @return An opaque pointer to the loaded symbol.
-void* bonsai_get_proc_address(DylibHandle* handle, char const* name);
+void* bonsai_get_proc_address(DylibHandle const* handle, char const* name);
 
 #endif //BONSAI_RENDERER_DYLIB_LOADER_HPP
