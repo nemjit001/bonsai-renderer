@@ -1,0 +1,57 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/${presetName}"
+    },
+    {
+      "name": "clang-x64",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "toolset": {
+        "strategy": "external",
+        "value": "Clang"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64"
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "clang-x64-debug",
+      "displayName": "Clang Debug (x64)",
+      "configurePreset": "clang-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "clang-x64-release-with-debug-info",
+      "displayName": "Clang Release with Debug info (x64)",
+      "configurePreset": "clang-x64",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "clang-x64-release",
+      "displayName": "Clang Release (x64)",
+      "configurePreset": "clang-x64",
+      "configuration": "Release"
+    }
+  ]
+}
