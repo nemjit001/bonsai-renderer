@@ -1,7 +1,6 @@
 #include "bonsai/engine.hpp"
 
 #include <cstdio>
-
 #include "bonsai/core/dylib_loader.hpp"
 #include "bonsai/application.hpp"
 
