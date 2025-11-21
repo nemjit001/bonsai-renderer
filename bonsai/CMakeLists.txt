@@ -1,12 +1,25 @@
 project("Bonsai" VERSION 0.1.0)
 
-add_executable(bonsai
+add_library(bonsai STATIC
+        include/bonsai/application.cpp
+        include/bonsai/application.hpp
+        include/bonsai/bonsai_api.hpp
         src/engine.cpp
         src/engine.hpp
         src/main.cpp
 )
-target_compile_features(bonsai PRIVATE cxx_std_17)
+target_compile_features(bonsai PUBLIC cxx_std_17)
 target_include_directories(bonsai PRIVATE src PUBLIC include)
 target_link_libraries(bonsai PRIVATE PUBLIC)
 target_extended_warnings(bonsai)
-target_track_dll_dependencies(bonsai)
+
+if (BONSAI_BUILD_TESTS)
+    include(GoogleTest)
+    add_executable(bonsai_tests
+            tests/sanity.cpp
+    )
+    target_link_libraries(bonsai_tests PRIVATE GTest::gtest_main bonsai)
+    target_track_dll_dependencies(bonsai_tests)
+
+    gtest_discover_tests(bonsai_tests)
+endif()
