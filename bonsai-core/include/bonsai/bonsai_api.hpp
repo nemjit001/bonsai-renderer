@@ -2,7 +2,7 @@
 #ifndef BONSAI_RENDERER_BONSAI_API_HPP
 #define BONSAI_RENDERER_BONSAI_API_HPP
 
-#if MSVC
+#if _MSC_VER
 #if BONSAI_EXPORT_SYMBOLS
     #define BONSAI_API      __declspec(dllexport)
 #else

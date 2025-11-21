@@ -7,7 +7,7 @@ add_library(bonsai_viewer SHARED
 )
 target_include_directories(bonsai_viewer PRIVATE src PUBLIC include)
 target_link_libraries(bonsai_viewer PRIVATE PUBLIC bonsai_core)
-target_compile_definitions(bonsai_viewer PUBLIC BONSAI_EXPORT_SYMBOLS=1)
+target_compile_definitions(bonsai_viewer PRIVATE BONSAI_EXPORT_SYMBOLS=1)
 
 # Set up application binary
 add_executable(bonsai_viewer_exe
