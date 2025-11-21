@@ -36,12 +36,16 @@ Platform::Platform()
     :
     m_impl(new Impl{})
 {
-    //
+    if (!SDL_Init(SDL_INIT_VIDEO))
+    {
+        // Shit...
+    }
 }
 
 Platform::~Platform()
 {
     delete m_impl;
+    SDL_Quit();
 }
 
 bool Platform::pump_messages()
