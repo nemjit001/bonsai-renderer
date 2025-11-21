@@ -16,6 +16,9 @@ public:
     virtual void update(double delta);
 };
 
+typedef Application*(BONSAI_APICALL *PFN_CreateApplication)();
+typedef void*(BONSAI_APICALL *PFN_DestroyApplication)(Application*);
+
 extern "C" BONSAI_API Application* BONSAI_APICALL create_application();
 extern "C" BONSAI_API void BONSAI_APICALL destroy_application(Application* app);
 
