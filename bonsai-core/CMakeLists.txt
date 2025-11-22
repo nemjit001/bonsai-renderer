@@ -4,6 +4,7 @@ add_library(bonsai_core STATIC
         # Public sources
         include/bonsai/core/assert.hpp
         include/bonsai/core/dylib_loader.hpp
+        include/bonsai/core/logger.hpp
         include/bonsai/core/platform.hpp
         include/bonsai/application.hpp
         include/bonsai/bonsai_api.hpp
@@ -13,6 +14,7 @@ add_library(bonsai_core STATIC
         src/core/assert.cpp
         src/core/dylib_loader_unix.cpp
         src/core/dylib_loader_win32.cpp
+        src/core/logger.cpp
         src/core/platform_sdl.cpp
         src/application.cpp
         src/engine.cpp

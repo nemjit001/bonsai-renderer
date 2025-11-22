@@ -1,7 +1,7 @@
 #include "bonsai/engine.hpp"
 
-#include <cstdio>
 #include "bonsai/core/assert.hpp"
+#include "bonsai/core/logger.hpp"
 #include "bonsai/core/platform.hpp"
 #include "bonsai/application.hpp"
 
@@ -10,21 +10,23 @@ static PlatformSurface* s_main_surface = nullptr;
 
 Engine::Engine()
 {
-    printf("Initializing Platform\n");
+    Logger::set_min_log_level(LogLevel::Trace);
+
+    BONSAI_LOG_INFO("Initializing Platform");
     s_platform = new Platform();
 
-    printf("Initializing main surface\n");
+    BONSAI_LOG_INFO("Initializing main surface");
     PlatformSurfaceConfig const main_surface_config{ true, true };
     s_main_surface = s_platform->create_surface("Bonsai Application", 1600, 900, main_surface_config);
 
     s_platform->set_surface_resized_callback([](PlatformSurface* surface, uint32_t width, uint32_t height) {
-        printf("Window resized (%d x %d)\n", width, height);
+        BONSAI_LOG_TRACE("Window resized ({} x {})", width, height);
     });
 }
 
 Engine::~Engine()
 {
-    printf("Shutting down...\n");
+    BONSAI_LOG_INFO("Shutting down...");
     s_platform->destroy_surface(s_main_surface);
     delete s_platform;
 }
@@ -37,7 +39,7 @@ void Engine::run(char const* app_name)
         || app_module.create_application == nullptr
         || app_module.destroy_application == nullptr)
     {
-        printf("Failed to load application module: \"%s\"\n", app_name);
+        BONSAI_LOG_ERROR("Failed to load application module: \"{}\"", app_name);
         return;
     }
 
