@@ -30,7 +30,15 @@ Engine::~Engine()
 
 void Engine::run(char const* app_name)
 {
+    // Load application module
     ApplicationModule const app_module = load_application_module(app_name);
+    if (app_module.library == nullptr)
+    {
+        printf("Failed to load application module: \"%s\"\n", app_name);
+        return;
+    }
+
+    // Create application
     Application* app = app_module.create_application();
 
     // Enter the engine main loop
