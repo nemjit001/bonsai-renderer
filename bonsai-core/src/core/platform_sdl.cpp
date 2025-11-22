@@ -3,6 +3,17 @@
 #include <unordered_map>
 #include <SDL3/SDL.h>
 
+static int get_sdl_window_flags(PlatformSurfaceConfig const& config)
+{
+    int flags = 0;
+    if (config.resizable)
+        flags |= SDL_WINDOW_RESIZABLE;
+    if (config.high_dpi)
+        flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+    return flags;
+}
+
 struct RawPlatformSurface
 {
     SDL_Window* window;
@@ -85,7 +96,8 @@ void Platform::set_surface_resized_callback(PFN_PlatformSurfaceResized callback)
 
 PlatformSurface* Platform::create_surface(char const* title, uint32_t width, uint32_t height, PlatformSurfaceConfig const& config)
 {
-    SDL_Window* window = SDL_CreateWindow(title, static_cast<int>(width), static_cast<int>(height), 0);
+    int const window_flags = get_sdl_window_flags(config);
+    SDL_Window* window = SDL_CreateWindow(title, static_cast<int>(width), static_cast<int>(height), window_flags);
     if (window == nullptr)
     {
         return nullptr;

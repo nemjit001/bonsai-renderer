@@ -16,38 +16,48 @@ enum class LogLevel
     Off         = SPDLOG_LEVEL_OFF,
 };
 
-/// @brief Static logger class.
+/// @brief Logger singleton for easily accessible logging through spdlog.
 class Logger
 {
+private:
+    Logger() = default;
 public:
+    ~Logger() = default;
+
+    Logger(Logger const&) = delete;
+    Logger& operator=(Logger const&) = delete;
+
+    /// @brief Access the logger singleton.
+    static Logger* get();
+
     /// @brief Set the minimum log level to report.
     /// @param level Minimum log level to report.
-    static void set_min_log_level(LogLevel level);
+    void set_min_log_level(LogLevel level);
 
     template<typename... Args>
     static void trace(Args&&... args) { spdlog::trace(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    static void debug(Args&&... args) { spdlog::debug(std::forward<Args>(args)...); }
+    void debug(Args&&... args) { spdlog::debug(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    static void info(Args&&... args) { spdlog::info(std::forward<Args>(args)...); }
+    void info(Args&&... args) { spdlog::info(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    static void warn(Args&&... args) { spdlog::warn(std::forward<Args>(args)...); }
+    void warn(Args&&... args) { spdlog::warn(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    static void error(Args&&... args) { spdlog::error(std::forward<Args>(args)...); }
+    void error(Args&&... args) { spdlog::error(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    static void critical(Args&&... args) { spdlog::critical(std::forward<Args>(args)...); }
+    void critical(Args&&... args) { spdlog::critical(std::forward<Args>(args)...); }
 };
 
-#define BONSAI_LOG_TRACE(...)       (Logger::trace(__VA_ARGS__))
-#define BONSAI_LOG_DEBUG(...)       (Logger::debug(__VA_ARGS__))
-#define BONSAI_LOG_INFO(...)        (Logger::info(__VA_ARGS__))
-#define BONSAI_LOG_WARN(...)        (Logger::warn(__VA_ARGS__))
-#define BONSAI_LOG_ERROR(...)       (Logger::error(__VA_ARGS__))
-#define BONSAI_LOG_CRITICAL(...)    (Logger::critical(__VA_ARGS__))
+#define BONSAI_ENGINE_LOG_TRACE(...)       (Logger::get()->trace(__VA_ARGS__))
+#define BONSAI_ENGINE_LOG_DEBUG(...)       (Logger::get()->debug(__VA_ARGS__))
+#define BONSAI_ENGINE_LOG_INFO(...)        (Logger::get()->info(__VA_ARGS__))
+#define BONSAI_ENGINE_LOG_WARN(...)        (Logger::get()->warn(__VA_ARGS__))
+#define BONSAI_ENGINE_LOG_ERROR(...)       (Logger::get()->error(__VA_ARGS__))
+#define BONSAI_ENGINE_LOG_CRITICAL(...)    (Logger::get()->critical(__VA_ARGS__))
 
 #endif //BONSAI_RENDERER_LOGGER_HPP

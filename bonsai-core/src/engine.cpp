@@ -10,23 +10,27 @@ static PlatformSurface* s_main_surface = nullptr;
 
 Engine::Engine()
 {
-    Logger::set_min_log_level(LogLevel::Trace);
+    Logger* logger = Logger::get();
+    logger->set_min_log_level(LogLevel::Trace);
+    BONSAI_ENGINE_LOG_INFO("Initialized Logger");
 
-    BONSAI_LOG_INFO("Initializing Platform");
+    BONSAI_ENGINE_LOG_INFO("Initializing Platform");
     s_platform = new Platform();
 
-    BONSAI_LOG_INFO("Initializing main surface");
-    PlatformSurfaceConfig const main_surface_config{ true, true };
+    BONSAI_ENGINE_LOG_INFO("Initializing main surface");
+    PlatformSurfaceConfig main_surface_config{};
+    main_surface_config.resizable = true;
+    main_surface_config.high_dpi = true;
     s_main_surface = s_platform->create_surface("Bonsai Application", 1600, 900, main_surface_config);
 
-    s_platform->set_surface_resized_callback([](PlatformSurface* surface, uint32_t width, uint32_t height) {
-        BONSAI_LOG_TRACE("Window resized ({} x {})", width, height);
+    s_platform->set_surface_resized_callback([](PlatformSurface*, uint32_t width, uint32_t height) {
+        BONSAI_ENGINE_LOG_TRACE("Window resized ({} x {})", width, height);
     });
 }
 
 Engine::~Engine()
 {
-    BONSAI_LOG_INFO("Shutting down...");
+    BONSAI_ENGINE_LOG_INFO("Shutting down...");
     s_platform->destroy_surface(s_main_surface);
     delete s_platform;
 }
@@ -39,7 +43,7 @@ void Engine::run(char const* app_name)
         || app_module.create_application == nullptr
         || app_module.destroy_application == nullptr)
     {
-        BONSAI_LOG_ERROR("Failed to load application module: \"{}\"", app_name);
+        BONSAI_ENGINE_LOG_ERROR("Failed to load application module: \"{}\"", app_name);
         return;
     }
 

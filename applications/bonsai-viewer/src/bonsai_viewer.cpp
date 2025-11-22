@@ -1,7 +1,5 @@
 #include "bonsai_viewer.hpp"
 
-#include <bonsai/core/logger.hpp>
-
 extern "C" BONSAI_API Application* BONSAI_APICALL create_application()
 {
     return new BonsaiViewer();
@@ -14,5 +12,5 @@ extern "C" BONSAI_API void BONSAI_APICALL destroy_application(Application const*
 
 void BonsaiViewer::update([[maybe_unused]] double delta)
 {
-    BONSAI_LOG_TRACE("BonsaiViewer::update()");
+    //
 }
