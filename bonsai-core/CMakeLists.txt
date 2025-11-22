@@ -2,6 +2,7 @@ project("Bonsai Core" VERSION 0.1.0)
 
 add_library(bonsai_core STATIC
         # Public sources
+        include/bonsai/core/assert.hpp
         include/bonsai/core/dylib_loader.hpp
         include/bonsai/core/platform.hpp
         include/bonsai/application.hpp
@@ -9,6 +10,7 @@ add_library(bonsai_core STATIC
         include/bonsai/engine.hpp
         include/bonsai/entrypoint.hpp
         # Private sources
+        src/core/assert.cpp
         src/core/dylib_loader_unix.cpp
         src/core/dylib_loader_win32.cpp
         src/core/platform_sdl.cpp
@@ -22,6 +24,12 @@ target_extended_warnings(bonsai_core)
 
 if (UNIX)
     target_link_libraries(bonsai_core PRIVATE dl)
+endif()
+
+if (BONSAI_USE_ASSERTIONS)
+    target_compile_definitions(bonsai_core PUBLIC
+        BONSAI_USE_ASSERTIONS=1
+    )
 endif()
 
 if (BONSAI_BUILD_TESTS)

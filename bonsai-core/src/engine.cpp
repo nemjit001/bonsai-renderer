@@ -1,6 +1,7 @@
 #include "bonsai/engine.hpp"
 
 #include <cstdio>
+#include "bonsai/core/assert.hpp"
 #include "bonsai/core/platform.hpp"
 #include "bonsai/application.hpp"
 
@@ -32,7 +33,9 @@ void Engine::run(char const* app_name)
 {
     // Load application module
     ApplicationModule const app_module = load_application_module(app_name);
-    if (app_module.library == nullptr)
+    if (app_module.library == nullptr
+        || app_module.create_application == nullptr
+        || app_module.destroy_application == nullptr)
     {
         printf("Failed to load application module: \"%s\"\n", app_name);
         return;
@@ -40,6 +43,7 @@ void Engine::run(char const* app_name)
 
     // Create application
     Application* app = app_module.create_application();
+    BONSAI_ASSERT(app != nullptr);
 
     // Enter the engine main loop
     bool running = true;

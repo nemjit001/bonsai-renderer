@@ -1,7 +1,5 @@
 #include "bonsai_viewer.hpp"
 
-#include <spdlog/spdlog.h>
-
 extern "C" BONSAI_API Application* BONSAI_APICALL create_application()
 {
     return new BonsaiViewer();
