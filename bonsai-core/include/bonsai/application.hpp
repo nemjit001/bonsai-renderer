@@ -4,9 +4,10 @@
 
 #include "core/dylib_loader.hpp"
 #include "bonsai_api.hpp"
+#include "engine_api.hpp"
 
 class Application;
-typedef Application*(BONSAI_APICALL *PFN_CreateApplication)();
+typedef Application*(BONSAI_APICALL *PFN_CreateApplication)(EngineAPI*);
 typedef void*(BONSAI_APICALL *PFN_DestroyApplication)(Application const*);
 
 /// @brief Application module handle containing module handling functions.

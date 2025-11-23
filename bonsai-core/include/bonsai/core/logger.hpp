@@ -20,7 +20,7 @@ enum class LogLevel
 class Logger
 {
 private:
-    Logger() = default;
+    Logger();
 public:
     ~Logger() = default;
 
@@ -35,22 +35,24 @@ public:
     void set_min_log_level(LogLevel level);
 
     template<typename... Args>
-    static void trace(Args&&... args) { spdlog::trace(std::forward<Args>(args)...); }
+    void trace(Args&&... args) { m_logger->trace(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    void debug(Args&&... args) { spdlog::debug(std::forward<Args>(args)...); }
+    void debug(Args&&... args) { m_logger->debug(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    void info(Args&&... args) { spdlog::info(std::forward<Args>(args)...); }
+    void info(Args&&... args) { m_logger->info(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    void warn(Args&&... args) { spdlog::warn(std::forward<Args>(args)...); }
+    void warn(Args&&... args) { m_logger->warn(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    void error(Args&&... args) { spdlog::error(std::forward<Args>(args)...); }
+    void error(Args&&... args) { m_logger->error(std::forward<Args>(args)...); }
 
     template<typename... Args>
-    void critical(Args&&... args) { spdlog::critical(std::forward<Args>(args)...); }
+    void critical(Args&&... args) { m_logger->critical(std::forward<Args>(args)...); }
+private:
+    std::shared_ptr<spdlog::logger> m_logger;
 };
 
 #define BONSAI_ENGINE_LOG_TRACE(...)       (Logger::get()->trace(__VA_ARGS__))

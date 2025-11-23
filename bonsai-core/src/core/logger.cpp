@@ -1,5 +1,10 @@
 #include "bonsai/core/logger.hpp"
 
+Logger::Logger()
+{
+    m_logger = spdlog::default_logger();
+}
+
 Logger* Logger::get()
 {
     static Logger instance{};

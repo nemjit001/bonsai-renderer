@@ -9,6 +9,7 @@ add_library(bonsai_core STATIC
         include/bonsai/application.hpp
         include/bonsai/bonsai_api.hpp
         include/bonsai/engine.hpp
+        include/bonsai/engine_api.hpp
         include/bonsai/entrypoint.hpp
         # Private sources
         src/core/assert.cpp
