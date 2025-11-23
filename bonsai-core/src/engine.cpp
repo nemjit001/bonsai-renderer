@@ -8,6 +8,7 @@
 
 static Platform* s_platform = nullptr;
 static PlatformSurface* s_main_surface = nullptr;
+static EngineAPI* s_engine_api = nullptr;
 
 Engine::Engine()
 {
@@ -25,9 +26,9 @@ Engine::Engine()
     s_main_surface = s_platform->create_surface("Bonsai Application", 1600, 900, main_surface_config);
 
     BONSAI_ENGINE_LOG_INFO("Initializing Engine API");
-    s_EngineAPI = new EngineAPI();
-    s_EngineAPI->register_loggger(logger);
-    s_EngineAPI->register_platform(s_platform);
+    s_engine_api = new EngineAPI();
+    s_engine_api->register_loggger(logger);
+    s_engine_api->register_platform(s_platform);
 
     s_platform->set_surface_resized_callback([](PlatformSurface*, uint32_t width, uint32_t height) {
         BONSAI_ENGINE_LOG_TRACE("Window resized ({} x {})", width, height);
@@ -37,7 +38,7 @@ Engine::Engine()
 Engine::~Engine()
 {
     BONSAI_ENGINE_LOG_INFO("Shutting down...");
-    delete s_EngineAPI;
+    delete s_engine_api;
 
     s_platform->destroy_surface(s_main_surface);
     delete s_platform;
@@ -56,7 +57,7 @@ void Engine::run(char const* app_name)
     }
 
     // Create application
-    Application* app = app_module.create_application(s_EngineAPI);
+    Application* app = app_module.create_application(s_engine_api);
     BONSAI_ASSERT(app != nullptr);
 
     // Enter the engine main loop

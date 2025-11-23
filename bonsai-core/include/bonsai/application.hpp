@@ -31,8 +31,8 @@ void unload_application_module(ApplicationModule const& app_module);
 class BONSAI_API Application
 {
 public:
-    Application();
-    virtual ~Application();
+    explicit Application(EngineAPI* engine_api);
+    virtual ~Application() = default;
 
     /// @brief Update the application state.
     /// @param delta Time delta between frame updates.

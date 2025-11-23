@@ -7,7 +7,7 @@
 class BONSAI_API BonsaiViewer : public Application
 {
 public:
-    BonsaiViewer();
+    explicit BonsaiViewer(EngineAPI* engine_api);
     ~BonsaiViewer() override = default;
 
     void update(double delta) override;

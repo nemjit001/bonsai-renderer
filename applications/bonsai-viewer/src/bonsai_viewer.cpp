@@ -4,9 +4,7 @@
 
 extern "C" BONSAI_API Application* BONSAI_APICALL create_application(EngineAPI* engine_api)
 {
-    s_EngineAPI = engine_api;
-    BONSAI_ASSERT(s_EngineAPI != nullptr);
-    return new BonsaiViewer();
+    return new BonsaiViewer(engine_api);
 }
 
 extern "C" BONSAI_API void BONSAI_APICALL destroy_application(Application const* app)
@@ -14,8 +12,12 @@ extern "C" BONSAI_API void BONSAI_APICALL destroy_application(Application const*
     delete app;
 }
 
-BonsaiViewer::BonsaiViewer()
+BonsaiViewer::BonsaiViewer(EngineAPI* engine_api)
+    :
+    Application(engine_api)
 {
+    BONSAI_ASSERT(engine_api != nullptr);
+    s_EngineAPI = engine_api;
     BONSAI_LOG_TRACE("Initialized Bonsai Viewer!");
 }
 

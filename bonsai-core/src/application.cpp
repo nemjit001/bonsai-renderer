@@ -1,5 +1,7 @@
 #include "bonsai/application.hpp"
 
+#include <bonsai/core/assert.hpp>
+
 ApplicationModule load_application_module(char const* module_name)
 {
     DylibHandle const* app_library = bonsai_load_library(bonsai_lib_name(module_name));
@@ -15,8 +17,11 @@ void unload_application_module(ApplicationModule const& app_module)
     bonsai_unload_library(app_module.library);
 }
 
-Application::Application() = default;
-Application::~Application() = default;
+Application::Application(EngineAPI* engine_api)
+{
+    BONSAI_ASSERT(engine_api != nullptr && "Engine API must not be null!");
+    s_EngineAPI = engine_api;
+}
 
 void Application::update([[maybe_unused]] double delta)
 {
