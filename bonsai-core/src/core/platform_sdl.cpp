@@ -69,7 +69,17 @@ bool Platform::pump_messages()
         case SDL_EVENT_QUIT:
             return false;
         case SDL_EVENT_WINDOW_RESIZED:
+            if (m_impl->surface_resized_callback) {
+                PlatformSurface* surface = m_impl->tracked_surfaces[event.window.windowID];
+                m_impl->surface_resized_callback(surface, event.window.data1, event.window.data2);
+            }
+            break;
         case SDL_EVENT_WINDOW_MINIMIZED:
+            if (m_impl->surface_resized_callback) {
+                PlatformSurface* surface = m_impl->tracked_surfaces[event.window.windowID];
+                m_impl->surface_resized_callback(surface, 0, 0);
+            }
+            break;
         case SDL_EVENT_WINDOW_MAXIMIZED:
         case SDL_EVENT_WINDOW_RESTORED:
             if (m_impl->surface_resized_callback) {
@@ -78,7 +88,7 @@ bool Platform::pump_messages()
 
                 int width = 0, height = 0;
                 SDL_GetWindowSizeInPixels(raw_surface->window, &width, &height);
-                m_impl->surface_resized_callback(surface, width, width);
+                m_impl->surface_resized_callback(surface, width, height);
             }
             break;
         default:

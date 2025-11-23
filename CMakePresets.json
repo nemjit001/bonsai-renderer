@@ -13,6 +13,23 @@
       "binaryDir": "${sourceDir}/build/${presetName}"
     },
     {
+      "name": "visual-studio-x64",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl"
+      },
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
       "name": "clang-x64",
       "inherits": "base",
       "cacheVariables": {
@@ -35,6 +52,24 @@
     }
   ],
   "buildPresets": [
+    {
+      "name": "vs-x64-debug",
+      "displayName": "Visual Studio Debug (x64)",
+      "configurePreset": "visual-studio-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "vs-x64-release-with-debug-info",
+      "displayName": "Visual Studio Release with Debug info (x64)",
+      "configurePreset": "visual-studio-x64",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "vs-x64-release",
+      "displayName": "Visual Studio Release (x64)",
+      "configurePreset": "visual-studio-x64",
+      "configuration": "Release"
+    },
     {
       "name": "clang-x64-debug",
       "displayName": "Clang Debug (x64)",
