@@ -22,13 +22,3 @@ Application::Application(EngineAPI* engine_api)
     BONSAI_ASSERT(engine_api != nullptr && "Engine API must not be null!");
     s_EngineAPI = engine_api;
 }
-
-void Application::update([[maybe_unused]] double delta)
-{
-    //
-}
-
-char const* Application::name() const
-{
-    return "Bonsai Application";
-}

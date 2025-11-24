@@ -36,11 +36,11 @@ public:
 
     /// @brief Update the application state.
     /// @param delta Time delta between frame updates.
-    virtual void update(double delta);
+    virtual void update(double delta) = 0;
 
     /// @brief Get the application name.
     /// @return
-    virtual char const* name() const;
+    virtual char const* name() const = 0;
 };
 
 #endif //BONSAI_RENDERER_APPLICATION_HPP
