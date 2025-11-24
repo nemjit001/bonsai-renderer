@@ -46,7 +46,7 @@ Engine::~Engine()
 
 void Engine::run(char const* app_name)
 {
-    // Load application module
+    // Load app module
     ApplicationModule const app_module = load_application_module(app_name);
     if (app_module.library == nullptr
         || app_module.create_application == nullptr
@@ -64,14 +64,11 @@ void Engine::run(char const* app_name)
     bool running = true;
     while (running)
     {
-        if (!s_platform->pump_messages())
-        {
-            running = false;
-        }
-
+        running = !s_platform->pump_messages();
         app->update(0.0);
     }
 
+    // Clean up app module
     app_module.destroy_application(app);
     unload_application_module(app_module);
 }
