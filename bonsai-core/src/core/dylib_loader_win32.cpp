@@ -41,7 +41,7 @@ void* bonsai_get_proc_address(DylibHandle const* handle, char const* name)
         return nullptr;
     }
 
-    return ::GetProcAddress(handle->library, name);
+    return reinterpret_cast<void*>(::GetProcAddress(handle->library, name));
 }
 
 #endif //_WIN32

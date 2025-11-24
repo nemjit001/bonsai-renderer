@@ -3,7 +3,7 @@
 #define BONSAI_RENDERER_APPLICATION_HPP
 
 #include "core/dylib_loader.hpp"
-#include "bonsai_api.hpp"
+#include "bonsai_export.hpp"
 #include "engine_api.hpp"
 
 class Application;
@@ -40,7 +40,7 @@ public:
 
     /// @brief Get the application name.
     /// @return
-    virtual char const* name() const { return "Bonsai Application"; }
+    virtual char const* name() const;
 };
 
 #endif //BONSAI_RENDERER_APPLICATION_HPP

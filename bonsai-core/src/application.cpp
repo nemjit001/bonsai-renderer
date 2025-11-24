@@ -27,3 +27,8 @@ void Application::update([[maybe_unused]] double delta)
 {
     //
 }
+
+char const* Application::name() const
+{
+    return "Bonsai Application";
+}

@@ -1,10 +1,10 @@
 #include "bonsai/engine.hpp"
 
-#include "bonsai/core/assert.hpp"
-#include "bonsai/core/logger.hpp"
-#include "bonsai/core/platform.hpp"
-#include "bonsai/application.hpp"
-#include "bonsai/engine_api.hpp"
+#include <bonsai/core/assert.hpp>
+#include <bonsai/core/logger.hpp>
+#include <bonsai/core/platform.hpp>
+#include <bonsai/application.hpp>
+#include <bonsai/engine_api.hpp>
 
 static Platform* s_platform = nullptr;
 static PlatformSurface* s_main_surface = nullptr;

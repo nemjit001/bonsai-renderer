@@ -7,9 +7,9 @@ add_library(bonsai_core STATIC
         include/bonsai/core/logger.hpp
         include/bonsai/core/platform.hpp
         include/bonsai/application.hpp
-        include/bonsai/bonsai_api.hpp
-        include/bonsai/engine.hpp
+        include/bonsai/bonsai_export.hpp
         include/bonsai/engine_api.hpp
+        include/bonsai/engine.hpp
         include/bonsai/entrypoint.hpp
         # Private sources
         src/core/assert.cpp
@@ -21,8 +21,9 @@ add_library(bonsai_core STATIC
         src/engine.cpp
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
-target_include_directories(bonsai_core PRIVATE src PUBLIC include)
-target_link_libraries(bonsai_core PRIVATE SDL3::SDL3 PUBLIC spdlog::spdlog)
+target_include_directories(bonsai_core PUBLIC include PRIVATE src)
+target_link_libraries(bonsai_core PUBLIC spdlog::spdlog PRIVATE SDL3::SDL3)
+target_compile_definitions(bonsai_core PUBLIC BONSAI_EXPORT_SYMBOLS=1)
 target_extended_warnings(bonsai_core)
 
 if (UNIX)
@@ -30,9 +31,7 @@ if (UNIX)
 endif()
 
 if (BONSAI_USE_ASSERTIONS)
-    target_compile_definitions(bonsai_core PUBLIC
-        BONSAI_USE_ASSERTIONS=1
-    )
+    target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_ASSERTIONS=1)
 endif()
 
 if (BONSAI_BUILD_TESTS)
