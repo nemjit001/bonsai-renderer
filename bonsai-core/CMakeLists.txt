@@ -30,6 +30,12 @@ target_extended_warnings(bonsai_core)
 if (BONSAI_USE_VULKAN)
     find_package(Vulkan REQUIRED)
     message(STATUS "Bonsai: Enabled Vulkan backend")
+
+    target_sources(bonsai_core PUBLIC
+            src/render_backend/vulkan/vk_check.hpp
+            src/render_backend/vulkan_render_backend.cpp
+            src/render_backend/vulkan_render_backend.hpp
+    )
     target_link_libraries(bonsai_core PUBLIC Vulkan::Headers PRIVATE imgui_vulkan volk::volk_headers)
     target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
 endif()

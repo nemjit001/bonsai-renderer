@@ -64,7 +64,7 @@ Platform::Platform()
 {
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
-        BONSAI_FATAL_EXIT("Failed to initialize SDL3");
+        BONSAI_FATAL_EXIT("Failed to initialize SDL3\n");
     }
 }
 
@@ -155,12 +155,12 @@ PlatformSurface* Platform::create_surface(char const* title, uint32_t width, uin
         // FIXME(nemjit001): This is Vulkan specific, should be hidden behind comptime constant when multiple backends are supported.
         if (!ImGui_ImplSDL3_InitForVulkan(window))
         {
-            BONSAI_FATAL_EXIT("Failed to initialize the SDL3 ImGui backend");
+            BONSAI_FATAL_EXIT("Failed to initialize the SDL3 ImGui backend\n");
         }
 #else
         if (!ImGui_ImplSDL3_InitForOther(window))
         {
-            BONSAI_FATAL_EXIT("Failed to initialize the SDL3 ImGui backend");
+            BONSAI_FATAL_EXIT("Failed to initialize the SDL3 ImGui backend\n");
         }
 #endif
 
