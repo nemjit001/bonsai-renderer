@@ -28,8 +28,9 @@ target_compile_definitions(bonsai_core PUBLIC BONSAI_EXPORT_SYMBOLS=1)
 target_extended_warnings(bonsai_core)
 
 if (BONSAI_USE_VULKAN)
-    message(STATUS "Enabled Vulkan render backend for Bonsai")
-    target_link_libraries(bonsai_core PUBLIC vulkan PRIVATE imgui_vulkan volk::volk_headers)
+    find_package(Vulkan REQUIRED)
+    message(STATUS "Bonsai: Enabled Vulkan backend")
+    target_link_libraries(bonsai_core PUBLIC Vulkan::Headers PRIVATE imgui_vulkan volk::volk_headers)
     target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
 endif()
 
@@ -37,8 +38,8 @@ if (BONSAI_USE_ASSERTIONS)
     target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_ASSERTIONS=1)
 endif()
 
-if (UNIX)
-    target_link_libraries(bonsai_core PRIVATE dl)
+if (NOT WIN32)
+    target_link_libraries(bonsai_core PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
 if (BONSAI_BUILD_TESTS)
