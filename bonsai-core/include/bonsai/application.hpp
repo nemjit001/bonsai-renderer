@@ -31,7 +31,7 @@ void unload_application_module(ApplicationModule const& app_module);
 class BONSAI_API Application
 {
 public:
-    explicit Application(EngineAPI* engine_api);
+    Application() = default;
     virtual ~Application() = default;
 
     /// @brief Update the application state.

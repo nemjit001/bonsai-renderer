@@ -2,6 +2,7 @@
 #ifndef BONSAI_RENDERER_ENGINE_API_HPP
 #define BONSAI_RENDERER_ENGINE_API_HPP
 
+#include <imgui.h>
 #include "core/logger.hpp"
 #include "core/platform.hpp"
 
@@ -12,14 +13,19 @@ class EngineAPI
 public:
     void register_loggger(Logger* logger) { m_logger = logger; }
 
+    void register_imgui_context(ImGuiContext* context) { m_context = context; }
+
     void register_platform(Platform* platform) { m_platform = platform; }
 
     Logger* get_logger() { return m_logger; }
+
+    ImGuiContext* get_imgui_context() { return m_context; }
 
     Platform* get_platform() { return m_platform; }
 
 private:
     Logger* m_logger = nullptr;
+    ImGuiContext* m_context = nullptr;
     Platform* m_platform = nullptr;
 };
 

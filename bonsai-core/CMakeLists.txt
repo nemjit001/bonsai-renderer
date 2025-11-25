@@ -4,6 +4,7 @@ add_library(bonsai_core STATIC
         # Public sources
         include/bonsai/core/assert.hpp
         include/bonsai/core/dylib_loader.hpp
+        include/bonsai/core/fatal_exit.hpp
         include/bonsai/core/logger.hpp
         include/bonsai/core/platform.hpp
         include/bonsai/application.hpp
@@ -22,7 +23,7 @@ add_library(bonsai_core STATIC
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
 target_include_directories(bonsai_core PUBLIC include PRIVATE src)
-target_link_libraries(bonsai_core PUBLIC spdlog::spdlog PRIVATE SDL3::SDL3)
+target_link_libraries(bonsai_core PUBLIC imgui spdlog::spdlog PRIVATE imgui_sdl3 imgui_vulkan SDL3::SDL3)
 target_compile_definitions(bonsai_core PUBLIC BONSAI_EXPORT_SYMBOLS=1)
 target_extended_warnings(bonsai_core)
 

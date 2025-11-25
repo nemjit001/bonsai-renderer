@@ -1,11 +1,13 @@
 #include "bonsai/engine.hpp"
 
-#include <bonsai/core/assert.hpp>
-#include <bonsai/core/logger.hpp>
-#include <bonsai/core/platform.hpp>
-#include <bonsai/application.hpp>
-#include <bonsai/engine_api.hpp>
+#include <imgui.h>
+#include "bonsai/core/assert.hpp"
+#include "bonsai/core/logger.hpp"
+#include "bonsai/core/platform.hpp"
+#include "bonsai/application.hpp"
+#include "bonsai/engine_api.hpp"
 
+static ImGuiContext* s_imgui_context = nullptr;
 static Platform* s_platform = nullptr;
 static PlatformSurface* s_main_surface = nullptr;
 static EngineAPI* s_engine_api = nullptr;
@@ -14,25 +16,36 @@ Engine::Engine()
 {
     Logger* logger = Logger::get();
     logger->set_min_log_level(LogLevel::Trace);
-    BONSAI_ENGINE_LOG_INFO("Initialized Logger");
+    BONSAI_ENGINE_LOG_INFO("Initializing Bonsai Engine");
 
-    BONSAI_ENGINE_LOG_INFO("Initializing Platform");
+    BONSAI_ENGINE_LOG_TRACE("Initializing ImGui");
+    IMGUI_CHECKVERSION();
+    s_imgui_context = ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    BONSAI_ENGINE_LOG_TRACE("Initializing Platform");
     s_platform = new Platform();
 
-    BONSAI_ENGINE_LOG_INFO("Initializing main surface");
+    BONSAI_ENGINE_LOG_TRACE("Initializing main surface");
     PlatformSurfaceConfig main_surface_config{};
     main_surface_config.resizable = true;
     main_surface_config.high_dpi = true;
     s_main_surface = s_platform->create_surface("Bonsai Application", 1600, 900, main_surface_config);
 
-    BONSAI_ENGINE_LOG_INFO("Initializing Engine API");
+    BONSAI_ENGINE_LOG_TRACE("Initializing Engine API");
     s_engine_api = new EngineAPI();
     s_engine_api->register_loggger(logger);
+    s_engine_api->register_imgui_context(s_imgui_context);
     s_engine_api->register_platform(s_platform);
+    s_EngineAPI = s_engine_api;
 
     s_platform->set_surface_resized_callback([](PlatformSurface*, uint32_t width, uint32_t height) {
         BONSAI_ENGINE_LOG_TRACE("Window resized ({} x {})", width, height);
     });
+
+    BONSAI_ENGINE_LOG_INFO("Initialized Bonsai Engine");
 }
 
 Engine::~Engine()
@@ -40,8 +53,14 @@ Engine::~Engine()
     BONSAI_ENGINE_LOG_INFO("Shutting down...");
     delete s_engine_api;
 
+    BONSAI_ENGINE_LOG_TRACE("Shutting down platform");
     s_platform->destroy_surface(s_main_surface);
     delete s_platform;
+
+    BONSAI_ENGINE_LOG_TRACE("Shutting down ImGui");
+    ImGui::DestroyContext(s_imgui_context);
+
+    BONSAI_ENGINE_LOG_INFO("Goodbye!");
 }
 
 void Engine::run(char const* app_name)
@@ -64,7 +83,7 @@ void Engine::run(char const* app_name)
     bool running = true;
     while (running)
     {
-        running = !s_platform->pump_messages();
+        running = s_platform->pump_messages();
         app->update(0.0);
     }
 

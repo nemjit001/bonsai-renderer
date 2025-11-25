@@ -1,5 +1,6 @@
 #include "bonsai_viewer.hpp"
 
+#include <imgui.h>
 #include <bonsai/core/assert.hpp>
 
 extern "C" BONSAI_API Application* BONSAI_APICALL create_application(EngineAPI* engine_api)
@@ -14,11 +15,16 @@ extern "C" BONSAI_API void BONSAI_APICALL destroy_application(Application const*
 
 BonsaiViewer::BonsaiViewer(EngineAPI* engine_api)
     :
-    Application(engine_api)
+    Application()
 {
     BONSAI_ASSERT(engine_api != nullptr);
     s_EngineAPI = engine_api;
-    BONSAI_LOG_TRACE("Initialized Bonsai Viewer!");
+
+    BONSAI_LOG_TRACE("Setting Bonsai Viewer ImGui context");
+    IMGUI_CHECKVERSION();
+    ImGui::SetCurrentContext(s_EngineAPI->get_imgui_context());
+
+    BONSAI_LOG_INFO("Initialized Bonsai Viewer!");
 }
 
 void BonsaiViewer::update([[maybe_unused]] double delta)

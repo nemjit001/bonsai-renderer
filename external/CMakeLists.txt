@@ -21,7 +21,7 @@ add_library(imgui_sdl3 STATIC imgui/backends/imgui_impl_sdl3.cpp imgui/backends/
 target_link_libraries(imgui_sdl3 PUBLIC imgui SDL3::SDL3)
 
 add_library(imgui_vulkan STATIC imgui/backends/imgui_impl_vulkan.cpp imgui/backends/imgui_impl_vulkan.h)
-target_link_libraries(imgui_vulkan PUBLIC volk::volk_headers)
+target_link_libraries(imgui_vulkan PUBLIC imgui volk::volk_headers)
 target_compile_definitions(imgui_vulkan PUBLIC IMGUI_IMPL_VULKAN_USE_VOLK)
 
 # Set up SPD Log

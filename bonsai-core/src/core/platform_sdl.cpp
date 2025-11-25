@@ -1,7 +1,9 @@
 #include "bonsai/core/platform.hpp"
 
 #include <unordered_map>
+#include <backends/imgui_impl_sdl3.h>
 #include <SDL3/SDL.h>
+#include "bonsai/core/fatal_exit.hpp"
 
 static int get_sdl_window_flags(PlatformSurfaceConfig const& config)
 {
@@ -11,6 +13,7 @@ static int get_sdl_window_flags(PlatformSurfaceConfig const& config)
     if (config.high_dpi)
         flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
+    flags |= SDL_WINDOW_VULKAN;
     return flags;
 }
 
@@ -22,6 +25,7 @@ struct RawPlatformSurface
 
 struct Platform::Impl
 {
+    bool imgui_initialized = false;
     PFN_PlatformSurfaceResized surface_resized_callback;
     std::unordered_map<SDL_WindowID, PlatformSurface*> tracked_surfaces;
 };
@@ -49,18 +53,25 @@ Platform::Platform()
 {
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
-        // Shit...
+        BONSAI_FATAL_EXIT("Failed to initialize SDL3");
     }
 }
 
 Platform::~Platform()
 {
-    delete m_impl;
+    if (m_impl->imgui_initialized)
+        ImGui_ImplSDL3_Shutdown();
+
+    for (auto const& [ window_id, surface ] : m_impl->tracked_surfaces)
+        delete surface;
+
     SDL_Quit();
+    delete m_impl;
 }
 
 bool Platform::pump_messages()
 {
+    ImGuiIO const& io = ImGui::GetIO();
     SDL_Event event{};
     while (SDL_PollEvent(&event))
     {
@@ -91,11 +102,24 @@ bool Platform::pump_messages()
                 m_impl->surface_resized_callback(surface, width, height);
             }
             break;
+        case SDL_EVENT_KEY_DOWN:
+        case SDL_EVENT_KEY_UP:
+        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+            if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
+            {
+                // TODO(nemjit001): Handle keyboard / mouse inputs only if ImGui does not want to capture
+            }
+            break;
         default:
             break;
         }
+
+        ImGui_ImplSDL3_ProcessEvent(&event);
     }
 
+    ImGui_ImplSDL3_NewFrame();
     return true;
 }
 
@@ -113,6 +137,18 @@ PlatformSurface* Platform::create_surface(char const* title, uint32_t width, uin
         return nullptr;
     }
 
+    // First created surface gets to be the main ImGui context :)
+    if (!m_impl->imgui_initialized)
+    {
+        if (!ImGui_ImplSDL3_InitForVulkan(window))
+        {
+            BONSAI_FATAL_EXIT("Failed to initialize the ImGui SDL3 backend");
+        }
+
+        m_impl->imgui_initialized = true;
+    }
+
+    // Create platform surface data
     RawPlatformSurface* raw_surface = new RawPlatformSurface{};
     raw_surface->window = window;
 
