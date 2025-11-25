@@ -3,6 +3,9 @@
 #include <unordered_map>
 #include <backends/imgui_impl_sdl3.h>
 #include <SDL3/SDL.h>
+#if     BONSAI_USE_VULKAN
+#include <SDL3/SDL_vulkan.h>
+#endif //BONSAI_USE_VULKAN
 #include "bonsai/core/fatal_exit.hpp"
 
 static int get_sdl_window_flags(PlatformSurfaceConfig const& config)
@@ -46,6 +49,13 @@ void* PlatformSurface::get_user_data()
 {
     return m_raw_surface->user_ptr;
 }
+
+#if     BONSAI_USE_VULKAN
+bool PlatformSurface::create_vulkan_surface(VkInstance instance, VkAllocationCallbacks const* allocator, VkSurfaceKHR* surface) const
+{
+    return SDL_Vulkan_CreateSurface(m_raw_surface->window, instance, allocator, surface);
+}
+#endif //BONSAI_USE_VULKAN
 
 Platform::Platform()
     :
@@ -140,10 +150,18 @@ PlatformSurface* Platform::create_surface(char const* title, uint32_t width, uin
     // First created surface gets to be the main ImGui context :)
     if (!m_impl->imgui_initialized)
     {
+#if     BONSAI_USE_VULKAN
+        // FIXME(nemjit001): This is Vulkan specific, should be hidden behind comptime constant when multiple backends are supported.
         if (!ImGui_ImplSDL3_InitForVulkan(window))
         {
-            BONSAI_FATAL_EXIT("Failed to initialize the ImGui SDL3 backend");
+            BONSAI_FATAL_EXIT("Failed to initialize the SDL3 ImGui backend");
         }
+#else
+        if (!ImGui_ImplSDL3_InitForOther(window))
+        {
+            BONSAI_FATAL_EXIT("Failed to initialize the SDL3 ImGui backend");
+        }
+#endif
 
         m_impl->imgui_initialized = true;
     }
@@ -168,3 +186,10 @@ void Platform::destroy_surface(PlatformSurface* surface)
     m_impl->tracked_surfaces.erase(window_id);
     delete surface;
 }
+
+#if     BONSAI_USE_VULKAN
+char const** Platform::get_vulkan_instance_extensions(uint32_t* count)
+{
+    return const_cast<char const**>(SDL_Vulkan_GetInstanceExtensions(count));
+}
+#endif //BONSAI_USE_VULKAN

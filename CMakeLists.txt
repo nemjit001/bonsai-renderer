@@ -5,6 +5,7 @@ enable_testing()
 # Options
 option(BONSAI_BUILD_TESTS "Enable unit test targets" ON)
 option(BONSAI_USE_ASSERTIONS "Enable assertions in all build types" ON)
+option(BONSAI_USE_VULKAN "Enable the Vulkan render backend for Bonsai" ON)
 
 # Set CMake module path
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/")

@@ -3,8 +3,8 @@
 #define BONSAI_RENDERER_FATAL_EXIT_HPP
 
 #include <cstdlib>
-#include "logger.hpp"
+#include <cstdio>
 
-#define BONSAI_FATAL_EXIT(...)  (Logger::get()->critical(__VA_ARGS__), std::exit(1));
+#define BONSAI_FATAL_EXIT(...)  (std::fprintf(stderr, __VA_ARGS__), std::exit(1));
 
 #endif //BONSAI_RENDERER_FATAL_EXIT_HPP

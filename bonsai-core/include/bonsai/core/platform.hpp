@@ -4,6 +4,12 @@
 
 #include <cstdint>
 
+#include "SDL3/SDL_vulkan.h"
+#if     BONSAI_USE_VULKAN
+#define VK_NO_PROTOTYPES
+#include <vulkan/vulkan.h>
+#endif //BONSAI_USE_VULKAN
+
 class PlatformSurface;
 typedef void (*PFN_PlatformSurfaceResized)(PlatformSurface*, uint32_t, uint32_t);
 
@@ -39,6 +45,10 @@ public:
     /// @return The raw platform surface handle.
     RawPlatformSurface const* get_raw() const { return m_raw_surface; }
 
+#if     BONSAI_USE_VULKAN
+    bool create_vulkan_surface(VkInstance instance, VkAllocationCallbacks const* allocator, VkSurfaceKHR* surface) const;
+#endif //BONSAI_USE_VULKAN
+
 private:
     RawPlatformSurface* m_raw_surface = nullptr;
 };
@@ -73,6 +83,10 @@ public:
     /// @brief Destroy a platform surface.
     /// @param surface Surface to destroy.
     void destroy_surface(PlatformSurface* surface);
+
+#if     BONSAI_USE_VULKAN
+    static char const** get_vulkan_instance_extensions(uint32_t* count);
+#endif //BONSAI_USE_VULKAN
 
 private:
     struct Impl;
