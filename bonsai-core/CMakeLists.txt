@@ -7,6 +7,7 @@ add_library(bonsai_core STATIC
         include/bonsai/core/fatal_exit.hpp
         include/bonsai/core/logger.hpp
         include/bonsai/core/platform.hpp
+        include/bonsai/render_backend/render_backend.hpp
         include/bonsai/application.hpp
         include/bonsai/bonsai_export.hpp
         include/bonsai/engine_api.hpp
@@ -18,6 +19,7 @@ add_library(bonsai_core STATIC
         src/core/dylib_loader_win32.cpp
         src/core/logger.cpp
         src/core/platform_sdl.cpp
+        src/render_backend/render_backend.cpp
         src/application.cpp
         src/engine.cpp
 )

@@ -3,15 +3,15 @@
 #define BONSAI_RENDERER_VULKAN_RENDER_BACKEND_HPP
 
 #include <volk.h>
-#include "bonsai/core/platform.hpp"
+#include "bonsai/render_backend/render_backend.hpp"
 
 constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
 
-class VulkanRenderBackend
+class VulkanRenderBackend : public RenderBackend
 {
 public:
     explicit VulkanRenderBackend(PlatformSurface* platform_surface);
-    ~VulkanRenderBackend();
+    ~VulkanRenderBackend() override;
 
     VulkanRenderBackend(VulkanRenderBackend const&) = delete;
     VulkanRenderBackend& operator=(VulkanRenderBackend const&) = delete;

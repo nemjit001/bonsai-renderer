@@ -4,12 +4,14 @@
 #include "bonsai/core/assert.hpp"
 #include "bonsai/core/logger.hpp"
 #include "bonsai/core/platform.hpp"
+#include "bonsai/render_backend/render_backend.hpp"
 #include "bonsai/application.hpp"
 #include "bonsai/engine_api.hpp"
 
 static ImGuiContext* s_imgui_context = nullptr;
 static Platform* s_platform = nullptr;
 static PlatformSurface* s_main_surface = nullptr;
+static RenderBackend* s_render_backend = nullptr;
 static EngineAPI* s_engine_api = nullptr;
 
 Engine::Engine()
@@ -34,6 +36,10 @@ Engine::Engine()
     main_surface_config.high_dpi = true;
     s_main_surface = s_platform->create_surface("Bonsai Application", 1600, 900, main_surface_config);
 
+    BONSAI_ENGINE_LOG_TRACE("Initializing Render Backend");
+    s_render_backend = RenderBackend::create(s_main_surface);
+    BONSAI_ASSERT(s_render_backend != nullptr);
+
     BONSAI_ENGINE_LOG_TRACE("Initializing Engine API");
     s_engine_api = new EngineAPI();
     s_engine_api->register_loggger(logger);
@@ -53,7 +59,10 @@ Engine::~Engine()
     BONSAI_ENGINE_LOG_INFO("Shutting down...");
     delete s_engine_api;
 
-    BONSAI_ENGINE_LOG_TRACE("Shutting down platform");
+    BONSAI_ENGINE_LOG_TRACE("Shutting down Render Backend");
+    delete s_render_backend;
+
+    BONSAI_ENGINE_LOG_TRACE("Shutting down Platform");
     s_platform->destroy_surface(s_main_surface);
     delete s_platform;
 
