@@ -4,10 +4,9 @@
 
 #include <cstdint>
 
-#include "SDL3/SDL_vulkan.h"
 #if     BONSAI_USE_VULKAN
-#define VK_NO_PROTOTYPES
-#include <vulkan/vulkan.h>
+    #define VK_NO_PROTOTYPES
+    #include <vulkan/vulkan.h>
 #endif //BONSAI_USE_VULKAN
 
 class PlatformSurface;

@@ -3,10 +3,11 @@
 #include <unordered_map>
 #include <backends/imgui_impl_sdl3.h>
 #include <SDL3/SDL.h>
-#if     BONSAI_USE_VULKAN
-#include <SDL3/SDL_vulkan.h>
-#endif //BONSAI_USE_VULKAN
 #include "bonsai/core/fatal_exit.hpp"
+
+#if     BONSAI_USE_VULKAN
+    #include <SDL3/SDL_vulkan.h>
+#endif //BONSAI_USE_VULKAN
 
 static int get_sdl_window_flags(PlatformSurfaceConfig const& config)
 {
