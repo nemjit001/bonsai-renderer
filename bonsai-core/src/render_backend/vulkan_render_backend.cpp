@@ -1,6 +1,7 @@
 #include "vulkan_render_backend.hpp"
 #define VOLK_IMPLEMENTATION
 
+#include <algorithm>
 #include <volk.h>
 
 #include "bonsai/core/fatal_exit.hpp"
@@ -58,6 +59,14 @@ static VkDebugUtilsMessengerCreateInfoEXT get_debug_messenger_create_info()
     create_info.pUserData = nullptr;
 
     return create_info;
+}
+
+std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
+{
+    std::vector<uint32_t> queue_families{ graphics_family, };
+    std::sort(queue_families.begin(), queue_families.end());
+    queue_families.erase(std::unique(queue_families.begin(), queue_families.end()), queue_families.end());
+    return queue_families;
 }
 
 VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
@@ -126,7 +135,10 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
 
     VkPhysicalDeviceProperties device_properties{};
     VulkanDeviceFeatures enabled_features{};
-    m_physical_device = find_physical_device(m_instance, device_properties, enabled_features);
+    std::vector<char const*> enabled_device_extensions{};
+    enabled_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
+    m_physical_device = find_physical_device(m_instance, device_properties, enabled_features, enabled_device_extensions);
     if (m_physical_device == VK_NULL_HANDLE)
     {
         BONSAI_FATAL_EXIT("Failed to find suitable physical device\n");
@@ -135,10 +147,54 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
         device_properties.deviceName,
         device_properties.deviceID
     );
+
+    uint32_t queue_count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, nullptr);
+    std::vector<VkQueueFamilyProperties> queue_families(queue_count);
+    vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_count, queue_families.data());
+    m_queue_families.graphics_family = find_queue_family(m_physical_device, queue_families,VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT, 0, m_surface);
+    if (m_queue_families.graphics_family == VK_QUEUE_FAMILY_IGNORED)
+    {
+        BONSAI_FATAL_EXIT("Failed to select required device queue families\n");
+    }
+
+    std::vector<uint32_t> const unique_queue_families = m_queue_families.get_unique();
+    std::vector<float> const queue_priorities(unique_queue_families.size(), 1.0F);
+    std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
+    queue_create_infos.reserve(unique_queue_families.size());
+    for (size_t i = 0; i < unique_queue_families.size(); i++)
+    {
+        VkDeviceQueueCreateInfo queue_create_info{};
+        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_create_info.pNext = nullptr;
+        queue_create_info.flags = 0;
+        queue_create_info.queueFamilyIndex = unique_queue_families[i];
+        queue_create_info.queueCount = 1;
+        queue_create_info.pQueuePriorities = &queue_priorities[i];
+
+        queue_create_infos.push_back(queue_create_info);
+    }
+
+    VkDeviceCreateInfo device_create_info{};
+    device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    device_create_info.pNext = &enabled_features.features2;
+    device_create_info.flags = 0;
+    device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
+    device_create_info.pQueueCreateInfos = queue_create_infos.data();
+    device_create_info.enabledExtensionCount = static_cast<uint32_t>(enabled_device_extensions.size());
+    device_create_info.ppEnabledExtensionNames = enabled_device_extensions.data();
+    device_create_info.pEnabledFeatures = nullptr;
+
+    if (VK_FAILED(vkCreateDevice(m_physical_device, &device_create_info, nullptr, &m_device)))
+    {
+        BONSAI_FATAL_EXIT("Failed to create Vulkan device\n");
+    }
+    vkGetDeviceQueue(m_device, m_queue_families.graphics_family, 0, &m_graphics_queue);
 }
 
 VulkanRenderBackend::~VulkanRenderBackend()
 {
+    vkDestroyDevice(m_device, nullptr);
     vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 #ifndef NDEBUG
     vkDestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
@@ -147,10 +203,40 @@ VulkanRenderBackend::~VulkanRenderBackend()
     volkFinalize();
 }
 
+bool VulkanRenderBackend::has_device_extensions(
+    VkPhysicalDevice device,
+    std::vector<char const*> const& extension_names
+)
+{
+    uint32_t extension_count = 0;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, nullptr);
+    std::vector<VkExtensionProperties> available_extensions(extension_count);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, available_extensions.data());
+
+    for (auto const& name : extension_names)
+    {
+        bool found = false;
+        for (auto const& available : available_extensions)
+        {
+            if (std::strcmp(name, available.extensionName) == 0)
+            {
+                found = true;
+            }
+        }
+
+        if (!found)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 VkPhysicalDevice VulkanRenderBackend::find_physical_device(
     VkInstance instance,
     VkPhysicalDeviceProperties& device_properties,
-    VulkanDeviceFeatures& enabled_device_features
+    VulkanDeviceFeatures& enabled_device_features,
+    std::vector<char const*> const& enabled_device_extensions
 )
 {
     // Set up features struct
@@ -196,7 +282,40 @@ VkPhysicalDevice VulkanRenderBackend::find_physical_device(
             continue;
         }
 
+        if (!has_device_extensions(device, enabled_device_extensions))
+        {
+            continue;
+        }
+
         return device;
     }
     return VK_NULL_HANDLE;
+}
+
+uint32_t VulkanRenderBackend::find_queue_family(
+    VkPhysicalDevice physical_device,
+    std::vector<VkQueueFamilyProperties> const& queue_families,
+    VkQueueFlags required_flags,
+    VkQueueFlags ignored_flags,
+    VkSurfaceKHR surface
+)
+{
+    for (uint32_t queue_idx = 0; queue_idx < queue_families.size(); queue_idx++)
+    {
+        VkBool32 surface_support = VK_TRUE;
+        if (surface != VK_NULL_HANDLE)
+        {
+            vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, queue_idx, surface, &surface_support);
+        }
+
+        VkQueueFamilyProperties const& queue = queue_families[queue_idx];
+        if (surface_support == VK_TRUE
+            && (queue.queueFlags & required_flags) == required_flags
+            && (queue.queueFlags & ignored_flags) == 0)
+        {
+            return queue_idx;
+        }
+    }
+
+    return VK_QUEUE_FAMILY_IGNORED;
 }

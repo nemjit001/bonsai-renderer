@@ -21,6 +21,11 @@ struct VulkanDeviceFeatures
 
 struct VulkanQueueFamilies
 {
+    /// @brief Get the unique queue family indices for this queue setup.
+    /// @return A vector of unique queue families.
+    [[nodiscard]]
+    std::vector<uint32_t> get_unique() const;
+
     uint32_t graphics_family;
 };
 
@@ -34,10 +39,24 @@ public:
     VulkanRenderBackend& operator=(VulkanRenderBackend const&) = delete;
 
 private:
+    static bool has_device_extensions(
+        VkPhysicalDevice device,
+        std::vector<char const*> const& extension_names
+    );
+
     static VkPhysicalDevice find_physical_device(
         VkInstance instance,
         VkPhysicalDeviceProperties& device_properties,
-        VulkanDeviceFeatures& enabled_device_features
+        VulkanDeviceFeatures& enabled_device_features,
+        std::vector<char const*> const& enabled_device_extensions
+    );
+
+    static uint32_t find_queue_family(
+        VkPhysicalDevice physical_device,
+        std::vector<VkQueueFamilyProperties> const& queue_families,
+        VkQueueFlags required_flags,
+        VkQueueFlags ignored_flags,
+        VkSurfaceKHR surface = VK_NULL_HANDLE
     );
 
 private:
