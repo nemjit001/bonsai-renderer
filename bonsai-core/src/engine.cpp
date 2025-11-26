@@ -38,7 +38,7 @@ Engine::Engine()
 
     BONSAI_ENGINE_LOG_TRACE("Initializing Render Backend");
     s_render_backend = RenderBackend::create(s_main_surface);
-    BONSAI_ASSERT(s_render_backend != nullptr);
+    BONSAI_ASSERT(s_render_backend != nullptr && "No Render Backend selected for Bonsai");
 
     BONSAI_ENGINE_LOG_TRACE("Initializing Engine API");
     s_engine_api = new EngineAPI();
