@@ -34,6 +34,8 @@ struct VulkanQueueFamilies
 class VulkanRenderBackend : public RenderBackend
 {
 public:
+    /// @brief Create a new Vulkan render backend.
+    /// @param platform_surface Main application surface, used for setting up initial state for device selection, swap chain, etc.
     explicit VulkanRenderBackend(PlatformSurface* platform_surface);
     ~VulkanRenderBackend() override;
 
@@ -84,6 +86,7 @@ private:
     VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
 #endif //NDEBUG
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+
     VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
     VulkanQueueFamilies m_queue_families = {};
     VkDevice m_device = VK_NULL_HANDLE;

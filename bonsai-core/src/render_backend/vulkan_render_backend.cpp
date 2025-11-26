@@ -2,6 +2,7 @@
 #define VOLK_IMPLEMENTATION
 
 #include <algorithm>
+#include <backends/imgui_impl_vulkan.h>
 #include <volk.h>
 
 #include "bonsai/core/fatal_exit.hpp"
@@ -191,10 +192,33 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
         BONSAI_FATAL_EXIT("Failed to create Vulkan device\n");
     }
     vkGetDeviceQueue(m_device, m_queue_families.graphics_family, 0, &m_graphics_queue);
+
+    ImGui_ImplVulkan_InitInfo imgui_init_info{};
+    imgui_init_info.ApiVersion = BONSAI_VULKAN_VERSION;
+    imgui_init_info.Instance = m_instance;
+    imgui_init_info.PhysicalDevice = m_physical_device;
+    imgui_init_info.Device = m_device;
+    imgui_init_info.QueueFamily = m_queue_families.graphics_family;
+    imgui_init_info.Queue = m_graphics_queue;
+    imgui_init_info.DescriptorPool = VK_NULL_HANDLE; // Uses internal descriptor pool
+    imgui_init_info.DescriptorPoolSize = IMGUI_IMPL_VULKAN_MINIMUM_IMAGE_SAMPLER_POOL_SIZE;
+    imgui_init_info.MinImageCount = 2;
+    imgui_init_info.ImageCount = 2;
+    imgui_init_info.PipelineCache = VK_NULL_HANDLE;
+    imgui_init_info.UseDynamicRendering = true;
+    imgui_init_info.PipelineInfoMain.Subpass = 0;
+    imgui_init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    imgui_init_info.PipelineInfoMain.PipelineRenderingCreateInfo = {}; // TODO(nemjit001): Set this based on swap setup
+    if (!ImGui_ImplVulkan_Init(&imgui_init_info))
+    {
+        BONSAI_FATAL_EXIT("Failed to initialize Vulkan ImGui backend\n");
+    }
 }
 
 VulkanRenderBackend::~VulkanRenderBackend()
 {
+    ImGui_ImplVulkan_Shutdown();
+
     vkDestroyDevice(m_device, nullptr);
     vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 #ifndef NDEBUG
