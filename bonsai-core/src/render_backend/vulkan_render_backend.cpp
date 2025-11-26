@@ -7,6 +7,7 @@
 #include "bonsai/core/fatal_exit.hpp"
 #include "bonsai/core/logger.hpp"
 #include "vulkan/vk_check.hpp"
+#include "bonsai_config.hpp"
 
 [[maybe_unused]]
 static VKAPI_ATTR VkBool32 VKAPI_CALL vulkan_debug_callback(
@@ -95,9 +96,9 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pNext = nullptr;
     app_info.pApplicationName = "Bonsai Renderer";
-    app_info.applicationVersion = 0;
+    app_info.applicationVersion = VK_MAKE_API_VERSION(0, BONSAI_VERSION_MAJOR, BONSAI_VERSION_MINOR, BONSAI_VERSION_PATCH);
     app_info.pEngineName = "Bonsai Renderer";
-    app_info.engineVersion = 0;
+    app_info.engineVersion = VK_MAKE_API_VERSION(0, BONSAI_VERSION_MAJOR, BONSAI_VERSION_MINOR, BONSAI_VERSION_PATCH);
     app_info.apiVersion = BONSAI_VULKAN_VERSION;
 
     VkInstanceCreateInfo instance_create_info{};
