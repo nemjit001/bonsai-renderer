@@ -19,6 +19,7 @@ struct VulkanDeviceFeatures
     VkPhysicalDeviceVulkan13Features vulkan13_features;
 };
 
+/// @brief Vulkan queue family indices for a physical device.
 struct VulkanQueueFamilies
 {
     /// @brief Get the unique queue family indices for this queue setup.
@@ -26,9 +27,10 @@ struct VulkanQueueFamilies
     [[nodiscard]]
     std::vector<uint32_t> get_unique() const;
 
-    uint32_t graphics_family;
+    uint32_t graphics_family; /// @brief The graphics queue family is also guaranteed to support presenting to surfaces.
 };
 
+/// @brief Vulkan implementation for the render backend.
 class VulkanRenderBackend : public RenderBackend
 {
 public:
@@ -39,11 +41,21 @@ public:
     VulkanRenderBackend& operator=(VulkanRenderBackend const&) = delete;
 
 private:
+    /// @brief Check if device extensions are available on a physical device.
+    /// @param device Device to check support for.
+    /// @param extension_names Required extension names.
+    /// @return A boolean indicating extension availability.
     static bool has_device_extensions(
         VkPhysicalDevice device,
         std::vector<char const*> const& extension_names
     );
 
+    /// @brief Search for a physical device.
+    /// @param instance Instance to use for search.
+    /// @param device_properties Device properties output variable, populated on success.
+    /// @param enabled_device_features Enabled device features based on internal feature query, populated on success.
+    /// @param enabled_device_extensions Enabled device extensions that should be supported on the device.
+    /// @return A suitable physical device, or VK_NULL_HANDLE on failure.
     static VkPhysicalDevice find_physical_device(
         VkInstance instance,
         VkPhysicalDeviceProperties& device_properties,
@@ -51,6 +63,13 @@ private:
         std::vector<char const*> const& enabled_device_extensions
     );
 
+    /// @param Find a queue family index by flags and surface support.
+    /// @param physical_device Physical device to query for queue families.
+    /// @param queue_families Queue families belonging to the passed physical device.
+    /// @param required_flags Required queue flags.
+    /// @param ignored_flags Ignored queue flags.
+    /// @param surface Optional surface that should have present support for a queue with the given filter flags.
+    /// @return A queue family index, or VK_QUEUE_FAMILY_IGNORED on failure.
     static uint32_t find_queue_family(
         VkPhysicalDevice physical_device,
         std::vector<VkQueueFamilyProperties> const& queue_families,
