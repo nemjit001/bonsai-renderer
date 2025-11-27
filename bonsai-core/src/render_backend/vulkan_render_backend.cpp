@@ -216,6 +216,29 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
         BONSAI_FATAL_EXIT("Failed to create Vulkan frame sync state\n");
     }
 
+    VkCommandPoolCreateInfo graphics_cmd_pool_create_info{};
+    graphics_cmd_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    graphics_cmd_pool_create_info.pNext = nullptr;
+    graphics_cmd_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    graphics_cmd_pool_create_info.queueFamilyIndex = m_queue_families.graphics_family;
+
+    if (VK_FAILED(vkCreateCommandPool(m_device, &graphics_cmd_pool_create_info, nullptr, &m_graphics_cmd_pool)))
+    {
+        BONSAI_FATAL_EXIT("Failed to create Vulkan frame command pool(s)\n");
+    }
+
+    VkCommandBufferAllocateInfo frame_cmd_buffer_allocate_info{};
+    frame_cmd_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    frame_cmd_buffer_allocate_info.pNext = nullptr;
+    frame_cmd_buffer_allocate_info.commandPool = m_graphics_cmd_pool;
+    frame_cmd_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    frame_cmd_buffer_allocate_info.commandBufferCount = 1;
+
+    if (VK_FAILED(vkAllocateCommandBuffers(m_device, &frame_cmd_buffer_allocate_info, &m_frame_cmd_buffer)))
+    {
+        BONSAI_FATAL_EXIT("Failed to allocate Vulkan frame command buffer(s)\n");
+    }
+
     VkPipelineRenderingCreateInfo imgui_pipeline_rendering_info{};
     imgui_pipeline_rendering_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
     imgui_pipeline_rendering_info.pNext = nullptr;
@@ -259,6 +282,8 @@ VulkanRenderBackend::~VulkanRenderBackend()
     VulkanRenderBackend::wait_idle();
     ImGui_ImplVulkan_Shutdown();
 
+    vkDestroyCommandPool(m_device, m_graphics_cmd_pool, nullptr);
+
     vkDestroySemaphore(m_device, m_swap_available, nullptr);
     vkDestroyFence(m_device, m_frame_ready, nullptr);
 
@@ -297,7 +322,7 @@ RenderBackendFrameResult VulkanRenderBackend::new_frame()
         return RenderBackendFrameResult::FatalError;
     }
 
-    vkResetFences(m_device, 1, &m_frame_ready);
+    vkResetFences(m_device, 1, &m_frame_ready); // We're committed now to finishing this frame
     ImGui_ImplVulkan_NewFrame();
     return RenderBackendFrameResult::Ok;
 }
@@ -310,8 +335,8 @@ RenderBackendFrameResult VulkanRenderBackend::end_frame()
     frame_submit_info.waitSemaphoreCount = 1;
     frame_submit_info.pWaitSemaphores = &m_swap_available;
     frame_submit_info.pWaitDstStageMask = wait_stages;
-    frame_submit_info.commandBufferCount = 0; // TODO(nemjit001): Submit frame command buffer here :)
-    frame_submit_info.pCommandBuffers = nullptr;
+    frame_submit_info.commandBufferCount = 1;
+    frame_submit_info.pCommandBuffers = &m_frame_cmd_buffer;
     frame_submit_info.signalSemaphoreCount = 1;
     frame_submit_info.pSignalSemaphores = &m_swapchain_config.swap_released_semaphores[m_active_swap_idx];
 

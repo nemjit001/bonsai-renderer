@@ -149,6 +149,9 @@ private:
     VkFence m_frame_ready = VK_NULL_HANDLE;
     VkSemaphore m_swap_available = VK_NULL_HANDLE;
     uint32_t m_active_swap_idx = 0;
+
+    VkCommandPool m_graphics_cmd_pool = VK_NULL_HANDLE;
+    VkCommandBuffer m_frame_cmd_buffer = VK_NULL_HANDLE;
 };
 
 
