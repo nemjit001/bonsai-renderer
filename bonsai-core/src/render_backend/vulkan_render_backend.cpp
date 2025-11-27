@@ -282,6 +282,7 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
     imgui_init_info.PipelineInfoMain.Subpass = 0;
     imgui_init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     imgui_init_info.PipelineInfoMain.PipelineRenderingCreateInfo = imgui_pipeline_rendering_info;
+
     if (!ImGui_ImplVulkan_Init(&imgui_init_info))
     {
         BONSAI_FATAL_EXIT("Failed to initialize Vulkan ImGui backend\n");
