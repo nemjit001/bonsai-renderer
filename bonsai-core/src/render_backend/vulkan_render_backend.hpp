@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <volk.h>
+#include <vk_mem_alloc.h>
 #include "bonsai/render_backend/render_backend.hpp"
 
 static constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
@@ -142,6 +143,7 @@ private:
     VulkanQueueFamilies m_queue_families = {};
     VkDevice m_device = VK_NULL_HANDLE;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
+    VmaAllocator m_allocator = nullptr;
 
     VulkanSwapchainCapabilities m_swapchain_capabilities = {};
     VulkanSwapchainConfiguration m_swapchain_config = {};

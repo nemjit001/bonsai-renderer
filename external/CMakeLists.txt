@@ -31,5 +31,8 @@ add_subdirectory(spdlog SYSTEM EXCLUDE_FROM_ALL)
 # Set up SDL
 add_subdirectory(SDL SYSTEM EXCLUDE_FROM_ALL)
 
+# Set up VMA
+add_subdirectory(VMA SYSTEM EXCLUDE_FROM_ALL)
+
 # Set up Volk
 add_subdirectory(volk SYSTEM EXCLUDE_FROM_ALL)

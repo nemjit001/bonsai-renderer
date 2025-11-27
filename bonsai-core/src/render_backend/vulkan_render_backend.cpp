@@ -1,8 +1,10 @@
 #include "vulkan_render_backend.hpp"
+#define VMA_IMPLEMENTATION
 #define VOLK_IMPLEMENTATION
 
 #include <algorithm>
 #include <backends/imgui_impl_vulkan.h>
+#include <vk_mem_alloc.h>
 #include <volk.h>
 
 #include "bonsai/core/fatal_exit.hpp"
@@ -194,6 +196,22 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
     }
     vkGetDeviceQueue(m_device, m_queue_families.graphics_family, 0, &m_graphics_queue);
 
+    VmaVulkanFunctions vma_vulkan_functions{};
+    VmaAllocatorCreateInfo allocator_create_info{};
+    allocator_create_info.flags = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT
+        | VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+    allocator_create_info.instance = m_instance;
+    allocator_create_info.physicalDevice = m_physical_device;
+    allocator_create_info.device = m_device;
+    allocator_create_info.vulkanApiVersion = BONSAI_VULKAN_VERSION;
+    allocator_create_info.pVulkanFunctions = &vma_vulkan_functions;
+
+    if (VK_FAILED(vmaImportVulkanFunctionsFromVolk(&allocator_create_info, &vma_vulkan_functions))
+        || VK_FAILED(vmaCreateAllocator(&allocator_create_info, &m_allocator)))
+    {
+        BONSAI_FATAL_EXIT("Failed to create Vulkan VMA allocator\n");
+    }
+
     m_swapchain_capabilities = get_swapchain_capabilities(m_physical_device, m_surface);
     if (!configure_swapchain(m_main_surface, m_physical_device, m_surface, m_device, m_swapchain_capabilities, m_swapchain_config))
     {
@@ -294,6 +312,7 @@ VulkanRenderBackend::~VulkanRenderBackend()
     }
     vkDestroySwapchainKHR(m_device, m_swapchain_config.swapchain, nullptr);
 
+    vmaDestroyAllocator(m_allocator);
     vkDestroyDevice(m_device, nullptr);
     vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 #ifndef NDEBUG

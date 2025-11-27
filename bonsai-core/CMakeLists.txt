@@ -39,7 +39,7 @@ if (BONSAI_USE_VULKAN)
             src/render_backend/vulkan_render_backend.cpp
             src/render_backend/vulkan_render_backend.hpp
     )
-    target_link_libraries(bonsai_core PUBLIC Vulkan::Headers PRIVATE imgui_vulkan volk::volk_headers)
+    target_link_libraries(bonsai_core PUBLIC Vulkan::Headers PRIVATE GPUOpen::VulkanMemoryAllocator imgui_vulkan volk::volk_headers)
     target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
 endif()
 
