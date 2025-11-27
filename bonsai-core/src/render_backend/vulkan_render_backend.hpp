@@ -62,6 +62,10 @@ public:
 
     void wait_idle() const override;
 
+    RenderBackendFrameResult new_frame() override;
+
+    RenderBackendFrameResult end_frame() override;
+
 private:
     /// @brief Check if device extensions are available on a physical device.
     /// @param device Device to check support for.
@@ -144,6 +148,7 @@ private:
 
     VkFence m_frame_ready = VK_NULL_HANDLE;
     VkSemaphore m_swap_available = VK_NULL_HANDLE;
+    uint32_t m_active_swap_idx = 0;
 };
 
 

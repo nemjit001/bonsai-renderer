@@ -23,9 +23,9 @@ Engine::Engine()
     BONSAI_ENGINE_LOG_TRACE("Initializing ImGui");
     IMGUI_CHECKVERSION();
     s_imgui_context = ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.IniFilename = nullptr;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    ImGuiIO& imgui_io = ImGui::GetIO();
+    imgui_io.IniFilename = nullptr;
+    imgui_io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     BONSAI_ENGINE_LOG_TRACE("Initializing Platform");
     s_platform = new Platform();

@@ -4,6 +4,14 @@
 
 #include "bonsai/core/platform.hpp"
 
+/// @brief Render backend new frame or present result indicating frame state.
+enum class RenderBackendFrameResult
+{
+    Ok = 0,
+    SwapOutOfDate,
+    FatalError,
+};
+
 /// @brief The RenderBackend wraps a backend graphics API, providing a common interface for the engine to use.
 class RenderBackend
 {
@@ -19,6 +27,14 @@ public:
 
     /// @brief Wait for the backend render device to be idle.
     virtual void wait_idle() const = 0;
+
+    /// @brief Start a new render backend frame.
+    /// @return A render backend frame result.
+    virtual RenderBackendFrameResult new_frame() = 0;
+
+    /// @brief End the currently active render backend frame.
+    /// @return A render backend frame result.
+    virtual RenderBackendFrameResult end_frame() = 0;
 };
 
 #endif //BONSAI_RENDERER_RENDER_BACKEND_HPP

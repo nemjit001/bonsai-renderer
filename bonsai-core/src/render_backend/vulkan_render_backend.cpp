@@ -245,6 +245,13 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
     {
         BONSAI_FATAL_EXIT("Failed to initialize Vulkan ImGui backend\n");
     }
+
+    ImGuiIO& imgui_io = ImGui::GetIO();
+    if (m_swapchain_capabilities.preferred_format.format == VK_FORMAT_R8G8B8A8_SRGB
+        || m_swapchain_capabilities.preferred_format.format == VK_FORMAT_B8G8R8A8_SRGB)
+    {
+        imgui_io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
+    }
 }
 
 VulkanRenderBackend::~VulkanRenderBackend()
@@ -274,6 +281,67 @@ VulkanRenderBackend::~VulkanRenderBackend()
 void VulkanRenderBackend::wait_idle() const
 {
     vkDeviceWaitIdle(m_device);
+}
+
+RenderBackendFrameResult VulkanRenderBackend::new_frame()
+{
+    vkWaitForFences(m_device, 1, &m_frame_ready, VK_TRUE, UINT64_MAX);
+    VkResult const acquire_result = vkAcquireNextImageKHR(m_device, m_swapchain_config.swapchain, UINT64_MAX, m_swap_available, VK_NULL_HANDLE, &m_active_swap_idx);
+    if (VK_FAILED(acquire_result)
+        && (acquire_result == VK_SUBOPTIMAL_KHR || acquire_result == VK_ERROR_OUT_OF_DATE_KHR))
+    {
+        return RenderBackendFrameResult::SwapOutOfDate;
+    }
+    else if (VK_FAILED(acquire_result))
+    {
+        return RenderBackendFrameResult::FatalError;
+    }
+
+    vkResetFences(m_device, 1, &m_frame_ready);
+    ImGui_ImplVulkan_NewFrame();
+    return RenderBackendFrameResult::Ok;
+}
+
+RenderBackendFrameResult VulkanRenderBackend::end_frame()
+{
+    VkPipelineStageFlags const wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkSubmitInfo frame_submit_info = {};
+    frame_submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    frame_submit_info.waitSemaphoreCount = 1;
+    frame_submit_info.pWaitSemaphores = &m_swap_available;
+    frame_submit_info.pWaitDstStageMask = wait_stages;
+    frame_submit_info.commandBufferCount = 0; // TODO(nemjit001): Submit frame command buffer here :)
+    frame_submit_info.pCommandBuffers = nullptr;
+    frame_submit_info.signalSemaphoreCount = 1;
+    frame_submit_info.pSignalSemaphores = &m_swapchain_config.swap_released_semaphores[m_active_swap_idx];
+
+    if (VK_FAILED(vkQueueSubmit(m_graphics_queue, 1, &frame_submit_info, m_frame_ready)))
+    {
+        return RenderBackendFrameResult::FatalError;
+    }
+
+    VkPresentInfoKHR present_info{};
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.pNext = nullptr;
+    present_info.waitSemaphoreCount = 1;
+    present_info.pWaitSemaphores = &m_swapchain_config.swap_released_semaphores[m_active_swap_idx];
+    present_info.swapchainCount = 1;
+    present_info.pSwapchains = &m_swapchain_config.swapchain;
+    present_info.pImageIndices = &m_active_swap_idx;
+    present_info.pResults = nullptr;
+
+    VkResult const present_result = vkQueuePresentKHR(m_graphics_queue, &present_info);
+    if (VK_FAILED(present_result)
+        && (present_result == VK_SUBOPTIMAL_KHR || present_result == VK_ERROR_OUT_OF_DATE_KHR))
+    {
+        return RenderBackendFrameResult::SwapOutOfDate;
+    }
+    else if (VK_FAILED(present_result))
+    {
+        return RenderBackendFrameResult::FatalError;
+    }
+
+    return RenderBackendFrameResult::Ok;
 }
 
 bool VulkanRenderBackend::has_device_extensions(
