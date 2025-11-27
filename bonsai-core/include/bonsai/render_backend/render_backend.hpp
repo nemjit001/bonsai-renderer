@@ -16,6 +16,9 @@ public:
     /// @param platform_surface Main surface to use for rendering, will be used to initialize the render backend.
     /// @return A new render backend, or nullptr if no backend is active.
     static RenderBackend* create(PlatformSurface* platform_surface);
+
+    /// @brief Wait for the backend render device to be idle.
+    virtual void wait_idle() const = 0;
 };
 
 #endif //BONSAI_RENDERER_RENDER_BACKEND_HPP

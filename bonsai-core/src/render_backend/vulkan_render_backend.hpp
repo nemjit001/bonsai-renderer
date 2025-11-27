@@ -60,6 +60,8 @@ public:
     VulkanRenderBackend(VulkanRenderBackend const&) = delete;
     VulkanRenderBackend& operator=(VulkanRenderBackend const&) = delete;
 
+    void wait_idle() const override;
+
 private:
     /// @brief Check if device extensions are available on a physical device.
     /// @param device Device to check support for.

@@ -249,7 +249,7 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
 
 VulkanRenderBackend::~VulkanRenderBackend()
 {
-    vkDeviceWaitIdle(m_device);
+    VulkanRenderBackend::wait_idle();
     ImGui_ImplVulkan_Shutdown();
 
     vkDestroySemaphore(m_device, m_swap_available, nullptr);
@@ -269,6 +269,11 @@ VulkanRenderBackend::~VulkanRenderBackend()
 #endif //NDEBUG
     vkDestroyInstance(m_instance, nullptr);
     volkFinalize();
+}
+
+void VulkanRenderBackend::wait_idle() const
+{
+    vkDeviceWaitIdle(m_device);
 }
 
 bool VulkanRenderBackend::has_device_extensions(
