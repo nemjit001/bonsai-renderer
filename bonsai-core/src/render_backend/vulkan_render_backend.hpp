@@ -6,7 +6,7 @@
 #include <volk.h>
 #include "bonsai/render_backend/render_backend.hpp"
 
-constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
+static constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
 
 /// @brief This struct contains all Vulkan device features that are queried during physical device selection.
 /// By passing the features2 field to vkDeviceCreateInfo::pNext, the queried features will be enabled on the logical device.
@@ -28,6 +28,24 @@ struct VulkanQueueFamilies
     std::vector<uint32_t> get_unique() const;
 
     uint32_t graphics_family; /// @brief The graphics queue family is also guaranteed to support presenting to surfaces.
+};
+
+/// @brief Queried swap chain capabilities for a surface & physical device.
+struct VulkanSwapchainCapabilities
+{
+    uint32_t min_image_count;
+    uint32_t image_count;
+    VkSurfaceFormatKHR preferred_format;
+    std::vector<VkPresentModeKHR> present_modes;
+};
+
+/// @brief Reified swap chain configuration for a surface.
+struct VulkanSwapchainConfiguration
+{
+    VkSwapchainKHR swapchain = VK_NULL_HANDLE;
+    std::vector<VkImage> swap_images = {};
+    std::vector<VkImageView> swap_image_views = {};
+    std::vector<VkSemaphore> swap_released_semaphores = {};
 };
 
 /// @brief Vulkan implementation for the render backend.
@@ -80,7 +98,34 @@ private:
         VkSurfaceKHR surface = VK_NULL_HANDLE
     );
 
+    /// @brief Query the swap chain capabilities for a surface & physical device.
+    /// @param physical_device
+    /// @param surface
+    /// @return The swap chain capabilities.
+    static VulkanSwapchainCapabilities get_swapchain_capabilities(
+        VkPhysicalDevice physical_device,
+        VkSurfaceKHR surface
+    );
+
+    /// @brief Configure the swap chain for a given surface & physical device.
+    /// @param platform_surface Platform render surface.
+    /// @param physical_device Vulkan physical device.
+    /// @param surface Vulkan surface.
+    /// @param device Vulkan logical device.
+    /// @param swap_capabilities Swap chain capabilities for the surface & physical device.
+    /// @param swapchain_config Output swap chain configuration.
+    static bool configure_swapchain(
+        PlatformSurface const* platform_surface,
+        VkPhysicalDevice physical_device,
+        VkSurfaceKHR surface,
+        VkDevice device,
+        VulkanSwapchainCapabilities const& swap_capabilities,
+        VulkanSwapchainConfiguration& swapchain_config
+    );
+
 private:
+    PlatformSurface* m_main_surface = nullptr;
+
     VkInstance m_instance = VK_NULL_HANDLE;
 #ifndef NDEBUG
     VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
@@ -91,6 +136,12 @@ private:
     VulkanQueueFamilies m_queue_families = {};
     VkDevice m_device = VK_NULL_HANDLE;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
+
+    VulkanSwapchainCapabilities m_swapchain_capabilities = {};
+    VulkanSwapchainConfiguration m_swapchain_config = {};
+
+    VkFence m_frame_ready = VK_NULL_HANDLE;
+    VkSemaphore m_swap_available = VK_NULL_HANDLE;
 };
 
 

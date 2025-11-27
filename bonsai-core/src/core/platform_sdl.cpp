@@ -41,6 +41,22 @@ PlatformSurface::PlatformSurface(RawPlatformSurface* raw_surface)
     //
 }
 
+void PlatformSurface::get_size(uint32_t& width, uint32_t& height) const
+{
+    int w = 0, h = 0;
+    SDL_GetWindowSize(m_raw_surface->window, &w, &h);
+    width = static_cast<uint32_t>(w);
+    height = static_cast<uint32_t>(h);
+}
+
+void PlatformSurface::get_size_in_pixels(uint32_t& width, uint32_t& height) const
+{
+    int w = 0, h = 0;
+    SDL_GetWindowSizeInPixels(m_raw_surface->window, &w, &h);
+    width = static_cast<uint32_t>(w);
+    height = static_cast<uint32_t>(h);
+}
+
 void PlatformSurface::set_user_data(void* user_data)
 {
     m_raw_surface->user_ptr = user_data;
@@ -106,10 +122,9 @@ bool Platform::pump_messages()
         case SDL_EVENT_WINDOW_RESTORED:
             if (m_impl->surface_resized_callback) {
                 PlatformSurface* surface = m_impl->tracked_surfaces[event.window.windowID];
-                RawPlatformSurface const* raw_surface = surface->get_raw();
 
-                int width = 0, height = 0;
-                SDL_GetWindowSizeInPixels(raw_surface->window, &width, &height);
+                uint32_t width = 0, height = 0;
+                surface->get_size_in_pixels(width, height);
                 m_impl->surface_resized_callback(surface, width, height);
             }
             break;

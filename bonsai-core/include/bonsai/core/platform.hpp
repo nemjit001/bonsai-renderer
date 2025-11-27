@@ -32,6 +32,17 @@ public:
     PlatformSurface(PlatformSurface const&) = default;
     PlatformSurface& operator=(PlatformSurface const&) = default;
 
+    /// @brief Get the surface size in screen coordinates, often pixels, but high DPI surfaces should use
+    /// PlatformSurface::get_size_in_pixels.
+    /// @param width Output width.
+    /// @param height Output height.
+    void get_size(uint32_t& width, uint32_t& height) const;
+
+    /// @brief Get the surface size in pixels. Useful for high DPI surfaces.
+    /// @param width Output width.
+    /// @param height Output height.
+    void get_size_in_pixels(uint32_t& width, uint32_t& height) const;
+
     /// @brief Set the user data pointer for this surface.
     /// @param user_data New user data pointer.
     void set_user_data(void* user_data);
