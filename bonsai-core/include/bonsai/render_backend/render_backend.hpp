@@ -30,11 +30,18 @@ public:
 
     /// @brief Start a new render backend frame.
     /// @return A render backend frame result.
+    [[nodiscard]]
     virtual RenderBackendFrameResult new_frame() = 0;
 
     /// @brief End the currently active render backend frame.
     /// @return A render backend frame result.
+    [[nodiscard]]
     virtual RenderBackendFrameResult end_frame() = 0;
+
+    /// @brief Get the current frame index.
+    /// @return The currently active frame index.
+    [[nodiscard]]
+    virtual uint64_t get_current_frame_index() const = 0;
 };
 
 #endif //BONSAI_RENDERER_RENDER_BACKEND_HPP

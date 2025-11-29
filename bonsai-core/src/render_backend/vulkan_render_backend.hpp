@@ -67,6 +67,8 @@ public:
 
     RenderBackendFrameResult end_frame() override;
 
+    uint64_t get_current_frame_index() const override { return m_frame_idx; }
+
 private:
     /// @brief Check if device extensions are available on a physical device.
     /// @param device Device to check support for.
@@ -154,6 +156,8 @@ private:
 
     VkCommandPool m_graphics_cmd_pool = VK_NULL_HANDLE;
     VkCommandBuffer m_frame_cmd_buffer = VK_NULL_HANDLE;
+
+    uint64_t m_frame_idx = 0;
 };
 
 

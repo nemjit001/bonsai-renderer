@@ -379,6 +379,7 @@ RenderBackendFrameResult VulkanRenderBackend::end_frame()
     if (VK_FAILED(present_result)
         && (present_result == VK_SUBOPTIMAL_KHR || present_result == VK_ERROR_OUT_OF_DATE_KHR))
     {
+        m_frame_idx += 1;
         return RenderBackendFrameResult::SwapOutOfDate;
     }
     else if (VK_FAILED(present_result))
@@ -386,6 +387,7 @@ RenderBackendFrameResult VulkanRenderBackend::end_frame()
         return RenderBackendFrameResult::FatalError;
     }
 
+    m_frame_idx += 1;
     return RenderBackendFrameResult::Ok;
 }
 
