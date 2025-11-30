@@ -12,7 +12,6 @@ static ImGuiContext* s_imgui_context = nullptr;
 static Platform* s_platform = nullptr;
 static PlatformSurface* s_main_surface = nullptr;
 static RenderBackend* s_render_backend = nullptr;
-static EngineAPI* s_engine_api = nullptr;
 
 Engine::Engine()
 {
@@ -41,11 +40,10 @@ Engine::Engine()
     BONSAI_ASSERT(s_render_backend != nullptr && "No Render Backend selected for Bonsai");
 
     BONSAI_ENGINE_LOG_TRACE("Initializing Engine API");
-    s_engine_api = new EngineAPI();
-    s_engine_api->register_loggger(logger);
-    s_engine_api->register_imgui_context(s_imgui_context);
-    s_engine_api->register_platform(s_platform);
-    s_EngineAPI = s_engine_api;
+    EngineAPI* engine_api = EngineAPI::get();
+    engine_api->register_loggger(logger);
+    engine_api->register_imgui_context(s_imgui_context);
+    engine_api->register_platform(s_platform);
 
     s_platform->set_surface_resized_callback([](PlatformSurface*, uint32_t width, uint32_t height) {
         BONSAI_ENGINE_LOG_TRACE("Window resized ({} x {})", width, height);
@@ -57,8 +55,6 @@ Engine::Engine()
 Engine::~Engine()
 {
     BONSAI_ENGINE_LOG_INFO("Shutting down...");
-    delete s_engine_api;
-
     BONSAI_ENGINE_LOG_TRACE("Shutting down Render Backend");
     delete s_render_backend;
 
@@ -85,7 +81,7 @@ void Engine::run(char const* app_name)
     }
 
     // Create application
-    Application* app = app_module.create_application(s_engine_api);
+    Application* app = app_module.create_application(EngineAPI::get());
     BONSAI_ASSERT(app != nullptr);
 
     // Enter the engine main loop

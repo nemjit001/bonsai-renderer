@@ -22,6 +22,7 @@ add_library(bonsai_core STATIC
         src/core/platform_sdl.cpp
         src/render_backend/render_backend.cpp
         src/application.cpp
+        src/engine_api.cpp
         src/engine.cpp
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)

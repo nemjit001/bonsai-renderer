@@ -5,7 +5,8 @@
 
 extern "C" BONSAI_API Application* BONSAI_APICALL create_application(EngineAPI* engine_api)
 {
-    return new BonsaiViewer(engine_api);
+    EngineAPI::set_instance(engine_api);
+    return new BonsaiViewer();
 }
 
 extern "C" BONSAI_API void BONSAI_APICALL destroy_application(Application const* app)
@@ -13,16 +14,13 @@ extern "C" BONSAI_API void BONSAI_APICALL destroy_application(Application const*
     delete app;
 }
 
-BonsaiViewer::BonsaiViewer(EngineAPI* engine_api)
+BonsaiViewer::BonsaiViewer()
     :
     Application()
 {
-    BONSAI_ASSERT(engine_api != nullptr);
-    s_EngineAPI = engine_api;
-
     BONSAI_LOG_TRACE("Setting Bonsai Viewer ImGui context");
     IMGUI_CHECKVERSION();
-    ImGui::SetCurrentContext(s_EngineAPI->get_imgui_context());
+    ImGui::SetCurrentContext(EngineAPI::get()->get_imgui_context());
 
     BONSAI_LOG_INFO("Initialized Bonsai Viewer!");
 }
