@@ -9,7 +9,7 @@
 
 #include "bonsai/core/fatal_exit.hpp"
 #include "bonsai/core/logger.hpp"
-#include "vulkan/vk_check.hpp"
+#include "render_backend/vulkan/vk_check.hpp"
 #include "bonsai_config.hpp"
 
 [[maybe_unused]]
@@ -256,6 +256,7 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
     {
         BONSAI_FATAL_EXIT("Failed to allocate Vulkan frame command buffer(s)\n");
     }
+    m_frame_commands = VulkanRenderCommands(m_frame_cmd_buffer);
 
     VkPipelineRenderingCreateInfo imgui_pipeline_rendering_info{};
     imgui_pipeline_rendering_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
@@ -389,6 +390,11 @@ RenderBackendFrameResult VulkanRenderBackend::end_frame()
 
     m_frame_idx += 1;
     return RenderBackendFrameResult::Ok;
+}
+
+RenderCommands* VulkanRenderBackend::get_frame_commands()
+{
+    return &m_frame_commands;
 }
 
 bool VulkanRenderBackend::has_device_extensions(

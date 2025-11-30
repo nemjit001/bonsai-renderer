@@ -6,6 +6,7 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "bonsai/render_backend/render_backend.hpp"
+#include "render_backend/vulkan/vulkan_render_commands.hpp"
 
 static constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
 
@@ -62,11 +63,9 @@ public:
     VulkanRenderBackend& operator=(VulkanRenderBackend const&) = delete;
 
     void wait_idle() const override;
-
     RenderBackendFrameResult new_frame() override;
-
     RenderBackendFrameResult end_frame() override;
-
+    RenderCommands* get_frame_commands() override;
     uint64_t get_current_frame_index() const override { return m_frame_idx; }
 
 private:
@@ -156,6 +155,7 @@ private:
 
     VkCommandPool m_graphics_cmd_pool = VK_NULL_HANDLE;
     VkCommandBuffer m_frame_cmd_buffer = VK_NULL_HANDLE;
+    VulkanRenderCommands m_frame_commands = {};
 
     uint64_t m_frame_idx = 0;
 };
