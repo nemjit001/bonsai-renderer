@@ -2,11 +2,9 @@
 #ifndef BONSAI_RENDERER_RENDER_BACKEND_HPP
 #define BONSAI_RENDERER_RENDER_BACKEND_HPP
 
+#include <cstdint>
+#include <cstddef>
 #include "bonsai/core/platform.hpp"
-
-class RenderBuffer; /// @brief Render backend opaque generic storage buffer handle.
-class RenderTexture; /// @brief Render backend opaque texture handle.
-class RenderMesh; /// @brief Render backend opaque mesh handle.
 
 /// @brief Render backend new frame or present result indicating frame state.
 enum class RenderBackendFrameResult
@@ -14,6 +12,43 @@ enum class RenderBackendFrameResult
     Ok = 0,
     SwapOutOfDate,
     FatalError,
+};
+
+/// @brief Render buffer usage flag bits.
+enum RenderBufferUsage
+{
+    BufferUsageTransferSrc      = 0x01,
+    BufferUsageTransferDst      = 0x02,
+    BufferUsageUniformBuffer    = 0x04,
+    BufferUsageStorageBuffer    = 0x08,
+    BufferUsageIndexBuffer      = 0x10,
+    BufferUsageVertexBuffer     = 0x20,
+    BufferUsageIndirectBuffer   = 0x40,
+};
+typedef uint32_t RenderBufferUsageFlags;
+
+/// @brief The RenderBuffer represents a backend buffer type that can store data.
+class RenderBuffer
+{
+public:
+    virtual ~RenderBuffer() = default;
+
+    /// @brief Map this buffer to host visible memory.
+    /// @param data Data pointer to use for mapped region.
+    /// @param size Size of buffer to map.
+    /// @param offset Offset into buffer to start mapped region at.
+    [[nodiscard]]
+    virtual bool map(void** data, size_t size, size_t offset) = 0;
+
+    /// @brief Unmap this buffer from host visible memory.
+    virtual void unmap() = 0;
+};
+
+/// @brief The RenderTexture represents a backend texture type.
+class RenderTexture
+{
+public:
+    virtual ~RenderTexture() = default;
 };
 
 /// @brief The ShaderPipeline represents a backend shader pipeline that can be used for rendering.
@@ -71,13 +106,6 @@ public:
     [[nodiscard]]
     virtual bool end() = 0;
 
-    /// @brief Commit data to a render buffer on the device.
-    /// @param data Pointer to data to upload.
-    /// @param buffer Buffer to upload data to.
-    /// @param size Size of the data to upload.
-    /// @param offset Offset into the render buffer to upload data to.
-    virtual void commit_buffer(void* data, RenderBuffer* buffer, size_t size, size_t offset) = 0;
-
     /// @brief Set the currently active shader pipeline.
     /// @param pipeline Pipeline to activate.
     virtual void set_pipeline(ShaderPipeline* pipeline) = 0;
@@ -100,10 +128,6 @@ public:
     /// @param name Binding location name.
     /// @param texture Texture to bind.
     virtual void bind_texture(char const* name, RenderTexture* texture) = 0;
-
-    /// @brief Draw a single mesh using the active graphics pipeline.
-    /// @param mesh Mesh to draw.
-    virtual void draw_mesh(RenderMesh* mesh) = 0;
 
     /// @brief Dispatch compute workgroups using the active compute pipeline.
     /// @param x Dispatch dimension x.
@@ -142,6 +166,13 @@ public:
     /// @return A RenderCommands structure for recording frame commands.
     [[nodiscard]]
     virtual RenderCommands* get_frame_commands() = 0;
+
+    /// @brief Create a render buffer.
+    /// @param buffer_usage Buffer usage flags.
+    /// @param size Buffer size in bytes.
+    /// @param can_map Indicates if this buffer can be mapped to host memory.
+    [[nodiscard]]
+    virtual RenderBuffer* create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map) = 0;
 
     /// @brief Get the current frame index.
     /// @return The currently active frame index.

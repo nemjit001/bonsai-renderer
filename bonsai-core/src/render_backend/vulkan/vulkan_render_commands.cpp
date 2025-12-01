@@ -25,11 +25,6 @@ bool VulkanRenderCommands::end()
     return VK_SUCCEEDED(vkEndCommandBuffer(m_command_buffer));
 }
 
-void VulkanRenderCommands::commit_buffer(void* data, RenderBuffer* buffer, size_t size, size_t offset)
-{
-    // TODO(nemjit001): Copy buffer data, keep copy buffer in memory until release...
-}
-
 void VulkanRenderCommands::set_pipeline(ShaderPipeline* pipeline)
 {
     // TODO(nemjit001): Set the pipeline state based on the passed shader pipeline -> WILL require downcasting
@@ -48,11 +43,6 @@ void VulkanRenderCommands::bind_buffer(char const* name, RenderBuffer* buffer, s
 void VulkanRenderCommands::bind_texture(char const* name, RenderTexture* texture)
 {
     // TODO(nemjit001): Bind a texture to the descriptor set that uses the specified named binding
-}
-
-void VulkanRenderCommands::draw_mesh(RenderMesh* mesh)
-{
-    // TODO(nemjit001): Bind vertex buffers + optional index buffer for mesh & record draw based on mesh state
 }
 
 void VulkanRenderCommands::dispatch(uint32_t x, uint32_t y, uint32_t z)

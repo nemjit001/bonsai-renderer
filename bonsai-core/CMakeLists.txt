@@ -1,5 +1,7 @@
 project("Bonsai Core" VERSION 0.1.0)
 
+find_package(DXCompiler REQUIRED)
+
 configure_file(bonsai_config.hpp.in bonsai_config.hpp)
 add_library(bonsai_core STATIC
         # Public sources
@@ -27,7 +29,7 @@ add_library(bonsai_core STATIC
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
 target_include_directories(bonsai_core PUBLIC include PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(bonsai_core PUBLIC imgui spdlog::spdlog PRIVATE imgui_sdl3 SDL3::SDL3)
+target_link_libraries(bonsai_core PUBLIC imgui spdlog::spdlog PRIVATE directx-compiler imgui_sdl3 SDL3::SDL3)
 target_compile_definitions(bonsai_core PUBLIC BONSAI_EXPORT_SYMBOLS=1)
 target_extended_warnings(bonsai_core)
 
@@ -38,6 +40,8 @@ if (BONSAI_USE_VULKAN)
     # TODO(nemjit001): Make this a separate library, will make engine/renderer split more obvious
     target_sources(bonsai_core PRIVATE
             src/render_backend/vulkan/vk_check.hpp
+            src/render_backend/vulkan/vulkan_buffer.cpp
+            src/render_backend/vulkan/vulkan_buffer.hpp
             src/render_backend/vulkan/vulkan_render_commands.cpp
             src/render_backend/vulkan/vulkan_render_commands.hpp
             src/render_backend/vulkan_render_backend.cpp

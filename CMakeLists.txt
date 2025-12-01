@@ -8,7 +8,7 @@ option(BONSAI_USE_ASSERTIONS "Enable assertions in all build types" ON)
 option(BONSAI_USE_VULKAN "Enable the Vulkan render backend for Bonsai" ON)
 
 # Set CMake module path
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/modules")
 include(cmake/extended_warnings.cmake)
 include(cmake/track_dll_dependencies.cmake)
 

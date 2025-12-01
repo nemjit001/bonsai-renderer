@@ -10,6 +10,7 @@
 #include "bonsai/core/fatal_exit.hpp"
 #include "bonsai/core/logger.hpp"
 #include "render_backend/vulkan/vk_check.hpp"
+#include "render_backend/vulkan/vulkan_buffer.hpp"
 #include "bonsai_config.hpp"
 
 [[maybe_unused]]
@@ -395,6 +396,66 @@ RenderBackendFrameResult VulkanRenderBackend::end_frame()
 RenderCommands* VulkanRenderBackend::get_frame_commands()
 {
     return &m_frame_commands;
+}
+
+RenderBuffer* VulkanRenderBackend::create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map)
+{
+    // Set buffer usage flags
+    VkBufferUsageFlags usage_flags = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+    if (buffer_usage & BufferUsageTransferSrc)
+        usage_flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    if (buffer_usage & BufferUsageTransferDst)
+        usage_flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    if (buffer_usage & BufferUsageUniformBuffer)
+        usage_flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    if (buffer_usage & BufferUsageStorageBuffer)
+        usage_flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    if (buffer_usage & BufferUsageIndexBuffer)
+        usage_flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    if (buffer_usage & BufferUsageVertexBuffer)
+        usage_flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    if (buffer_usage & BufferUsageIndirectBuffer)
+        usage_flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+
+    // Set memory property flags
+    VkMemoryPropertyFlags memory_property_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    VmaAllocationCreateFlags allocation_create_flags = 0;
+    if (can_map)
+    {
+        memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        allocation_create_flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
+            | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+    }
+
+    VkBufferCreateInfo buffer_create_info{};
+    buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer_create_info.pNext = nullptr;
+    buffer_create_info.flags = 0;
+    buffer_create_info.usage = usage_flags;
+    buffer_create_info.size = static_cast<uint32_t>(size);
+    buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    buffer_create_info.queueFamilyIndexCount = 0;
+    buffer_create_info.pQueueFamilyIndices = nullptr;
+
+    VmaAllocationCreateInfo allocation_create_info{};
+    allocation_create_info.flags = allocation_create_flags;
+    allocation_create_info.usage = VMA_MEMORY_USAGE_AUTO;
+    allocation_create_info.requiredFlags = memory_property_flags;
+    allocation_create_info.preferredFlags = 0;
+    allocation_create_info.memoryTypeBits = UINT32_MAX;
+    allocation_create_info.pool = VK_NULL_HANDLE;
+    allocation_create_info.pUserData = nullptr;
+    allocation_create_info.priority = 1.0F;
+
+    VkBuffer buffer = VK_NULL_HANDLE;
+    VmaAllocation allocation = VK_NULL_HANDLE;
+    if (VK_FAILED(vmaCreateBuffer(m_allocator, &buffer_create_info, &allocation_create_info, &buffer, &allocation, nullptr)))
+    {
+        return nullptr;
+    }
+
+    return new VulkanBuffer(m_allocator, buffer, allocation);
 }
 
 bool VulkanRenderBackend::has_device_extensions(
