@@ -22,6 +22,26 @@ $ cmake . --preset <preset name>
 $ cmake --build --preset <preset name>
 ```
 
+## Dependencies
+
+Bonsai aims to have minimal dependencies, including only what is needed. Applications can choose to pull in additional
+dependencies if they so require.
+
+A complete list of shared and per-platform dependencies is given below.
+
+### Shared dependencies
+
+- DirectX Shader Compiler, used for runtime shader compilation and reflection.
+- GoogleTest, used as unit testing framework.
+- ImGui, used as application Debug GUI library.
+- SDL3, used for platform and window management.
+- SPDLog, used for high quality logging.
+
+### Vulkan dependencies
+
+- VMA, used for Vulkan allocation management.
+- Volk, used for Vulkan function loading at runtime.
+
 ## License
 
 Bonsai is licensed under the MIT license.
