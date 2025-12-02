@@ -16,7 +16,15 @@ public:
 
     bool end() override;
 
-    void begin_render_pass() override;
+    void mark_for_present(RenderTexture* texture) override;
+
+    void begin_render_pass(
+        RenderRect2D render_area,
+        RenderAttachmentInfo* color_targets,
+        size_t color_target_count,
+        RenderAttachmentInfo* depth_attachment,
+        RenderAttachmentInfo* stencil_attachment
+    ) override;
 
     void end_render_pass() override;
 

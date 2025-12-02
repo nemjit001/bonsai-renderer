@@ -7,6 +7,9 @@
 #include <imgui.h>
 #include "bonsai/core/platform.hpp"
 
+class RenderBuffer;
+class RenderTexture;
+
 /// @brief Render backend new frame or present result indicating frame state.
 enum class RenderBackendFrameResult
 {
@@ -64,6 +67,90 @@ enum RenderTextureUsage : uint32_t
 };
 typedef uint32_t RenderTextureUsageFlags;
 
+/// @brief Render load op for attachments.
+enum RenderLoadOp : uint32_t
+{
+    RenderLoadOpLoad = 0,
+    RenderLoadOpClear = 1,
+    RenderLoadOpDontCare = 2,
+};
+
+/// @brief Render store op for attachments.
+enum RenderStoreOp : uint32_t
+{
+    RenderStoreOpStore = 0,
+    RenderStoreOpDontCare = 1,
+};
+
+/// @brief Render clear color value for attachments.
+union RenderClearColor
+{
+    float float32[4];
+    int32_t int32[4];
+    uint32_t uint32[4];
+};
+
+/// @brief Render clear depth stencil value for attachments.
+struct RenderClearDepthStencil
+{
+    float depth;
+    uint32_t stencil;
+};
+
+/// @brief Render clear value for attachments.
+union RenderClearValue
+{
+    RenderClearColor color;
+    RenderClearDepthStencil depth_stencil;
+};
+
+/// @brief 2D offset value.
+struct RenderOffset2D
+{
+    int32_t x;
+    int32_t y;
+};
+
+/// @brief 3D offset value.
+struct RenderOffset3D
+{
+    int32_t x;
+    int32_t y;
+    int32_t z;
+};
+
+/// @brief 2D extent value.
+struct RenderExtent2D
+{
+    uint32_t width;
+    uint32_t height;
+};
+
+/// @brief 3D extent value.
+struct RenderExtent3D
+{
+    uint32_t width;
+    uint32_t height;
+    uint32_t depth;
+};
+
+/// @brief 2D rect value.
+struct RenderRect2D
+{
+    RenderOffset2D offset;
+    RenderExtent2D extent;
+};
+
+/// @brief Render pass attachment info.
+struct RenderAttachmentInfo
+{
+    RenderTexture* render_target;
+    RenderTexture* resolve_target;
+    RenderLoadOp load_op;
+    RenderStoreOp store_op;
+    RenderClearValue clear_value;
+};
+
 /// @brief The RenderBuffer represents a backend buffer type that can store data.
 class RenderBuffer
 {
@@ -86,6 +173,10 @@ class RenderTexture
 {
 public:
     virtual ~RenderTexture() = default;
+
+    /// @brief Get the texture extent.
+    [[nodiscard]]
+    virtual RenderExtent3D extent() const = 0;
 };
 
 /// @brief The ShaderPipeline represents a backend shader pipeline that can be used for rendering.
@@ -143,8 +234,23 @@ public:
     [[nodiscard]]
     virtual bool end() = 0;
 
+    /// @brief Mark a render texture for present.
+    /// @param texture A swap texture to mark for presentation.
+    virtual void mark_for_present(RenderTexture* texture) = 0;
+
     /// @brief Start a new render pass.
-    virtual void begin_render_pass() = 0;
+    /// @param render_area Target area for render operations.
+    /// @param color_targets Render pass color targets.
+    /// @param color_target_count Number of color targets.
+    /// @param depth_attachment Render pass depth attachment.
+    /// @param stencil_attachment Render pass stencil attachment.
+    virtual void begin_render_pass(
+        RenderRect2D render_area,
+        RenderAttachmentInfo* color_targets,
+        size_t color_target_count,
+        RenderAttachmentInfo* depth_attachment,
+        RenderAttachmentInfo* stencil_attachment
+    ) = 0;
 
     /// @brief End the active render pass.
     virtual void end_render_pass() = 0;

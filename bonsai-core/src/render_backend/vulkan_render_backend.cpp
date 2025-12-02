@@ -485,7 +485,10 @@ RenderBuffer* VulkanRenderBackend::create_buffer(
         return nullptr;
     }
 
-    return new VulkanBuffer(m_allocator, buffer, allocation);
+    VulkanBufferDesc buffer_desc{};
+    buffer_desc.size = size;
+
+    return new VulkanBuffer(m_allocator, buffer, allocation, buffer_desc);
 }
 
 RenderTexture* VulkanRenderBackend::create_texture(
@@ -642,7 +645,11 @@ RenderTexture* VulkanRenderBackend::create_texture(
         return nullptr;
     }
 
-    return new VulkanTexture(m_device, m_allocator, image, image_view, allocation);
+    VulkanTextureDesc texture_desc{};
+    texture_desc.format = image_format;
+    texture_desc.extent = { width, height, depth };
+
+    return new VulkanTexture(m_device, m_allocator, image, image_view, allocation, texture_desc);
 }
 
 bool VulkanRenderBackend::has_device_extensions(
@@ -915,7 +922,15 @@ bool VulkanRenderBackend::configure_swapchain(
         }
 
         // Create render texture for swap
-        swapchain_config.swap_render_textures[i] = new VulkanTexture(swapchain_config.swap_images[i], swapchain_config.swap_image_views[i]);
+        VulkanTextureDesc texture_desc{};
+        texture_desc.format = swap_capabilities.preferred_format.format;
+        texture_desc.extent = { image_extent.width, image_extent.height, 1 };
+
+        swapchain_config.swap_render_textures[i] = new VulkanTexture(
+            swapchain_config.swap_images[i],
+            swapchain_config.swap_image_views[i],
+            texture_desc
+        );
     }
 
     return true;

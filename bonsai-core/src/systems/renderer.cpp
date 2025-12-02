@@ -27,10 +27,21 @@ void Renderer::render()
         BONSAI_FATAL_EXIT("Failed to start renderer frame command recording\n");
     }
 
-    // FIXME(nemjit001): set render pass attachments & clear values
-    frame_commands->begin_render_pass();
-    frame_commands->imgui_render_draw_data(ImGui::GetDrawData());
+    RenderExtent3D const swap_extent = swap_texture->extent();
+    RenderRect2D render_area{};
+    render_area.offset = { 0, 0 };
+    render_area.extent = { swap_extent.width, swap_extent.height  };
+
+    RenderAttachmentInfo color_attachment{};
+    color_attachment.render_target = swap_texture;
+    color_attachment.load_op = RenderLoadOpClear;
+    color_attachment.store_op = RenderStoreOpStore;
+    color_attachment.clear_value = RenderClearValue{{{ 0.0F, 0.0F, 0.0F, 0.0F }}};
+
+    frame_commands->begin_render_pass(render_area, &color_attachment, 1, nullptr, nullptr);
+    // frame_commands->imgui_render_draw_data(ImGui::GetDrawData());
     frame_commands->end_render_pass();
+    frame_commands->mark_for_present(swap_texture);
 
     if (!frame_commands->end())
     {

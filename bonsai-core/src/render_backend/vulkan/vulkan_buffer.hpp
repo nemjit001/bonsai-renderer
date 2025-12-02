@@ -6,10 +6,16 @@
 #include <vk_mem_alloc.h>
 #include "bonsai/render_backend/render_backend.hpp"
 
+/// @brief Buffer description, stores metadata used to create a buffer.
+struct VulkanBufferDesc
+{
+    size_t size;
+};
+
 class VulkanBuffer : public RenderBuffer
 {
 public:
-    VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation);
+    VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, VulkanBufferDesc desc);
     ~VulkanBuffer() override;
 
     VulkanBuffer(VulkanBuffer const&) = delete;
@@ -25,6 +31,7 @@ private:
     VmaAllocator m_allocator = VK_NULL_HANDLE;
     VkBuffer m_buffer = VK_NULL_HANDLE;
     VmaAllocation m_allocation = VK_NULL_HANDLE;
+    VulkanBufferDesc m_desc = {};
 };
 
 #endif //BONSAI_RENDERER_VULKAN_BUFFER_HPP

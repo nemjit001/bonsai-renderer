@@ -1,20 +1,22 @@
 #include "vulkan_texture.hpp"
 
-VulkanTexture::VulkanTexture(VkImage image, VkImageView image_view)
+VulkanTexture::VulkanTexture(VkImage image, VkImageView image_view, VulkanTextureDesc desc)
     :
     m_image(image),
-    m_image_view(image_view)
+    m_image_view(image_view),
+    m_desc(desc)
 {
     //
 }
 
-VulkanTexture::VulkanTexture(VkDevice device, VmaAllocator allocator, VkImage image, VkImageView image_view, VmaAllocation allocation)
+VulkanTexture::VulkanTexture(VkDevice device, VmaAllocator allocator, VkImage image, VkImageView image_view, VmaAllocation allocation, VulkanTextureDesc desc)
     :
     m_device(device),
     m_allocator(allocator),
     m_image(image),
     m_image_view(image_view),
-    m_allocation(allocation)
+    m_allocation(allocation),
+    m_desc(desc)
 {
     //
 }

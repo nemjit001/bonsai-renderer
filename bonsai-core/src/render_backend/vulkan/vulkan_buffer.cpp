@@ -3,11 +3,12 @@
 #include "bonsai/core/assert.hpp"
 #include "render_backend/vulkan/vk_check.hpp"
 
-VulkanBuffer::VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation)
+VulkanBuffer::VulkanBuffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation, VulkanBufferDesc desc)
     :
     m_allocator(allocator),
     m_buffer(buffer),
-    m_allocation(allocation)
+    m_allocation(allocation),
+    m_desc(desc)
 {
     //
 }
