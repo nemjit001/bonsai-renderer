@@ -12,11 +12,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/modules"
 include(cmake/extended_warnings.cmake)
 include(cmake/track_dll_dependencies.cmake)
 
-# Configure default CMake shared library behaviour
+# Configure default CMake target behaviour
 set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Configure sub projects
 add_subdirectory(external)

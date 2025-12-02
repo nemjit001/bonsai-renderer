@@ -11,6 +11,7 @@
 #include "bonsai/core/logger.hpp"
 #include "render_backend/vulkan/vk_check.hpp"
 #include "render_backend/vulkan/vulkan_buffer.hpp"
+#include "render_backend/vulkan/vulkan_texture.hpp"
 #include "bonsai_config.hpp"
 
 [[maybe_unused]]
@@ -456,6 +457,46 @@ RenderBuffer* VulkanRenderBackend::create_buffer(RenderBufferUsageFlags buffer_u
     }
 
     return new VulkanBuffer(m_allocator, buffer, allocation);
+}
+
+RenderTexture* VulkanRenderBackend::create_texture()
+{
+    // TODO(nemjit001): Fill out image info...
+    VkImageCreateInfo image_create_info{};
+    image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    image_create_info.pNext = nullptr;
+    image_create_info.flags = 0;
+    image_create_info.imageType = VK_IMAGE_TYPE_MAX_ENUM;
+    image_create_info.format = VK_FORMAT_UNDEFINED;
+    image_create_info.extent = VkExtent3D{ 1, 1, 1 };
+    image_create_info.mipLevels = 1;
+    image_create_info.arrayLayers = 1;
+    image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
+    image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    image_create_info.usage = 0;
+    image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    image_create_info.queueFamilyIndexCount = 0;
+    image_create_info.pQueueFamilyIndices = nullptr;
+    image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+    VmaAllocationCreateInfo allocation_create_info{};
+    allocation_create_info.flags = 0;
+    allocation_create_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+    allocation_create_info.requiredFlags = 0;
+    allocation_create_info.preferredFlags = 0;
+    allocation_create_info.memoryTypeBits = UINT32_MAX;
+    allocation_create_info.pool = VK_NULL_HANDLE;
+    allocation_create_info.pUserData = nullptr;
+    allocation_create_info.priority = 1.0F;
+
+    VkImage image = VK_NULL_HANDLE;
+    VmaAllocation allocation = VK_NULL_HANDLE;
+    if (VK_FAILED(vmaCreateImage(m_allocator, &image_create_info, &allocation_create_info, &image, &allocation, nullptr)))
+    {
+        return nullptr;
+    }
+
+    return new VulkanTexture(m_allocator, image, allocation);
 }
 
 bool VulkanRenderBackend::has_device_extensions(

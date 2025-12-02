@@ -44,6 +44,8 @@ if (BONSAI_USE_VULKAN)
             src/render_backend/vulkan/vulkan_buffer.hpp
             src/render_backend/vulkan/vulkan_render_commands.cpp
             src/render_backend/vulkan/vulkan_render_commands.hpp
+            src/render_backend/vulkan/vulkan_texture.cpp
+            src/render_backend/vulkan/vulkan_texture.hpp
             src/render_backend/vulkan_render_backend.cpp
             src/render_backend/vulkan_render_backend.hpp
     )

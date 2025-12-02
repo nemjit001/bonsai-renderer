@@ -174,6 +174,9 @@ public:
     [[nodiscard]]
     virtual RenderBuffer* create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map) = 0;
 
+    [[nodiscard]]
+    virtual RenderTexture* create_texture() = 0;
+
     /// @brief Get the current frame index.
     /// @return The currently active frame index.
     [[nodiscard]]

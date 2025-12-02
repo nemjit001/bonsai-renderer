@@ -67,6 +67,7 @@ public:
     RenderBackendFrameResult end_frame() override;
     RenderCommands* get_frame_commands() override;
     RenderBuffer* create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map) override;
+    RenderTexture* create_texture() override;
     uint64_t get_current_frame_index() const override { return m_frame_idx; }
 
 private:
