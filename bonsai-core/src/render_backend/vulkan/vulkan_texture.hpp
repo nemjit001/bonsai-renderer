@@ -15,10 +15,17 @@ public:
     VulkanTexture(VulkanTexture const&) = delete;
     VulkanTexture& operator=(VulkanTexture const&) = delete;
 
+    /// @brief Set the next tracked vulkan image layout.
+    /// @param next_layout Next layout.
+    /// @return The previous image layout.
+    [[nodiscard]]
+    VkImageLayout set_next_layout(VkImageLayout next_layout);
+
 private:
     VmaAllocator m_allocator = VK_NULL_HANDLE;
     VkImage m_image = VK_NULL_HANDLE;
     VmaAllocation m_allocation = VK_NULL_HANDLE;
+    VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 };
 
 #endif //BONSAI_RENDERER_VULKAN_TEXTURE_HPP

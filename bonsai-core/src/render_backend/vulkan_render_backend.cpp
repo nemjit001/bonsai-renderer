@@ -7,6 +7,7 @@
 #include <vk_mem_alloc.h>
 #include <volk.h>
 
+#include "bonsai/core/assert.hpp"
 #include "bonsai/core/fatal_exit.hpp"
 #include "bonsai/core/logger.hpp"
 #include "render_backend/vulkan/vk_check.hpp"
@@ -65,6 +66,22 @@ static VkDebugUtilsMessengerCreateInfoEXT get_debug_messenger_create_info()
     create_info.pUserData = nullptr;
 
     return create_info;
+}
+
+/// @brief Get a Vulkan format from a RenderFormat.
+/// @param format Format to translate.
+/// @return The Vulkan equivalent format.
+static VkFormat get_vulkan_format(RenderFormat format)
+{
+    switch (format)
+    {
+    case RenderFormatUndefined:
+        return VK_FORMAT_UNDEFINED;
+    default:
+        break;
+    }
+
+    return VK_FORMAT_UNDEFINED;
 }
 
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
@@ -403,19 +420,19 @@ RenderBuffer* VulkanRenderBackend::create_buffer(RenderBufferUsageFlags buffer_u
 {
     // Set buffer usage flags
     VkBufferUsageFlags usage_flags = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-    if (buffer_usage & BufferUsageTransferSrc)
+    if (buffer_usage & RenderBufferUsageTransferSrc)
         usage_flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    if (buffer_usage & BufferUsageTransferDst)
+    if (buffer_usage & RenderBufferUsageTransferDst)
         usage_flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    if (buffer_usage & BufferUsageUniformBuffer)
+    if (buffer_usage & RenderBufferUsageUniformBuffer)
         usage_flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    if (buffer_usage & BufferUsageStorageBuffer)
+    if (buffer_usage & RenderBufferUsageStorageBuffer)
         usage_flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-    if (buffer_usage & BufferUsageIndexBuffer)
+    if (buffer_usage & RenderBufferUsageIndexBuffer)
         usage_flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    if (buffer_usage & BufferUsageVertexBuffer)
+    if (buffer_usage & RenderBufferUsageVertexBuffer)
         usage_flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    if (buffer_usage & BufferUsageIndirectBuffer)
+    if (buffer_usage & RenderBufferUsageIndirectBuffer)
         usage_flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
 
     // Set memory property flags
@@ -459,21 +476,92 @@ RenderBuffer* VulkanRenderBackend::create_buffer(RenderBufferUsageFlags buffer_u
     return new VulkanBuffer(m_allocator, buffer, allocation);
 }
 
-RenderTexture* VulkanRenderBackend::create_texture()
+RenderTexture* VulkanRenderBackend::create_texture(
+    RenderTextureType texture_type,
+    RenderFormat format,
+    uint32_t width,
+    uint32_t height,
+    uint32_t depth_or_layers,
+    uint32_t mip_levels,
+    uint32_t sample_count,
+    RenderTextureUsageFlags texture_usage,
+    RenderTextureTilingMode tiling_mode
+)
 {
-    // TODO(nemjit001): Fill out image info...
+    BONSAI_ASSERT(
+        (sample_count == 1 || sample_count % 2 == 0)
+        && sample_count >= 1
+        && sample_count <= 64
+        && "RenderTexture sample count must be a multiple of 2 and in range [1, 64]"
+    );
+
+    // Set the image type
+    VkImageType image_type = VK_IMAGE_TYPE_MAX_ENUM;
+    if (texture_type == RenderTextureType1D)
+    {
+        image_type = VK_IMAGE_TYPE_1D;
+    }
+    else if (texture_type == RenderTextureType2D)
+    {
+        image_type = VK_IMAGE_TYPE_2D;
+    }
+    else if (texture_type == RenderTextureType3D)
+    {
+        image_type = VK_IMAGE_TYPE_3D;
+    }
+
+    // Set flags, depth, and array layers based on image type
+    VkImageCreateFlags image_flags = 0;
+    uint32_t depth = 1;
+    uint32_t array_layers = depth_or_layers;
+    if (texture_type == RenderTextureType2D && depth_or_layers > 1)
+    {
+        image_flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+    }
+    else if (texture_type == RenderTextureType3D)
+    {
+        depth = depth_or_layers;
+        array_layers = 1;
+    }
+
+    // Set image usage flags
+    VkImageUsageFlags usage_flags = 0;
+    if (texture_usage & RenderTextureUsageTransferSrc)
+        usage_flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    if (texture_usage & RenderTextureUsageTransferDst)
+        usage_flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    if (texture_usage & RenderTextureUsageSampled)
+        usage_flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (texture_usage & RenderTextureUsageStorage)
+        usage_flags |= VK_IMAGE_USAGE_STORAGE_BIT;
+    if (texture_usage & RenderTextureUsageRenderTarget)
+        usage_flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    if (texture_usage & RenderTextureUsageDepthStencilTarget)
+        usage_flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+    // Set image tiling mode
+    VkImageTiling image_tiling = VK_IMAGE_TILING_MAX_ENUM;
+    if (tiling_mode == RenderTextureTilingLinear)
+    {
+        image_tiling = VK_IMAGE_TILING_LINEAR;
+    }
+    else if (tiling_mode == RenderTextureTilingOptimal)
+    {
+        image_tiling = VK_IMAGE_TILING_OPTIMAL;
+    }
+
     VkImageCreateInfo image_create_info{};
     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_create_info.pNext = nullptr;
-    image_create_info.flags = 0;
-    image_create_info.imageType = VK_IMAGE_TYPE_MAX_ENUM;
-    image_create_info.format = VK_FORMAT_UNDEFINED;
-    image_create_info.extent = VkExtent3D{ 1, 1, 1 };
-    image_create_info.mipLevels = 1;
-    image_create_info.arrayLayers = 1;
-    image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_create_info.usage = 0;
+    image_create_info.flags = image_flags;
+    image_create_info.imageType = image_type;
+    image_create_info.format = get_vulkan_format(format);
+    image_create_info.extent = VkExtent3D{ width, height, depth };
+    image_create_info.mipLevels = mip_levels;
+    image_create_info.arrayLayers = array_layers;
+    image_create_info.samples = static_cast<VkSampleCountFlagBits>(sample_count);
+    image_create_info.tiling = image_tiling;
+    image_create_info.usage = usage_flags;
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     image_create_info.queueFamilyIndexCount = 0;
     image_create_info.pQueueFamilyIndices = nullptr;

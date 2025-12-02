@@ -67,7 +67,17 @@ public:
     RenderBackendFrameResult end_frame() override;
     RenderCommands* get_frame_commands() override;
     RenderBuffer* create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map) override;
-    RenderTexture* create_texture() override;
+    RenderTexture* create_texture(
+        RenderTextureType texture_type,
+        RenderFormat format,
+        uint32_t width,
+        uint32_t height,
+        uint32_t depth_or_layers,
+        uint32_t mip_levels,
+        uint32_t sample_count,
+        RenderTextureUsageFlags texture_usage,
+        RenderTextureTilingMode tiling_mode
+    ) override;
     uint64_t get_current_frame_index() const override { return m_frame_idx; }
 
 private:

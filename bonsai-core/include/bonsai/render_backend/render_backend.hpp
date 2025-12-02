@@ -14,18 +14,54 @@ enum class RenderBackendFrameResult
     FatalError,
 };
 
-/// @brief Render buffer usage flag bits.
-enum RenderBufferUsage
+/// @brief Render backend format types for binary data such as textures and buffers.
+enum RenderFormat : uint32_t
 {
-    BufferUsageTransferSrc      = 0x01,
-    BufferUsageTransferDst      = 0x02,
-    BufferUsageUniformBuffer    = 0x04,
-    BufferUsageStorageBuffer    = 0x08,
-    BufferUsageIndexBuffer      = 0x10,
-    BufferUsageVertexBuffer     = 0x20,
-    BufferUsageIndirectBuffer   = 0x40,
+    RenderFormatUndefined = 0,
+    // TODO(nemjit001): Fill out common formats for backends
+};
+
+/// @brief Render buffer usage flag bits.
+enum RenderBufferUsage : uint32_t
+{
+    RenderBufferUsageNone           = 0x00,
+    RenderBufferUsageTransferSrc    = 0x01,
+    RenderBufferUsageTransferDst    = 0x02,
+    RenderBufferUsageUniformBuffer  = 0x04,
+    RenderBufferUsageStorageBuffer  = 0x08,
+    RenderBufferUsageIndexBuffer    = 0x10,
+    RenderBufferUsageVertexBuffer   = 0x20,
+    RenderBufferUsageIndirectBuffer = 0x40,
 };
 typedef uint32_t RenderBufferUsageFlags;
+
+/// @brief Render texture types.
+enum RenderTextureType : uint32_t
+{
+    RenderTextureType1D     = 0,
+    RenderTextureType2D     = 1,
+    RenderTextureType3D     = 2,
+};
+
+/// @brief Render texture tiling modes, specifies data layout in memory.
+enum RenderTextureTilingMode
+{
+    RenderTextureTilingLinear   = 0,    /// @brief Lay out data linearly in memory.
+    RenderTextureTilingOptimal  = 1,    /// @brief Let the driver decide how to handle the data layout.
+};
+
+/// @brief Render texture usage flag bits.
+enum RenderTextureUsage : uint32_t
+{
+    RenderTextureUsageNone                  = 0x00,
+    RenderTextureUsageTransferSrc           = 0x01,
+    RenderTextureUsageTransferDst           = 0x02,
+    RenderTextureUsageSampled               = 0x04,
+    RenderTextureUsageStorage               = 0x08,
+    RenderTextureUsageRenderTarget          = 0x10,
+    RenderTextureUsageDepthStencilTarget    = 0x20,
+};
+typedef uint32_t RenderTextureUsageFlags;
 
 /// @brief The RenderBuffer represents a backend buffer type that can store data.
 class RenderBuffer
@@ -171,11 +207,33 @@ public:
     /// @param buffer_usage Buffer usage flags.
     /// @param size Buffer size in bytes.
     /// @param can_map Indicates if this buffer can be mapped to host memory.
+    /// @return a new render buffer object, or nullptr on failure.
     [[nodiscard]]
     virtual RenderBuffer* create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map) = 0;
 
+    /// @brief Create a render texture.
+    /// @param texture_type Texture type to create.
+    /// @param format Format to use for the texture.
+    /// @param width Texture width in pixels.
+    /// @param height Texture height in pixels.
+    /// @param depth_or_layers Texture depth, or layers if a non-3D texture type.
+    /// @param mip_levels Number of mip levels to use for this texture.
+    /// @param sample_count Number of samples to use for this image, must be a multiple of 2.
+    /// @param texture_usage Texture usage flags.
+    /// @param tiling_mode Texture tiling mode.
+    /// @return A new render texture object, or nullptr on failure.
     [[nodiscard]]
-    virtual RenderTexture* create_texture() = 0;
+    virtual RenderTexture* create_texture(
+        RenderTextureType texture_type,
+        RenderFormat format,
+        uint32_t width,
+        uint32_t height,
+        uint32_t depth_or_layers,
+        uint32_t mip_levels,
+        uint32_t sample_count,
+        RenderTextureUsageFlags texture_usage,
+        RenderTextureTilingMode tiling_mode
+    ) = 0;
 
     /// @brief Get the current frame index.
     /// @return The currently active frame index.
