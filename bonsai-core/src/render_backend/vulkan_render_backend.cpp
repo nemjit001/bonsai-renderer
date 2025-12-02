@@ -92,8 +92,11 @@ std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
     return queue_families;
 }
 
-VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface)
+VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface, ImGuiContext* imgui_context)
 {
+    IMGUI_CHECKVERSION();
+    ImGui::SetCurrentContext(imgui_context);
+
     m_main_surface = platform_surface;
     if (VK_FAILED(volkInitialize()))
     {
@@ -416,7 +419,11 @@ RenderCommands* VulkanRenderBackend::get_frame_commands()
     return &m_frame_commands;
 }
 
-RenderBuffer* VulkanRenderBackend::create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map)
+RenderBuffer* VulkanRenderBackend::create_buffer(
+    size_t size,
+    RenderBufferUsageFlags buffer_usage,
+    bool can_map
+)
 {
     // Set buffer usage flags
     VkBufferUsageFlags usage_flags = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;

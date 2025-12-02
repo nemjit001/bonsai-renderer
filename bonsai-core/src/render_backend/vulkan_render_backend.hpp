@@ -56,17 +56,27 @@ class VulkanRenderBackend : public RenderBackend
 public:
     /// @brief Create a new Vulkan render backend.
     /// @param platform_surface Main application surface, used for setting up initial state for device selection, swap chain, etc.
-    explicit VulkanRenderBackend(PlatformSurface* platform_surface);
+    /// @param imgui_context ImGui context created by engine.
+    VulkanRenderBackend(PlatformSurface* platform_surface, ImGuiContext* imgui_context);
     ~VulkanRenderBackend() override;
 
     VulkanRenderBackend(VulkanRenderBackend const&) = delete;
     VulkanRenderBackend& operator=(VulkanRenderBackend const&) = delete;
 
     void wait_idle() const override;
+
     RenderBackendFrameResult new_frame() override;
+
     RenderBackendFrameResult end_frame() override;
+
     RenderCommands* get_frame_commands() override;
-    RenderBuffer* create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map) override;
+
+    RenderBuffer* create_buffer(
+        size_t size,
+        RenderBufferUsageFlags buffer_usage,
+        bool can_map
+    ) override;
+
     RenderTexture* create_texture(
         RenderTextureType texture_type,
         RenderFormat format,
@@ -78,6 +88,7 @@ public:
         RenderTextureUsageFlags texture_usage,
         RenderTextureTilingMode tiling_mode
     ) override;
+
     uint64_t get_current_frame_index() const override { return m_frame_idx; }
 
 private:

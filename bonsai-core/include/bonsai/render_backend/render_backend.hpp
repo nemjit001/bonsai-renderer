@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <imgui.h>
 #include "bonsai/core/platform.hpp"
 
 /// @brief Render backend new frame or present result indicating frame state.
@@ -182,8 +183,9 @@ public:
 
     /// @brief Create a render backend.
     /// @param platform_surface Main surface to use for rendering, will be used to initialize the render backend.
+    /// @param imgui_context ImGui context to use for the render backend.
     /// @return A new render backend, or nullptr if no backend is active.
-    static RenderBackend* create(PlatformSurface* platform_surface);
+    static RenderBackend* create(PlatformSurface* platform_surface, ImGuiContext* imgui_context);
 
     /// @brief Wait for the backend render device to be idle.
     virtual void wait_idle() const = 0;
@@ -204,12 +206,16 @@ public:
     virtual RenderCommands* get_frame_commands() = 0;
 
     /// @brief Create a render buffer.
-    /// @param buffer_usage Buffer usage flags.
     /// @param size Buffer size in bytes.
+    /// @param buffer_usage Buffer usage flags.
     /// @param can_map Indicates if this buffer can be mapped to host memory.
     /// @return a new render buffer object, or nullptr on failure.
     [[nodiscard]]
-    virtual RenderBuffer* create_buffer(RenderBufferUsageFlags buffer_usage, size_t size, bool can_map) = 0;
+    virtual RenderBuffer* create_buffer(
+        size_t size,
+        RenderBufferUsageFlags buffer_usage,
+        bool can_map
+    ) = 0;
 
     /// @brief Create a render texture.
     /// @param texture_type Texture type to create.

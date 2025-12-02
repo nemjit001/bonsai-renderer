@@ -16,6 +16,7 @@ public:
     VulkanBuffer& operator=(VulkanBuffer const&) = delete;
 
     bool map(void** data, size_t size, size_t offset) override;
+
     void unmap() override;
 
 private:
