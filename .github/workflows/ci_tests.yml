@@ -62,6 +62,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DSDL_UNIX_CONSOLE_BUILD=ON
         -DBONSAI_USE_VULKAN=OFF
+        -DBONSAI_USE_VENDORED_DXC=ON
         -S ${{ github.workspace }}
 
     - name: Build

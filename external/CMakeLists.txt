@@ -1,9 +1,12 @@
 # Set up DirectXShaderCompiler
-include(DirectXShaderCompiler/cmake/caches/PredefinedParams.cmake)
-set(LLVM_INCLUDE_TESTS OFF CACHE BOOL "" FORCE)
-set(HLSL_INCLUDE_TESTS OFF CACHE BOOL "" FORCE)
-set(SPIRV_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-add_subdirectory(DirectXShaderCompiler SYSTEM EXCLUDE_FROM_ALL)
+if (BONSAI_USE_VENDORED_DXC)
+    message(STATUS "Using vendored DirectX Shader Compiler")
+    include(DirectXShaderCompiler/cmake/caches/PredefinedParams.cmake)
+    set(LLVM_INCLUDE_TESTS OFF CACHE BOOL "" FORCE)
+    set(HLSL_INCLUDE_TESTS OFF CACHE BOOL "" FORCE)
+    set(SPIRV_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    add_subdirectory(DirectXShaderCompiler SYSTEM EXCLUDE_FROM_ALL)
+endif()
 
 # Set up GoogleTest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

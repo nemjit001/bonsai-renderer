@@ -6,6 +6,7 @@ enable_testing()
 option(BONSAI_BUILD_TESTS "Enable unit test targets" ON)
 option(BONSAI_USE_ASSERTIONS "Enable assertions in all build types" ON)
 option(BONSAI_USE_VULKAN "Enable the Vulkan render backend for Bonsai" ON)
+option(BONSAI_USE_VENDORED_DXC "Use the vendored DirectX Shader Compiler, will significantly increase build times..." OFF)
 
 # Set CMake module path
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake/modules")
