@@ -6,7 +6,6 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <vk_mem_alloc.h>
 #include <volk.h>
-
 #include "bonsai/core/assert.hpp"
 #include "bonsai/core/fatal_exit.hpp"
 #include "bonsai/core/logger.hpp"
@@ -331,6 +330,7 @@ VulkanRenderBackend::~VulkanRenderBackend()
 
     for (size_t i = 0; i < m_swapchain_config.swap_images.size(); i++)
     {
+        delete m_swapchain_config.swap_render_textures[i];
         vkDestroySemaphore(m_device, m_swapchain_config.swap_released_semaphores[i], nullptr);
         vkDestroyImageView(m_device, m_swapchain_config.swap_image_views[i], nullptr);
     }
@@ -417,6 +417,11 @@ RenderBackendFrameResult VulkanRenderBackend::end_frame()
 RenderCommands* VulkanRenderBackend::get_frame_commands()
 {
     return &m_frame_commands;
+}
+
+RenderTexture* VulkanRenderBackend::get_current_swap_texture()
+{
+    return m_swapchain_config.swap_render_textures[m_active_swap_idx];
 }
 
 RenderBuffer* VulkanRenderBackend::create_buffer(
@@ -521,14 +526,15 @@ RenderTexture* VulkanRenderBackend::create_texture(
     VkImageCreateFlags image_flags = 0;
     uint32_t depth = 1;
     uint32_t array_layers = depth_or_layers;
-    if (texture_type == RenderTextureType2D && depth_or_layers > 1)
-    {
-        image_flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-    }
-    else if (texture_type == RenderTextureType3D)
+    if (texture_type == RenderTextureType3D)
     {
         depth = depth_or_layers;
         array_layers = 1;
+    }
+
+    if (texture_type == RenderTextureType2D && array_layers == 6)
+    {
+        image_flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
 
     // Set image usage flags
@@ -557,12 +563,13 @@ RenderTexture* VulkanRenderBackend::create_texture(
         image_tiling = VK_IMAGE_TILING_OPTIMAL;
     }
 
+    VkFormat const image_format = get_vulkan_format(format);
     VkImageCreateInfo image_create_info{};
     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_create_info.pNext = nullptr;
     image_create_info.flags = image_flags;
     image_create_info.imageType = image_type;
-    image_create_info.format = get_vulkan_format(format);
+    image_create_info.format = image_format;
     image_create_info.extent = VkExtent3D{ width, height, depth };
     image_create_info.mipLevels = mip_levels;
     image_create_info.arrayLayers = array_layers;
@@ -591,7 +598,51 @@ RenderTexture* VulkanRenderBackend::create_texture(
         return nullptr;
     }
 
-    return new VulkanTexture(m_allocator, image, allocation);
+    // Set image view type
+    VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_MAX_ENUM;
+    if (texture_type == RenderTextureType1D && depth_or_layers == 1)
+        view_type = VK_IMAGE_VIEW_TYPE_1D;
+    else if (texture_type == RenderTextureType1D && depth_or_layers > 1)
+        view_type = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+    else if (texture_type == RenderTextureType2D && depth_or_layers == 1)
+        view_type = VK_IMAGE_VIEW_TYPE_2D;
+    else if (texture_type == RenderTextureType2D && depth_or_layers == 6) // Specific case for cubemaps
+        view_type = VK_IMAGE_VIEW_TYPE_CUBE;
+    else if (texture_type == RenderTextureType2D && depth_or_layers > 1)
+        view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+    else if (texture_type == RenderTextureType3D)
+        view_type = VK_IMAGE_VIEW_TYPE_3D;
+
+    VkImageAspectFlags image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+    // TODO(nemjit001): Set aspect based on texture format
+
+    VkImageViewCreateInfo view_create_info{};
+    view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    view_create_info.pNext = nullptr;
+    view_create_info.flags = 0;
+    view_create_info.image = image;
+    view_create_info.viewType = view_type;
+    view_create_info.format = image_format;
+    view_create_info.components = VkComponentMapping{
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+        VK_COMPONENT_SWIZZLE_IDENTITY,
+    };
+    view_create_info.subresourceRange = VkImageSubresourceRange{
+        image_aspect,
+        0, mip_levels,
+        0, array_layers,
+    };
+
+    VkImageView image_view = VK_NULL_HANDLE;
+    if (VK_FAILED(vkCreateImageView(m_device, &view_create_info, nullptr, &image_view)))
+    {
+        vmaDestroyImage(m_allocator, image, allocation);
+        return nullptr;
+    }
+
+    return new VulkanTexture(m_device, m_allocator, image, image_view, allocation);
 }
 
 bool VulkanRenderBackend::has_device_extensions(
@@ -769,15 +820,15 @@ bool VulkanRenderBackend::configure_swapchain(
     VulkanSwapchainConfiguration& swapchain_config
 )
 {
-    for (auto const& image_view : swapchain_config.swap_image_views)
+    for (size_t i = 0; i < swapchain_config.swap_images.size(); i++)
     {
-        vkDestroyImageView(device, image_view, nullptr);
+        delete swapchain_config.swap_render_textures[i];
+        vkDestroySemaphore(device, swapchain_config.swap_released_semaphores[i], nullptr);
+        vkDestroyImageView(device, swapchain_config.swap_image_views[i], nullptr);
     }
-
-    for (auto const& semaphore : swapchain_config.swap_released_semaphores)
-    {
-        vkDestroySemaphore(device, semaphore, nullptr);
-    }
+    swapchain_config.swap_render_textures.clear();
+    swapchain_config.swap_released_semaphores.clear();
+    swapchain_config.swap_image_views.clear();
 
     VkSurfaceCapabilitiesKHR surface_capabilities{};
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface, &surface_capabilities);
@@ -824,8 +875,10 @@ bool VulkanRenderBackend::configure_swapchain(
 
     swapchain_config.swap_image_views.resize(swap_image_count);
     swapchain_config.swap_released_semaphores.resize(swap_image_count);
+    swapchain_config.swap_render_textures.resize(swap_image_count);
     for (uint32_t i = 0; i < swap_image_count; i++)
     {
+        // Create swap image view
         VkImageViewCreateInfo view_create_info{};
         view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         view_create_info.pNext = nullptr;
@@ -850,13 +903,19 @@ bool VulkanRenderBackend::configure_swapchain(
             return false;
         }
 
+        // Create swap sync semaphore
         VkSemaphoreCreateInfo semaphore_create_info{};
         semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphore_create_info.pNext = nullptr;
+        semaphore_create_info.flags = 0;
 
         if (VK_FAILED(vkCreateSemaphore(device, &semaphore_create_info, nullptr, &swapchain_config.swap_released_semaphores[i])))
         {
             return false;
         }
+
+        // Create render texture for swap
+        swapchain_config.swap_render_textures[i] = new VulkanTexture(swapchain_config.swap_images[i], swapchain_config.swap_image_views[i]);
     }
 
     return true;

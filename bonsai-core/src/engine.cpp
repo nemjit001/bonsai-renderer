@@ -5,6 +5,7 @@
 #include "bonsai/core/logger.hpp"
 #include "bonsai/core/platform.hpp"
 #include "bonsai/render_backend/render_backend.hpp"
+#include "bonsai/systems/renderer.hpp"
 #include "bonsai/application.hpp"
 #include "bonsai/engine_api.hpp"
 
@@ -12,6 +13,7 @@ static ImGuiContext* s_imgui_context = nullptr;
 static Platform* s_platform = nullptr;
 static PlatformSurface* s_main_surface = nullptr;
 static RenderBackend* s_render_backend = nullptr;
+static Renderer* s_renderer = nullptr;
 
 Engine::Engine()
 {
@@ -39,6 +41,9 @@ Engine::Engine()
     s_render_backend = RenderBackend::create(s_main_surface, s_imgui_context);
     BONSAI_ASSERT(s_render_backend != nullptr && "No Render Backend selected for Bonsai");
 
+    BONSAI_ENGINE_LOG_TRACE("Initializing Renderer System");
+    s_renderer = new Renderer(s_render_backend);
+
     BONSAI_ENGINE_LOG_TRACE("Initializing Engine API");
     EngineAPI* engine_api = EngineAPI::get();
     engine_api->register_loggger(logger);
@@ -55,6 +60,9 @@ Engine::Engine()
 Engine::~Engine()
 {
     BONSAI_ENGINE_LOG_INFO("Shutting down...");
+    BONSAI_ENGINE_LOG_TRACE("Shutting down Renderer System");
+    delete s_renderer;
+
     BONSAI_ENGINE_LOG_TRACE("Shutting down Render Backend");
     delete s_render_backend;
 
@@ -90,6 +98,7 @@ void Engine::run(char const* app_name)
     {
         running = s_platform->pump_messages();
         app->update(0.0);
+        s_renderer->render();
     }
 
     // Clean up app module

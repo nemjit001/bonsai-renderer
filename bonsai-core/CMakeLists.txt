@@ -9,6 +9,7 @@ add_library(bonsai_core STATIC
         include/bonsai/core/logger.hpp
         include/bonsai/core/platform.hpp
         include/bonsai/render_backend/render_backend.hpp
+        include/bonsai/systems/renderer.hpp
         include/bonsai/application.hpp
         include/bonsai/bonsai_export.hpp
         include/bonsai/engine_api.hpp
@@ -21,6 +22,7 @@ add_library(bonsai_core STATIC
         src/core/logger.cpp
         src/core/platform_sdl.cpp
         src/render_backend/render_backend.cpp
+        src/systems/renderer.cpp
         src/application.cpp
         src/engine_api.cpp
         src/engine.cpp

@@ -9,7 +9,8 @@
 class VulkanTexture : public RenderTexture
 {
 public:
-    VulkanTexture(VmaAllocator allocator, VkImage image, VmaAllocation allocation);
+    VulkanTexture(VkImage image, VkImageView image_view);
+    VulkanTexture(VkDevice device, VmaAllocator allocator, VkImage image, VkImageView image_view, VmaAllocation allocation);
     ~VulkanTexture() override;
 
     VulkanTexture(VulkanTexture const&) = delete;
@@ -21,9 +22,15 @@ public:
     [[nodiscard]]
     VkImageLayout set_next_layout(VkImageLayout next_layout);
 
+    VkImage get_image() const { return m_image; }
+
+    VkImageView get_image_view() const { return m_image_view; }
+
 private:
+    VkDevice m_device = VK_NULL_HANDLE;
     VmaAllocator m_allocator = VK_NULL_HANDLE;
     VkImage m_image = VK_NULL_HANDLE;
+    VkImageView m_image_view = VK_NULL_HANDLE;
     VmaAllocation m_allocation = VK_NULL_HANDLE;
     VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 };

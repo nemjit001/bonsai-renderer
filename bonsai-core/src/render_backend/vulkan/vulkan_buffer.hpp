@@ -19,6 +19,8 @@ public:
 
     void unmap() override;
 
+    VkBuffer get_buffer() const { return m_buffer; }
+
 private:
     VmaAllocator m_allocator = VK_NULL_HANDLE;
     VkBuffer m_buffer = VK_NULL_HANDLE;

@@ -48,6 +48,7 @@ struct VulkanSwapchainConfiguration
     std::vector<VkImage> swap_images = {};
     std::vector<VkImageView> swap_image_views = {};
     std::vector<VkSemaphore> swap_released_semaphores = {};
+    std::vector<RenderTexture*> swap_render_textures = {};
 };
 
 /// @brief Vulkan implementation for the render backend.
@@ -70,6 +71,8 @@ public:
     RenderBackendFrameResult end_frame() override;
 
     RenderCommands* get_frame_commands() override;
+
+    RenderTexture* get_current_swap_texture() override;
 
     RenderBuffer* create_buffer(
         size_t size,
@@ -114,7 +117,7 @@ private:
         std::vector<char const*> const& enabled_device_extensions
     );
 
-    /// @param Find a queue family index by flags and surface support.
+    /// @brief Find a queue family index by flags and surface support.
     /// @param physical_device Physical device to query for queue families.
     /// @param queue_families Queue families belonging to the passed physical device.
     /// @param required_flags Required queue flags.

@@ -16,6 +16,10 @@ public:
 
     bool end() override;
 
+    void begin_render_pass() override;
+
+    void end_render_pass() override;
+
     void set_pipeline(ShaderPipeline* pipeline) override;
 
     void bind_uniform(char const* name, RenderBuffer* buffer, size_t size, size_t offset) override;

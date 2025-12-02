@@ -143,6 +143,12 @@ public:
     [[nodiscard]]
     virtual bool end() = 0;
 
+    /// @brief Start a new render pass.
+    virtual void begin_render_pass() = 0;
+
+    /// @brief End the active render pass.
+    virtual void end_render_pass() = 0;
+
     /// @brief Set the currently active shader pipeline.
     /// @param pipeline Pipeline to activate.
     virtual void set_pipeline(ShaderPipeline* pipeline) = 0;
@@ -208,6 +214,11 @@ public:
     /// @return A RenderCommands structure for recording frame commands.
     [[nodiscard]]
     virtual RenderCommands* get_frame_commands() = 0;
+
+    /// @brief Get the current swap texture.
+    /// @return A RenderTexture handle.
+    [[nodiscard]]
+    virtual RenderTexture* get_current_swap_texture() = 0;
 
     /// @brief Create a render buffer.
     /// @param size Buffer size in bytes.
