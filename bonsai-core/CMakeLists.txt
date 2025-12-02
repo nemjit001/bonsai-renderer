@@ -1,7 +1,5 @@
 project("Bonsai Core" VERSION 0.1.0)
 
-find_package(DXCompiler REQUIRED)
-
 configure_file(bonsai_config.hpp.in bonsai_config.hpp)
 add_library(bonsai_core STATIC
         # Public sources
@@ -29,7 +27,7 @@ add_library(bonsai_core STATIC
 )
 target_compile_features(bonsai_core PUBLIC cxx_std_17)
 target_include_directories(bonsai_core PUBLIC include PRIVATE src ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(bonsai_core PUBLIC imgui spdlog::spdlog PRIVATE directx-compiler imgui_sdl3 SDL3::SDL3)
+target_link_libraries(bonsai_core PUBLIC imgui spdlog::spdlog PRIVATE dxcompiler imgui_sdl3 SDL3::SDL3)
 target_compile_definitions(bonsai_core PUBLIC BONSAI_EXPORT_SYMBOLS=1)
 target_extended_warnings(bonsai_core)
 
