@@ -171,6 +171,10 @@ public:
     /// @param y Dispatch dimension y.
     /// @param z Dispatch dimension z.
     virtual void dispatch(uint32_t x, uint32_t y, uint32_t z) = 0;
+
+    /// @brief Render ImGui draw data using the render backend.
+    /// @param draw_data ImGui draw data, retrieved using ImGui::GetDrawData().
+    virtual void imgui_render_draw_data(ImDrawData* draw_data) = 0;
 };
 
 /// @brief The RenderBackend wraps a backend graphics API, providing a common interface for the engine to use.

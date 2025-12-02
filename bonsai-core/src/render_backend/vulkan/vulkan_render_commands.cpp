@@ -1,5 +1,6 @@
 #include "vulkan_render_commands.hpp"
 
+#include <backends/imgui_impl_vulkan.h>
 #include "vk_check.hpp"
 
 VulkanRenderCommands::VulkanRenderCommands(VkCommandBuffer command_buffer)
@@ -47,6 +48,10 @@ void VulkanRenderCommands::bind_texture(char const* name, RenderTexture* texture
 
 void VulkanRenderCommands::dispatch(uint32_t x, uint32_t y, uint32_t z)
 {
-    /// TODO(nemjit001): Should we check if last bound pipeline was a compute pipeline?
     vkCmdDispatch(m_command_buffer, x, y, z);
+}
+
+void VulkanRenderCommands::imgui_render_draw_data(ImDrawData* draw_data)
+{
+    ImGui_ImplVulkan_RenderDrawData(draw_data, m_command_buffer);
 }

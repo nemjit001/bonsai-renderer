@@ -26,6 +26,8 @@ public:
 
     void dispatch(uint32_t x, uint32_t y, uint32_t z) override;
 
+    void imgui_render_draw_data(ImDrawData* draw_data) override;
+
 private:
     VkCommandBuffer m_command_buffer = VK_NULL_HANDLE;
 };
