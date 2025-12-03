@@ -23,6 +23,7 @@ public:
 
 private:
     RenderBackend* m_render_backend = nullptr;
+    RenderExtent2D m_swap_extent = {};
 };
 
 #endif //BONSAI_RENDERER_RENDERER_HPP

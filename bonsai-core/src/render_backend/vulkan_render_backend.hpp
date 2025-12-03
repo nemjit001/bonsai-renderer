@@ -44,6 +44,7 @@ struct VulkanSwapchainCapabilities
 /// @brief Reified swap chain configuration for a surface.
 struct VulkanSwapchainConfiguration
 {
+    VkExtent2D image_extent;
     VkSwapchainKHR swapchain = VK_NULL_HANDLE;
     std::vector<VkImage> swap_images = {};
     std::vector<VkImageView> swap_image_views = {};
@@ -67,6 +68,8 @@ public:
     void wait_idle() const override;
 
     void reconfigure_swap_chain(uint32_t width, uint32_t height) override;
+
+    RenderExtent2D get_swap_extent() const override;
 
     RenderBackendFrameResult new_frame() override;
 

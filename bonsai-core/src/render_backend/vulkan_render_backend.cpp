@@ -365,6 +365,14 @@ void VulkanRenderBackend::reconfigure_swap_chain(uint32_t width, uint32_t height
     );
 }
 
+RenderExtent2D VulkanRenderBackend::get_swap_extent() const
+{
+    return {
+        m_swapchain_config.image_extent.width,
+        m_swapchain_config.image_extent.height,
+    };
+}
+
 RenderBackendFrameResult VulkanRenderBackend::new_frame()
 {
     vkWaitForFences(m_device, 1, &m_frame_ready, VK_TRUE, UINT64_MAX);
@@ -889,6 +897,7 @@ bool VulkanRenderBackend::configure_swapchain(
         return false;
     }
     vkDestroySwapchainKHR(device, swapchain_config.swapchain, nullptr);
+    swapchain_config.image_extent = image_extent;
     swapchain_config.swapchain = swapchain;
 
     uint32_t swap_image_count = 0;

@@ -311,6 +311,10 @@ public:
     /// @param height New surface height in pixels.
     virtual void reconfigure_swap_chain(uint32_t width, uint32_t height) = 0;
 
+    /// @brief Get the current swap chain extent.
+    /// @return The current 2D swap extent.
+    virtual RenderExtent2D get_swap_extent() const = 0;
+
     /// @brief Start a new render backend frame.
     /// @return A render backend frame result.
     [[nodiscard]]

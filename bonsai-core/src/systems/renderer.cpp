@@ -6,17 +6,29 @@ Renderer::Renderer(RenderBackend* render_backend)
     :
     m_render_backend(render_backend)
 {
-    //
+    m_swap_extent = m_render_backend->get_swap_extent();
 }
 
 void Renderer::on_resize(uint32_t width, uint32_t height)
 {
+    if (width == 0 || height == 0)
+    {
+        m_swap_extent = { 0, 0 };
+        return;
+    }
+
     m_render_backend->wait_idle();
     m_render_backend->reconfigure_swap_chain(width, height);
+    m_swap_extent = { width, height };
 }
 
 void Renderer::render()
 {
+    if (m_swap_extent.width == 0 || m_swap_extent.height == 0)
+    {
+        return;
+    }
+
     if (m_render_backend->new_frame() == RenderBackendFrameResult::FatalError)
     {
         BONSAI_FATAL_EXIT("Failed to start renderer frame\n");
