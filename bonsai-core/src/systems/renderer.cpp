@@ -39,7 +39,7 @@ void Renderer::render()
     color_attachment.clear_value = RenderClearValue{{{ 0.0F, 0.0F, 0.0F, 0.0F }}};
 
     frame_commands->begin_render_pass(render_area, &color_attachment, 1, nullptr, nullptr);
-    // frame_commands->imgui_render_draw_data(ImGui::GetDrawData());
+    frame_commands->imgui_render_draw_data(ImGui::GetDrawData());
     frame_commands->end_render_pass();
     frame_commands->mark_for_present(swap_texture);
 

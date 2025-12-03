@@ -31,8 +31,15 @@ public:
     [[nodiscard]]
     VkImageLayout set_next_layout(VkImageLayout next_layout);
 
+    /// @brief Get the current tracked vulkan image layout.
+    /// @return The current image layout.
+    [[nodiscard]]
+    VkImageLayout get_current_layout() const { return m_layout; }
+
+    [[nodiscard]]
     VkImage get_image() const { return m_image; }
 
+    [[nodiscard]]
     VkImageView get_image_view() const { return m_image_view; }
 
 private:

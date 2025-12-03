@@ -242,14 +242,14 @@ public:
     /// @param render_area Target area for render operations.
     /// @param color_targets Render pass color targets.
     /// @param color_target_count Number of color targets.
-    /// @param depth_attachment Render pass depth attachment.
-    /// @param stencil_attachment Render pass stencil attachment.
+    /// @param depth_target Render pass depth target.
+    /// @param stencil_target Render pass stencil target.
     virtual void begin_render_pass(
         RenderRect2D render_area,
         RenderAttachmentInfo* color_targets,
         size_t color_target_count,
-        RenderAttachmentInfo* depth_attachment,
-        RenderAttachmentInfo* stencil_attachment
+        RenderAttachmentInfo* depth_target,
+        RenderAttachmentInfo* stencil_target
     ) = 0;
 
     /// @brief End the active render pass.

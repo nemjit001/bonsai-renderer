@@ -22,8 +22,8 @@ public:
         RenderRect2D render_area,
         RenderAttachmentInfo* color_targets,
         size_t color_target_count,
-        RenderAttachmentInfo* depth_attachment,
-        RenderAttachmentInfo* stencil_attachment
+        RenderAttachmentInfo* depth_target,
+        RenderAttachmentInfo* stencil_target
     ) override;
 
     void end_render_pass() override;
