@@ -233,8 +233,10 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface, ImGu
         BONSAI_FATAL_EXIT("Failed to create Vulkan VMA allocator\n");
     }
 
+    uint32_t surface_width = 0, surface_height = 0;
+    m_main_surface->get_size_in_pixels(surface_width, surface_height);
     m_swapchain_capabilities = get_swapchain_capabilities(m_physical_device, m_surface);
-    if (!configure_swapchain(m_main_surface, m_physical_device, m_surface, m_device, m_swapchain_capabilities, m_swapchain_config))
+    if (!configure_swapchain(surface_width, surface_height, m_physical_device, m_surface, m_device, m_swapchain_capabilities, m_swapchain_config))
     {
         BONSAI_FATAL_EXIT("Failed to configure Vulkan swap chain\n");
     }
@@ -349,6 +351,18 @@ VulkanRenderBackend::~VulkanRenderBackend()
 void VulkanRenderBackend::wait_idle() const
 {
     vkDeviceWaitIdle(m_device);
+}
+
+void VulkanRenderBackend::reconfigure_swap_chain(uint32_t width, uint32_t height)
+{
+    configure_swapchain(
+        width, height,
+        m_physical_device,
+        m_surface,
+        m_device,
+        m_swapchain_capabilities,
+        m_swapchain_config
+    );
 }
 
 RenderBackendFrameResult VulkanRenderBackend::new_frame()
@@ -819,7 +833,8 @@ VulkanSwapchainCapabilities VulkanRenderBackend::get_swapchain_capabilities(
 }
 
 bool VulkanRenderBackend::configure_swapchain(
-    PlatformSurface const* platform_surface,
+    uint32_t width,
+    uint32_t height,
     VkPhysicalDevice physical_device,
     VkSurfaceKHR surface,
     VkDevice device,
@@ -844,7 +859,8 @@ bool VulkanRenderBackend::configure_swapchain(
     VkExtent2D image_extent = surface_capabilities.currentExtent;
     if (image_extent.width == UINT32_MAX && image_extent.height == UINT32_MAX)
     {
-        platform_surface->get_size_in_pixels(image_extent.width, image_extent.height);
+        image_extent.width = width;
+        image_extent.height = height;
     }
 
     VkSwapchainCreateInfoKHR swapchain_create_info{};

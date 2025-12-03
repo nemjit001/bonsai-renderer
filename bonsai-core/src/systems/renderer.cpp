@@ -9,6 +9,12 @@ Renderer::Renderer(RenderBackend* render_backend)
     //
 }
 
+void Renderer::on_resize(uint32_t width, uint32_t height)
+{
+    m_render_backend->wait_idle();
+    m_render_backend->reconfigure_swap_chain(width, height);
+}
+
 void Renderer::render()
 {
     if (m_render_backend->new_frame() == RenderBackendFrameResult::FatalError)

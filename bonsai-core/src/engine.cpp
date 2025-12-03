@@ -52,6 +52,7 @@ Engine::Engine()
 
     s_platform->set_surface_resized_callback([](PlatformSurface*, uint32_t width, uint32_t height) {
         BONSAI_ENGINE_LOG_TRACE("Window resized ({} x {})", width, height);
+        s_renderer->on_resize(width, height);
     });
 
     BONSAI_ENGINE_LOG_INFO("Initialized Bonsai Engine");

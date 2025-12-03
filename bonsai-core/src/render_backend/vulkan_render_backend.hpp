@@ -66,6 +66,8 @@ public:
 
     void wait_idle() const override;
 
+    void reconfigure_swap_chain(uint32_t width, uint32_t height) override;
+
     RenderBackendFrameResult new_frame() override;
 
     RenderBackendFrameResult end_frame() override;
@@ -142,14 +144,16 @@ private:
     );
 
     /// @brief Configure the swap chain for a given surface & physical device.
-    /// @param platform_surface Platform render surface.
+    /// @param width Platform render surface width in pixels.
+    /// @param height Platform render surface height in pixels.
     /// @param physical_device Vulkan physical device.
     /// @param surface Vulkan surface.
     /// @param device Vulkan logical device.
     /// @param swap_capabilities Swap chain capabilities for the surface & physical device.
     /// @param swapchain_config Output swap chain configuration.
     static bool configure_swapchain(
-        PlatformSurface const* platform_surface,
+        uint32_t width,
+        uint32_t height,
         VkPhysicalDevice physical_device,
         VkSurfaceKHR surface,
         VkDevice device,

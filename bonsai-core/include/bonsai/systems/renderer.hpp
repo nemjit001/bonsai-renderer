@@ -13,6 +13,12 @@ public:
     Renderer(Renderer const&) = default;
     Renderer& operator=(Renderer const&) = default;
 
+    /// @brief Handle a surface resize event.
+    /// @param width New surface width in pixels.
+    /// @param height New surface height in pixels.
+    void on_resize(uint32_t width, uint32_t height);
+
+    /// @brief Draw a new frame using the renderer.
     void render();
 
 private:

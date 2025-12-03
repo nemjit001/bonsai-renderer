@@ -306,6 +306,11 @@ public:
     /// @brief Wait for the backend render device to be idle.
     virtual void wait_idle() const = 0;
 
+    /// @brief Reconfigure the swap chain.
+    /// @param width New surface width in pixels.
+    /// @param height New surface height in pixels.
+    virtual void reconfigure_swap_chain(uint32_t width, uint32_t height) = 0;
+
     /// @brief Start a new render backend frame.
     /// @return A render backend frame result.
     [[nodiscard]]
