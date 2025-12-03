@@ -24,6 +24,7 @@ Engine::Engine()
     BONSAI_ENGINE_LOG_TRACE("Initializing ImGui");
     IMGUI_CHECKVERSION();
     s_imgui_context = ImGui::CreateContext();
+    ImGui::StyleColorsDark();
     ImGuiIO& imgui_io = ImGui::GetIO();
     imgui_io.IniFilename = nullptr;
     imgui_io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
