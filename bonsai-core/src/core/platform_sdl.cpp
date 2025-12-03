@@ -102,6 +102,7 @@ bool Platform::pump_messages()
     SDL_Event event{};
     while (SDL_PollEvent(&event))
     {
+        ImGui_ImplSDL3_ProcessEvent(&event);
         switch (event.type)
         {
         case SDL_EVENT_QUIT:
@@ -122,7 +123,6 @@ bool Platform::pump_messages()
         case SDL_EVENT_WINDOW_RESTORED:
             if (m_impl->surface_resized_callback) {
                 PlatformSurface* surface = m_impl->tracked_surfaces[event.window.windowID];
-
                 uint32_t width = 0, height = 0;
                 surface->get_size_in_pixels(width, height);
                 m_impl->surface_resized_callback(surface, width, height);
@@ -133,16 +133,11 @@ bool Platform::pump_messages()
         case SDL_EVENT_MOUSE_MOTION:
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
         case SDL_EVENT_MOUSE_BUTTON_UP:
-            if (!io.WantCaptureKeyboard && !io.WantCaptureMouse)
-            {
-                // TODO(nemjit001): Handle keyboard / mouse inputs only if ImGui does not want to capture
-            }
+            // TODO(nemjit001): Handle platform inputs & translate to usable format for applications
             break;
         default:
             break;
         }
-
-        ImGui_ImplSDL3_ProcessEvent(&event);
     }
 
     ImGui_ImplSDL3_NewFrame();
