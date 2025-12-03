@@ -12,7 +12,8 @@ static VkImageMemoryBarrier2 get_image_memory_barrier(
     VkAccessFlags2 srcAccessMask,
     VkPipelineStageFlags2 dstStageMask,
     VkAccessFlags2 dstAccessMask,
-    VkImageLayout new_layout
+    VkImageLayout new_layout,
+    VkImageSubresourceRange subresource_range
 )
 {
     VkImageMemoryBarrier2 image_barrier{};
@@ -27,11 +28,7 @@ static VkImageMemoryBarrier2 get_image_memory_barrier(
     image_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     image_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     image_barrier.image = texture->get_image();
-    image_barrier.subresourceRange = { // FIXME(nemjit001): get subresource range from image or let user specify
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        0, 1,
-        0, 1,
-    };
+    image_barrier.subresourceRange = subresource_range;
 
     return image_barrier;
 }
@@ -143,7 +140,12 @@ void VulkanRenderCommands::begin_render_pass(
             VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
             VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
             VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            {
+                VK_IMAGE_ASPECT_COLOR_BIT,
+                0, 1,
+                0, 1,
+            }
         ));
 
         if (vk_resolve_target)
@@ -154,7 +156,12 @@ void VulkanRenderCommands::begin_render_pass(
                 VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
                 VK_PIPELINE_STAGE_2_RESOLVE_BIT,
                 VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                {
+                    VK_IMAGE_ASPECT_COLOR_BIT,
+                    0, 1,
+                    0, 1,
+                }
             ));
         }
 
@@ -177,6 +184,7 @@ void VulkanRenderCommands::begin_render_pass(
         color_attachments.push_back(rendering_attachment_info);
     }
 
+    // Set and transition depth target if it exists
     VkRenderingAttachmentInfo depth_attachment{};
     if (depth_target != nullptr)
     {
@@ -189,7 +197,12 @@ void VulkanRenderCommands::begin_render_pass(
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
             VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            {
+                VK_IMAGE_ASPECT_DEPTH_BIT,
+                0, 1,
+                0, 1,
+            }
         ));
 
         if (vk_resolve_target)
@@ -200,7 +213,12 @@ void VulkanRenderCommands::begin_render_pass(
                 VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
                 VK_PIPELINE_STAGE_2_RESOLVE_BIT,
                 VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                {
+                    VK_IMAGE_ASPECT_DEPTH_BIT,
+                    0, 1,
+                    0, 1,
+                }
             ));
         }
 
@@ -213,14 +231,13 @@ void VulkanRenderCommands::begin_render_pass(
         depth_attachment.resolveImageLayout = vk_resolve_target ? vk_resolve_target->get_current_layout() : VK_IMAGE_LAYOUT_UNDEFINED;
         depth_attachment.loadOp = get_load_op(depth_target->load_op);
         depth_attachment.storeOp = get_store_op(depth_target->store_op);
-        depth_attachment.clearValue = VkClearValue{{{
-            depth_target->clear_value.color.float32[0],
-            depth_target->clear_value.color.float32[1],
-            depth_target->clear_value.color.float32[2],
-            depth_target->clear_value.color.float32[3],
-        }}};
+        depth_attachment.clearValue.depthStencil = {
+            depth_target->clear_value.depth_stencil.depth,
+            depth_target->clear_value.depth_stencil.stencil,
+        };
     }
 
+    // Set and transition stencil target if it exists
     VkRenderingAttachmentInfo stencil_attachment{};
     if (stencil_target != nullptr)
     {
@@ -233,7 +250,12 @@ void VulkanRenderCommands::begin_render_pass(
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
             VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT,
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            {
+                VK_IMAGE_ASPECT_STENCIL_BIT,
+                0, 1,
+                0, 1,
+            }
         ));
 
         if (vk_resolve_target)
@@ -244,7 +266,12 @@ void VulkanRenderCommands::begin_render_pass(
                 VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
                 VK_PIPELINE_STAGE_2_RESOLVE_BIT,
                 VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                {
+                    VK_IMAGE_ASPECT_STENCIL_BIT,
+                    0, 1,
+                    0, 1,
+                }
             ));
         }
 
@@ -257,12 +284,10 @@ void VulkanRenderCommands::begin_render_pass(
         stencil_attachment.resolveImageLayout = vk_resolve_target ? vk_resolve_target->get_current_layout() : VK_IMAGE_LAYOUT_UNDEFINED;
         stencil_attachment.loadOp = get_load_op(stencil_target->load_op);
         stencil_attachment.storeOp = get_store_op(stencil_target->store_op);
-        stencil_attachment.clearValue = VkClearValue{{{
-            stencil_target->clear_value.color.float32[0],
-            stencil_target->clear_value.color.float32[1],
-            stencil_target->clear_value.color.float32[2],
-            stencil_target->clear_value.color.float32[3],
-        }}};
+        stencil_attachment.clearValue.depthStencil = {
+            depth_target->clear_value.depth_stencil.depth,
+            depth_target->clear_value.depth_stencil.stencil,
+        };
     }
 
     VkRenderingInfo rendering_info{};
