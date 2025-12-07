@@ -313,6 +313,7 @@ public:
 
     /// @brief Get the current swap chain extent.
     /// @return The current 2D swap extent.
+    [[nodiscard]]
     virtual RenderExtent2D get_swap_extent() const = 0;
 
     /// @brief Start a new render backend frame.
@@ -370,6 +371,9 @@ public:
         RenderTextureUsageFlags texture_usage,
         RenderTextureTilingMode tiling_mode
     ) = 0;
+
+    [[nodiscard]]
+    virtual ShaderPipeline* create_shader_pipeline() = 0;
 
     /// @brief Get the current frame index.
     /// @return The currently active frame index.

@@ -7,6 +7,12 @@ Renderer::Renderer(RenderBackend* render_backend)
     m_render_backend(render_backend)
 {
     m_swap_extent = m_render_backend->get_swap_extent();
+    m_shader_pipeline = m_render_backend->create_shader_pipeline();
+}
+
+Renderer::~Renderer()
+{
+    delete m_shader_pipeline;
 }
 
 void Renderer::on_resize(uint32_t width, uint32_t height)
@@ -33,9 +39,9 @@ void Renderer::render()
     {
         BONSAI_FATAL_EXIT("Failed to start renderer frame\n");
     }
+
     ImGui::NewFrame();
     // TODO(nemjit001): render GUI here (using app specific function?)
-    ImGui::ShowDemoWindow();
     ImGui::Render();
 
     RenderCommands* frame_commands = m_render_backend->get_frame_commands();
@@ -57,6 +63,17 @@ void Renderer::render()
     color_attachment.clear_value = RenderClearValue{{{ 0.0F, 0.0F, 0.0F, 0.0F }}};
 
     frame_commands->begin_render_pass(render_area, &color_attachment, 1, nullptr, nullptr);
+    frame_commands->set_pipeline(m_shader_pipeline);
+    // TODO(nemjit001): Record draw commands
+    frame_commands->end_render_pass();
+
+    RenderAttachmentInfo imgui_color_attachment{};
+    imgui_color_attachment.render_target = swap_texture;
+    imgui_color_attachment.load_op = RenderLoadOpLoad;
+    imgui_color_attachment.store_op = RenderStoreOpStore;
+    imgui_color_attachment.clear_value = RenderClearValue{{{ 0.0F, 0.0F, 0.0F, 0.0F }}};
+
+    frame_commands->begin_render_pass(render_area, &imgui_color_attachment, 1, nullptr, nullptr);
     frame_commands->imgui_render_draw_data(ImGui::GetDrawData());
     frame_commands->end_render_pass();
     frame_commands->mark_for_present(swap_texture);

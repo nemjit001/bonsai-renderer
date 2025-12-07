@@ -97,6 +97,8 @@ public:
         RenderTextureTilingMode tiling_mode
     ) override;
 
+    ShaderPipeline* create_shader_pipeline() override;
+
     uint64_t get_current_frame_index() const override { return m_frame_idx; }
 
 private:

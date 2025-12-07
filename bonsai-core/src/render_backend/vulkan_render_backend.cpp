@@ -11,6 +11,7 @@
 #include "bonsai/core/logger.hpp"
 #include "render_backend/vulkan/vk_check.hpp"
 #include "render_backend/vulkan/vulkan_buffer.hpp"
+#include "render_backend/vulkan/vulkan_shader_pipeline.hpp"
 #include "render_backend/vulkan/vulkan_texture.hpp"
 #include "bonsai_config.hpp"
 
@@ -672,6 +673,14 @@ RenderTexture* VulkanRenderBackend::create_texture(
     texture_desc.extent = { width, height, depth };
 
     return new VulkanTexture(m_device, m_allocator, image, image_view, allocation, texture_desc);
+}
+
+ShaderPipeline* VulkanRenderBackend::create_shader_pipeline()
+{
+    VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
+    VkPipeline pipeline = VK_NULL_HANDLE;
+
+    return new VulkanShaderPipeline(m_device, pipeline_layout, pipeline);
 }
 
 bool VulkanRenderBackend::has_device_extensions(
