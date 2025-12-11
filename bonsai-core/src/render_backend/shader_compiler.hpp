@@ -21,13 +21,17 @@ public:
     ShaderCompiler& operator=(ShaderCompiler const& other) = default;
 
     /// @brief Compile a shader source buffer to the backend IL.
+    /// @param name Shader source name for use in debug messages.
     /// @param entrypoint Shader entrypoint name.
     /// @param target_profile Target profile for the shader, specifies shader capabilities.
     /// @param source Shader HLSL source.
+    /// @param base_include_dir Base include dir to use for #include directives, may be nullptr.
     /// @param compile_into_spirv Compile the shader code into SPIR-V bytecode.
     /// @param compiled_shader Output compiled shader byte code.
     /// @return A boolean indicating successful compilation.
-    bool compile(char const* entrypoint, LPCWSTR target_profile, DxcBuffer source, bool compile_into_spirv, IDxcBlob** compiled_shader) const;
+    bool compile_source(char const* name, char const* entrypoint, LPCWSTR target_profile, DxcBuffer source, char const* base_include_dir, bool compile_into_spirv, IDxcBlob** compiled_shader) const;
+
+    bool compile_file(char const* file_path, char const* entrypoint, LPCWSTR target_profile, bool compile_into_spirv, IDxcBlob** compiled_shader) const;
 
 private:
     /// @brief Default shader arguments to pass to the shader compiler.

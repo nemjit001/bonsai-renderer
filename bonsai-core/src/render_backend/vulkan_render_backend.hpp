@@ -169,6 +169,8 @@ private:
         VulkanSwapchainConfiguration& swapchain_config
     );
 
+    bool compile_shader_source(ShaderSource const& source, LPCWSTR target_profile, IDxcBlob** compiled_shader) const;
+
 private:
     PlatformSurface* m_main_surface = nullptr;
 

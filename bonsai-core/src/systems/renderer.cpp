@@ -39,15 +39,15 @@ Renderer::Renderer(RenderBackend* render_backend)
 {
     m_swap_extent = m_render_backend->get_swap_extent();
 
-    ShaderCodeBlob vertex_shader{};
+    ShaderSource vertex_shader{};
+    vertex_shader.source_kind = ShaderSourceKindInline;
     vertex_shader.entrypoint = "VSmain";
-    vertex_shader.code = SHADER_CODE;
-    vertex_shader.code_size = std::strlen(SHADER_CODE);
+    vertex_shader.shader_source = SHADER_CODE;
 
-    ShaderCodeBlob fragment_shader{};
+    ShaderSource fragment_shader{};
+    fragment_shader.source_kind = ShaderSourceKindInline;
     fragment_shader.entrypoint = "PSmain";
-    fragment_shader.code = SHADER_CODE;
-    fragment_shader.code_size = std::strlen(SHADER_CODE);
+    fragment_shader.shader_source = SHADER_CODE;
 
     GraphicsPipelineDescriptor pipeline_descriptor{};
     pipeline_descriptor.vertex_shader = &vertex_shader;

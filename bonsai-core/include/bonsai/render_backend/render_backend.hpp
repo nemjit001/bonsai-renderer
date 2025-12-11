@@ -151,26 +151,33 @@ struct RenderAttachmentInfo
     RenderClearValue clear_value;
 };
 
-/// @brief A shader code blob contains shader code that can be compiled by the render backend.
-/// All backends support HLSL as shader language.
-struct ShaderCodeBlob
+/// @brief The ShaderSourceKind determines the type of shader code stored in a ShaderSource.
+enum ShaderSourceKind : uint32_t
 {
-    char const* entrypoint; /// @brief Shader entrypoint function.
-    char const* code;       /// @brief Shader code.
-    size_t code_size;       /// @brief Shader code size in bytes.
+    ShaderSourceKindInline  = 0,    /// @brief Expects a C string containing HLSL source code.
+    ShaderSourceKindFile    = 1,    /// @brief Expects a C string containing a shader file path.
+};
+
+/// @brief A shader source contains a shader file that can be compiled by the render backend.
+/// All backends support HLSL as shader language.
+struct ShaderSource
+{
+    ShaderSourceKind source_kind;   /// @brief Shader source type stored in this structure.
+    char const* entrypoint;         /// @brief Shader entrypoint function.
+    char const* shader_source;      /// @brief Shader source file path or code.
 };
 
 /// @brief The graphics pipeline descriptor is used for creating rasterization graphics pipelines.
 struct GraphicsPipelineDescriptor
 {
-    ShaderCodeBlob const* vertex_shader;
-    ShaderCodeBlob const* fragment_shader;
+    ShaderSource const* vertex_shader;
+    ShaderSource const* fragment_shader;
 };
 
 /// @brief The compute pipeline descriptor is used for creating compute shader pipelines.
 struct ComputePipelineDescriptor
 {
-    ShaderCodeBlob compute_shader;
+    ShaderSource compute_shader;
 };
 
 /// @brief The RenderBuffer represents a backend buffer type that can store data.

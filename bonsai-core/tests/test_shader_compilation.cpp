@@ -31,13 +31,14 @@ void CSMain()
 
 TEST(shader_compilation_tests, compile_compute_shader)
 {
-    ShaderCompiler shader_compiler{};
+    ShaderCompiler const shader_compiler{};
+    DxcBuffer const shader_source{ COMPUTE_SHADER, std::strlen(COMPUTE_SHADER), 0 };
     CComPtr<IDxcBlob> dxil_shader{};
-    EXPECT_TRUE(shader_compiler.compile("CSMain", BONSAI_TARGET_PROFILE_CS, { COMPUTE_SHADER, std::strlen(COMPUTE_SHADER), 0 }, false, &dxil_shader));
+    EXPECT_TRUE(shader_compiler.compile_source("dxil_shader", "CSMain", BONSAI_TARGET_PROFILE_CS, shader_source, nullptr, false, &dxil_shader));
     EXPECT_TRUE(dxil_shader && dxil_shader->GetBufferSize() > 0 && dxil_shader->GetBufferPointer() != nullptr);
 
     CComPtr<IDxcBlob> spirv_shader{};
-    EXPECT_TRUE(shader_compiler.compile("CSMain", BONSAI_TARGET_PROFILE_CS, { COMPUTE_SHADER, std::strlen(COMPUTE_SHADER), 0 }, true, &spirv_shader));
+    EXPECT_TRUE(shader_compiler.compile_source("spirv_shader", "CSMain", BONSAI_TARGET_PROFILE_CS, shader_source, nullptr, true, &spirv_shader));
     EXPECT_TRUE(spirv_shader && spirv_shader->GetBufferSize() > 0 && spirv_shader->GetBufferPointer() != nullptr);
 }
 
@@ -53,8 +54,9 @@ TEST(shader_compilation_tests, compile_compute_shader)
 TEST(shader_compilation_tests, reflect_compute_shader_local_size_spirv)
 {
     ShaderCompiler shader_compiler{};
+    DxcBuffer const shader_source{ COMPUTE_SHADER, std::strlen(COMPUTE_SHADER), 0 };
     CComPtr<IDxcBlob> spirv_shader{};
-    EXPECT_TRUE(shader_compiler.compile("CSMain", BONSAI_TARGET_PROFILE_CS, { COMPUTE_SHADER, std::strlen(COMPUTE_SHADER), 0 }, true, &spirv_shader));
+    EXPECT_TRUE(shader_compiler.compile_source("reflect_shader", "CSMain", BONSAI_TARGET_PROFILE_CS, shader_source, nullptr, true, &spirv_shader));
 
     SPIRVReflector reflector(spirv_shader);
     uint32_t x = 0, y = 0, z = 0;
@@ -68,7 +70,7 @@ TEST(shader_compilation_tests, reflect_compute_shader_pipeline_layout_spirv)
 {
     ShaderCompiler shader_compiler{};
     CComPtr<IDxcBlob> spirv_shader{};
-    EXPECT_TRUE(shader_compiler.compile("CSMain", BONSAI_TARGET_PROFILE_CS, { COMPUTE_SHADER, std::strlen(COMPUTE_SHADER), 0 }, true, &spirv_shader));
+    EXPECT_TRUE(shader_compiler.compile_source("reflect_shader", "CSMain", BONSAI_TARGET_PROFILE_CS, { COMPUTE_SHADER, std::strlen(COMPUTE_SHADER), 0 }, nullptr, true, &spirv_shader));
 
     SPIRVReflector reflector(spirv_shader);
     uint32_t const push_constant_count = reflector.get_push_constant_range_count();

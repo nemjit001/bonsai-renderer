@@ -691,13 +691,8 @@ ShaderPipeline* VulkanRenderBackend::create_compute_pipeline(ComputePipelineDesc
     // - [ ] Create Vulkan compute pipeline with generated layout & store mapping of name:binding with pipeline
 
     // Compile shader
-    DxcBuffer source{};
-    source.Encoding = DXC_CP_ACP;
-    source.Ptr = pipeline_descriptor.compute_shader.code;
-    source.Size = pipeline_descriptor.compute_shader.code_size;
-
     CComPtr<IDxcBlob> shader_code{};
-    if (!m_shader_compiler.compile(pipeline_descriptor.compute_shader.entrypoint, BONSAI_TARGET_PROFILE_CS, source, true, &shader_code))
+    if (!compile_shader_source(pipeline_descriptor.compute_shader, BONSAI_TARGET_PROFILE_CS, &shader_code))
     {
         return nullptr;
     }
@@ -1047,4 +1042,39 @@ bool VulkanRenderBackend::configure_swapchain(
     }
 
     return true;
+}
+
+bool VulkanRenderBackend::compile_shader_source(ShaderSource const& source, LPCWSTR target_profile, IDxcBlob** compiled_shader) const
+{
+    if (source.source_kind == ShaderSourceKindInline)
+    {
+        DxcBuffer shader_source{};
+        shader_source.Ptr = source.shader_source;
+        shader_source.Size = std::strlen(source.shader_source);
+        shader_source.Encoding = 0; // unknown encoding, just guess...
+
+        char const* entrypoint = source.entrypoint;
+        if (m_shader_compiler.compile_source(
+            entrypoint /* use the entrypoint as shader name */,
+            entrypoint, target_profile,
+            shader_source, nullptr,
+            true, compiled_shader))
+        {
+            return true;
+        }
+    }
+    else if (source.source_kind == ShaderSourceKindFile)
+    {
+        char const* shader_file = source.shader_source;
+        char const* entrypoint = source.entrypoint;
+        if (m_shader_compiler.compile_file(
+            shader_file,
+            entrypoint, target_profile,
+            true, compiled_shader))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
