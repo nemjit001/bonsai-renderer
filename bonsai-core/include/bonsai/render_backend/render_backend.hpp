@@ -151,6 +151,28 @@ struct RenderAttachmentInfo
     RenderClearValue clear_value;
 };
 
+/// @brief A shader code blob contains shader code that can be compiled by the render backend.
+/// All backends support HLSL as shader language.
+struct ShaderCodeBlob
+{
+    char const* entrypoint; /// @brief Shader entrypoint function.
+    char const* code;       /// @brief Shader code.
+    size_t code_size;       /// @brief Shader code size in bytes.
+};
+
+/// @brief The graphics pipeline descriptor is used for creating rasterization graphics pipelines.
+struct GraphicsPipelineDescriptor
+{
+    ShaderCodeBlob const* vertex_shader;
+    ShaderCodeBlob const* fragment_shader;
+};
+
+/// @brief The compute pipeline descriptor is used for creating compute shader pipelines.
+struct ComputePipelineDescriptor
+{
+    ShaderCodeBlob compute_shader;
+};
+
 /// @brief The RenderBuffer represents a backend buffer type that can store data.
 class RenderBuffer
 {
@@ -200,12 +222,14 @@ public:
     };
 
 public:
+    ShaderPipeline(PipelineType pipeline_type, WorkgroupSize const& workgroup_size)
+        : m_pipeline_type(pipeline_type), m_workgroup_size(workgroup_size) {}
     virtual ~ShaderPipeline() = default;
 
     /// @brief Get the shader pipeline type.
     /// @return The type of shader pipeline.
     [[nodiscard]]
-    PipelineType get_type() const { return m_type; }
+    PipelineType get_type() const { return m_pipeline_type; }
 
     /// @brief Get the shader pipeline workgroup size, if it was specified in the shader.
     /// Only compute shaders specify a workgroup size.
@@ -214,7 +238,7 @@ public:
     WorkgroupSize get_workgroup_size() const { return m_workgroup_size; }
 
 private:
-    PipelineType m_type = PipelineType::None;
+    PipelineType m_pipeline_type = PipelineType::None;
     WorkgroupSize m_workgroup_size = { 0, 0, 0 };
 };
 
@@ -373,7 +397,10 @@ public:
     ) = 0;
 
     [[nodiscard]]
-    virtual ShaderPipeline* create_shader_pipeline() = 0;
+    virtual ShaderPipeline* create_graphics_pipeline(GraphicsPipelineDescriptor pipeline_descriptor) = 0;
+
+    [[nodiscard]]
+    virtual ShaderPipeline* create_compute_pipeline(ComputePipelineDescriptor pipeline_descriptor) = 0;
 
     /// @brief Get the current frame index.
     /// @return The currently active frame index.

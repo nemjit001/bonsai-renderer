@@ -22,6 +22,8 @@ add_library(bonsai_core STATIC
         src/core/logger.cpp
         src/core/platform_sdl.cpp
         src/render_backend/render_backend.cpp
+        src/render_backend/shader_compiler.cpp
+        src/render_backend/shader_compiler.hpp
         src/systems/renderer.cpp
         src/application.cpp
         src/engine_api.cpp
@@ -39,6 +41,8 @@ if (BONSAI_USE_VULKAN)
 
     # TODO(nemjit001): Make this a separate library, will make engine/renderer split more obvious
     target_sources(bonsai_core PRIVATE
+            src/render_backend/vulkan/spirv_reflector.cpp
+            src/render_backend/vulkan/spirv_reflector.hpp
             src/render_backend/vulkan/vk_check.hpp
             src/render_backend/vulkan/vulkan_buffer.cpp
             src/render_backend/vulkan/vulkan_buffer.hpp
@@ -51,7 +55,7 @@ if (BONSAI_USE_VULKAN)
             src/render_backend/vulkan_render_backend.cpp
             src/render_backend/vulkan_render_backend.hpp
     )
-    target_link_libraries(bonsai_core PUBLIC Vulkan::Headers PRIVATE GPUOpen::VulkanMemoryAllocator imgui_vulkan volk::volk_headers)
+    target_link_libraries(bonsai_core PUBLIC Vulkan::Headers PRIVATE GPUOpen::VulkanMemoryAllocator imgui_vulkan spirv-reflect-static volk::volk_headers)
     target_compile_definitions(bonsai_core PUBLIC BONSAI_USE_VULKAN=1)
 endif()
 
@@ -67,9 +71,16 @@ if (BONSAI_BUILD_TESTS)
     include(GoogleTest)
     add_executable(bonsai_core_tests
             tests/sanity.cpp
+            tests/test_shader_compilation.cpp
     )
     target_link_libraries(bonsai_core_tests PRIVATE GTest::gtest_main bonsai_core)
     target_track_dll_dependencies(bonsai_core_tests)
+
+    # Link internally used libraries for testing
+    if (BONSAI_USE_VULKAN)
+        target_link_libraries(bonsai_core_tests PRIVATE spirv-reflect-static)
+        target_compile_definitions(bonsai_core_tests PUBLIC BONSAI_USE_VULKAN=1)
+    endif()
 
     gtest_discover_tests(bonsai_core_tests)
 endif()

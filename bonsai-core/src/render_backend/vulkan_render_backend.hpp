@@ -7,6 +7,7 @@
 #include <vk_mem_alloc.h>
 #include "bonsai/render_backend/render_backend.hpp"
 #include "render_backend/vulkan/vulkan_render_commands.hpp"
+#include "render_backend/shader_compiler.hpp"
 
 static constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
 
@@ -97,7 +98,9 @@ public:
         RenderTextureTilingMode tiling_mode
     ) override;
 
-    ShaderPipeline* create_shader_pipeline() override;
+    ShaderPipeline* create_graphics_pipeline(GraphicsPipelineDescriptor pipeline_descriptor) override;
+
+    ShaderPipeline* create_compute_pipeline(ComputePipelineDescriptor pipeline_descriptor) override;
 
     uint64_t get_current_frame_index() const override { return m_frame_idx; }
 
@@ -192,6 +195,7 @@ private:
     VkCommandBuffer m_frame_cmd_buffer = VK_NULL_HANDLE;
     VulkanRenderCommands m_frame_commands = {};
 
+    ShaderCompiler m_shader_compiler = {};
     uint64_t m_frame_idx = 0;
 };
 

@@ -39,6 +39,7 @@ A complete list of shared and per-platform dependencies is given below.
 
 ### Vulkan dependencies
 
+- SPIRV-Reflect, used for SPIR-V shader reflection.
 - VMA, used for Vulkan allocation management.
 - Volk, used for Vulkan function loading at runtime.
 

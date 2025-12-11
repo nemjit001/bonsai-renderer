@@ -1,13 +1,59 @@
 #include "bonsai/systems/renderer.hpp"
 
+#include <cstring>
 #include "bonsai/core/fatal_exit.hpp"
+
+// TODO(nemjit001): Add shader asset type support w/ loading from disk
+static char const* SHADER_CODE = R"(
+struct VertexInput
+{
+    float3 position : POSITION0;
+    float2 tex_coord : TEXCOORD0;
+}
+
+struct VertexOutput
+{
+    float4 position : SV_POSITION;
+    float2 tex_coord : TEXCOORD0;
+}
+
+[[shader("vertex")]]
+VertexOutput VSmain(VertexInput input)
+{
+    VertexOutput result;
+    result.position = float4(input.position, 1);
+    result.tex_coord = input.tex_coord;
+    return result;
+}
+
+[[shader("pixel")]]
+float4 PSmain(VertexOutput input) : SV_TARGET0
+{
+    return float4(input.tex_coord, 0, 1);
+}
+)";
 
 Renderer::Renderer(RenderBackend* render_backend)
     :
     m_render_backend(render_backend)
 {
     m_swap_extent = m_render_backend->get_swap_extent();
-    m_shader_pipeline = m_render_backend->create_shader_pipeline();
+
+    ShaderCodeBlob vertex_shader{};
+    vertex_shader.entrypoint = "VSmain";
+    vertex_shader.code = SHADER_CODE;
+    vertex_shader.code_size = std::strlen(SHADER_CODE);
+
+    ShaderCodeBlob fragment_shader{};
+    fragment_shader.entrypoint = "PSmain";
+    fragment_shader.code = SHADER_CODE;
+    fragment_shader.code_size = std::strlen(SHADER_CODE);
+
+    GraphicsPipelineDescriptor pipeline_descriptor{};
+    pipeline_descriptor.vertex_shader = &vertex_shader;
+    pipeline_descriptor.fragment_shader = &fragment_shader;
+
+    m_shader_pipeline = m_render_backend->create_graphics_pipeline(pipeline_descriptor);
 }
 
 Renderer::~Renderer()

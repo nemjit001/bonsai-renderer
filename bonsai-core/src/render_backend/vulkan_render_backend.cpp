@@ -9,6 +9,7 @@
 #include "bonsai/core/assert.hpp"
 #include "bonsai/core/fatal_exit.hpp"
 #include "bonsai/core/logger.hpp"
+#include "render_backend/vulkan/spirv_reflector.hpp"
 #include "render_backend/vulkan/vk_check.hpp"
 #include "render_backend/vulkan/vulkan_buffer.hpp"
 #include "render_backend/vulkan/vulkan_shader_pipeline.hpp"
@@ -675,12 +676,90 @@ RenderTexture* VulkanRenderBackend::create_texture(
     return new VulkanTexture(m_device, m_allocator, image, image_view, allocation, texture_desc);
 }
 
-ShaderPipeline* VulkanRenderBackend::create_shader_pipeline()
+ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDescriptor pipeline_descriptor)
 {
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
     VkPipeline pipeline = VK_NULL_HANDLE;
+    return new VulkanShaderPipeline(ShaderPipeline::Graphics, ShaderPipeline::WorkgroupSize{}, m_device, pipeline_layout, pipeline);
+}
 
-    return new VulkanShaderPipeline(m_device, pipeline_layout, pipeline);
+ShaderPipeline* VulkanRenderBackend::create_compute_pipeline(ComputePipelineDescriptor pipeline_descriptor)
+{
+    // TODO(nemjit001):
+    // - [X] Compile shader code using DXC for SPIR-V (MUST be reusable for graphics pipeline)
+    // - [ ] Reflect shader info and bindings & generate pipeline layout (MUST be reusable for graphics pipeline)
+    // - [ ] Create Vulkan compute pipeline with generated layout & store mapping of name:binding with pipeline
+
+    // Compile shader
+    DxcBuffer source{};
+    source.Encoding = DXC_CP_ACP;
+    source.Ptr = pipeline_descriptor.compute_shader.code;
+    source.Size = pipeline_descriptor.compute_shader.code_size;
+
+    CComPtr<IDxcBlob> shader_code{};
+    if (!m_shader_compiler.compile(pipeline_descriptor.compute_shader.entrypoint, BONSAI_TARGET_PROFILE_CS, source, true, &shader_code))
+    {
+        return nullptr;
+    }
+
+    // Set up reflector
+    SPIRVReflector reflector(shader_code);
+    ShaderPipeline::WorkgroupSize workgroup_size{};
+    reflector.get_workgroup_size(workgroup_size.x, workgroup_size.y, workgroup_size.z);
+
+    // Create generated pipeline layout for shader
+    VkPipelineLayoutCreateInfo pipeline_layout_create_info{};
+    pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipeline_layout_create_info.pNext = nullptr;
+    pipeline_layout_create_info.flags = 0;
+    pipeline_layout_create_info.setLayoutCount = 0;
+    pipeline_layout_create_info.pushConstantRangeCount = 0;
+
+    VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
+    if (VK_FAILED(vkCreatePipelineLayout(m_device, &pipeline_layout_create_info, nullptr, &pipeline_layout)))
+    {
+        return nullptr;
+    }
+
+    VkShaderModuleCreateInfo shader_module_create_info{};
+    shader_module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    shader_module_create_info.pNext = nullptr;
+    shader_module_create_info.flags = 0;
+    shader_module_create_info.pCode = static_cast<uint32_t*>(shader_code->GetBufferPointer());
+    shader_module_create_info.codeSize = shader_code->GetBufferSize();
+
+    VkShaderModule shader_module = VK_NULL_HANDLE;
+    if (VK_FAILED(vkCreateShaderModule(m_device, &shader_module_create_info, nullptr, &shader_module)))
+    {
+        vkDestroyPipelineLayout(m_device, pipeline_layout, nullptr);
+        return nullptr;
+    }
+
+    VkComputePipelineCreateInfo pipeline_create_info{};
+    pipeline_create_info.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    pipeline_create_info.pNext = nullptr;
+    pipeline_create_info.flags = 0;
+    pipeline_create_info.stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipeline_create_info.stage.pNext = nullptr;
+    pipeline_create_info.stage.flags = 0;
+    pipeline_create_info.stage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    pipeline_create_info.stage.module = shader_module;
+    pipeline_create_info.stage.pName = pipeline_descriptor.compute_shader.entrypoint;
+    pipeline_create_info.stage.pSpecializationInfo = nullptr;
+    pipeline_create_info.layout = pipeline_layout;
+    pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
+    pipeline_create_info.basePipelineIndex = 0;
+
+    VkPipeline pipeline = VK_NULL_HANDLE;
+    if (VK_FAILED(vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &pipeline_create_info, nullptr, &pipeline)))
+    {
+        vkDestroyShaderModule(m_device, shader_module, nullptr);
+        vkDestroyPipelineLayout(m_device, pipeline_layout, nullptr);
+        return nullptr;
+    }
+
+    vkDestroyShaderModule(m_device, shader_module, nullptr);
+    return new VulkanShaderPipeline(ShaderPipeline::Compute, workgroup_size, m_device, pipeline_layout, pipeline);
 }
 
 bool VulkanRenderBackend::has_device_extensions(

@@ -8,7 +8,13 @@
 class VulkanShaderPipeline : public ShaderPipeline
 {
 public:
-    VulkanShaderPipeline(VkDevice device, VkPipelineLayout layout, VkPipeline pipeline);
+    VulkanShaderPipeline(
+        PipelineType pipeline_type,
+        WorkgroupSize const& workgroup_size,
+        VkDevice device,
+        VkPipelineLayout layout,
+        VkPipeline pipeline
+    );
     ~VulkanShaderPipeline() override;
 
     VulkanShaderPipeline(VulkanShaderPipeline const&) = delete;
