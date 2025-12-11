@@ -37,14 +37,17 @@ bool ShaderCompiler::compile(char const* entrypoint, LPCWSTR target_profile, Dxc
         return false;
     }
 
-    if (compile_into_spirv
-        && FAILED(compiler_args->AddArguments(const_cast<LPCWSTR*>(SPIRV_ARGUMENTS.data()), SPIRV_ARGUMENTS.size())))
+    if (compile_into_spirv)
     {
-        BONSAI_ENGINE_LOG_ERROR("Failed to add shader SPIR-V compiler arguments");
-        return false;
+        HRESULT const spirv_args_result = compiler_args->AddArguments(const_cast<LPCWSTR*>(SPIRV_ARGUMENTS.data()), SPIRV_ARGUMENTS.size());
+        if (FAILED(spirv_args_result))
+        {
+            BONSAI_ENGINE_LOG_ERROR("Failed to add shader SPIR-V compiler arguments");
+            return false;
+        }
     }
 
-    CComPtr<IDxcResult> result = nullptr;
+    CComPtr<IDxcResult> result{};
     if (FAILED(m_compiler->Compile(&source, compiler_args->GetArguments(), compiler_args->GetCount(), m_include_handler, IID_PPV_ARGS(&result)))
         || FAILED(result->GetResult(compiled_shader)))
     {
@@ -52,7 +55,7 @@ bool ShaderCompiler::compile(char const* entrypoint, LPCWSTR target_profile, Dxc
         return false;
     }
 
-    CComPtr<IDxcBlob> errors = nullptr;
+    CComPtr<IDxcBlob> errors{};
     result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&errors), nullptr);
     if (errors && errors->GetBufferSize() > 0)
     {
