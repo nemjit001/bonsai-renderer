@@ -6,6 +6,9 @@
 #define SPV_REFLECT_FAILED(result)      ((result) != SPV_REFLECT_RESULT_SUCCESS)
 
 SPIRVReflector::SPIRVReflector(CComPtr<IDxcBlob> shader_source)
+    :
+    m_reflect_module(),
+    m_entrypoint()
 {
     spvReflectCreateShaderModule(shader_source->GetBufferSize(), shader_source->GetBufferPointer(), &m_reflect_module);
     BONSAI_ASSERT(m_reflect_module.entry_point_count == 1); // We expect to reflect for a single entrypoint only
