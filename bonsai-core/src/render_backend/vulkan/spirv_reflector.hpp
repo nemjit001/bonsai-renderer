@@ -5,9 +5,9 @@
 #define VK_NO_PROTOTYPES
 #include <cstdint>
 #include <vector>
-#include <dxc/dxcapi.h>
 #include <spirv_reflect.h>
 #include <vulkan/vulkan.h>
+#include "render_backend/shader_compiler.hpp"
 
 struct DescriptorBinding
 {

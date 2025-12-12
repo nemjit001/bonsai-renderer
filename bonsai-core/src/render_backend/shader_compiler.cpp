@@ -69,7 +69,7 @@ bool ShaderCompiler::compile_source(
     }
 
     CComPtr<IDxcResult> result{};
-    if (FAILED(m_compiler->Compile(&source, compiler_args->GetArguments(), compiler_args->GetCount(), m_include_handler, IID_PPV_ARGS(&result)))
+    if (FAILED(m_compiler->Compile(&source, compiler_args->GetArguments(), compiler_args->GetCount(), m_include_handler.Get(), IID_PPV_ARGS(&result)))
         || FAILED(result->GetResult(compiled_shader)))
     {
         BONSAI_ENGINE_LOG_ERROR("Failed to compile shader");

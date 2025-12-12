@@ -73,6 +73,7 @@ if (BONSAI_BUILD_TESTS)
             tests/sanity.cpp
             tests/test_shader_compilation.cpp
     )
+    target_include_directories(bonsai_core_tests PUBLIC include PRIVATE src tests)
     target_link_libraries(bonsai_core_tests PRIVATE GTest::gtest_main bonsai_core)
     target_track_dll_dependencies(bonsai_core_tests)
 
