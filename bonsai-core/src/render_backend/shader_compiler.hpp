@@ -2,21 +2,16 @@
 #ifndef BONSAI_RENDERER_SHADER_COMPILER_HPP
 #define BONSAI_RENDERER_SHADER_COMPILER_HPP
 
-#if _WIN32
-// This platform specific include is needed since the DXC api does not expose cross platform
-// types on WIN32.
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-#include <wrl.h>
-#endif
-
 #include <array>
 #include <dxc/dxcapi.h>
 
 #if _WIN32
-template <typename Type>
-using CComPtr = Microsoft::WRL::ComPtr<Type>;
+// This platform specific include is needed since the DXC api does not expose cross platform
+// types on WIN32...
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#include <wrl.h>
 #endif
 
 static constexpr LPCWSTR BONSAI_TARGET_PROFILE_VS   = L"vs_6_1";
