@@ -6,6 +6,7 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "bonsai/render_backend/render_backend.hpp"
+#include "render_backend/vulkan/spirv_reflector.hpp"
 #include "render_backend/vulkan/vulkan_render_commands.hpp"
 #include "render_backend/shader_compiler.hpp"
 
@@ -175,6 +176,12 @@ private:
     /// @param compiled_shader Output compiled shader blob.
     /// @return A boolean indicating successful compilation.
     bool compile_shader_source(ShaderSource const& source, LPCWSTR target_profile, IDxcBlob** compiled_shader) const;
+
+    /// @brief Generate a pipeline layout based on reflection data for shaders.
+    /// @param reflector Reflection data for one or more shaders.
+    /// @param descriptor_set_layouts Output descriptor set layouts associated with the pipeline layout.
+    /// @return A generated pipeline layout.
+    VkPipelineLayout generate_pipeline_layout(SPIRVReflector const& reflector, std::vector<VkDescriptorSetLayout>& descriptor_set_layouts);
 
 private:
     PlatformSurface* m_main_surface = nullptr;
