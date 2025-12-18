@@ -687,7 +687,7 @@ ShaderPipeline* VulkanRenderBackend::create_compute_pipeline(ComputePipelineDesc
 {
     // TODO(nemjit001):
     // - [X] Compile shader code using DXC for SPIR-V (MUST be reusable for graphics pipeline)
-    // - [ ] Reflect shader info and bindings & generate pipeline layout (MUST be reusable for graphics pipeline)
+    // - [X] Reflect shader info and bindings & generate pipeline layout (MUST be reusable for graphics pipeline)
     // - [ ] Create Vulkan compute pipeline with generated layout & store mapping of name:binding with pipeline
 
     // Compile shader
@@ -697,18 +697,53 @@ ShaderPipeline* VulkanRenderBackend::create_compute_pipeline(ComputePipelineDesc
         return nullptr;
     }
 
-    // Set up reflector
+    // Reflect shader info & bindings
     SPIRVReflector reflector(shader_code);
     ShaderPipeline::WorkgroupSize workgroup_size{};
     reflector.get_workgroup_size(workgroup_size.x, workgroup_size.y, workgroup_size.z);
+
+    // TODO(nemjit001): Generate descriptor layout bindings based on shaders & store with PSO
+    uint32_t const descriptor_binding_count = reflector.get_descriptor_binding_count();
+    DescriptorBinding const* descriptor_bindings = reflector.get_descriptor_bindings();
+    std::vector<std::vector<VkDescriptorSetLayoutBinding>> descriptor_set_layout_bindings{};
+    for (uint32_t i = 0; i < descriptor_binding_count; i++)
+    {
+        DescriptorBinding const& descriptor_binding = descriptor_bindings[i];
+        if (descriptor_binding.set >= descriptor_set_layout_bindings.size())
+        {
+            descriptor_set_layout_bindings.resize(descriptor_binding.set + 1);
+        }
+        descriptor_set_layout_bindings[descriptor_binding.set].push_back(descriptor_binding.layout_binding);
+    }
+
+    std::vector<VkDescriptorSetLayout> descriptor_set_layouts{};
+    descriptor_set_layouts.reserve(descriptor_set_layout_bindings.size());
+    for (auto const& layout_bindings : descriptor_set_layout_bindings)
+    {
+        VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info{};
+        descriptor_set_layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        descriptor_set_layout_create_info.pNext = nullptr;
+        descriptor_set_layout_create_info.flags = 0;
+        descriptor_set_layout_create_info.bindingCount = layout_bindings.size();
+        descriptor_set_layout_create_info.pBindings = layout_bindings.data();
+
+        VkDescriptorSetLayout descriptor_set_layout = VK_NULL_HANDLE;
+        if (VK_FAILED(vkCreateDescriptorSetLayout(m_device, &descriptor_set_layout_create_info, nullptr, &descriptor_set_layout)))
+        {
+            return nullptr;
+        }
+        descriptor_set_layouts.push_back(descriptor_set_layout);
+    }
 
     // Create generated pipeline layout for shader
     VkPipelineLayoutCreateInfo pipeline_layout_create_info{};
     pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipeline_layout_create_info.pNext = nullptr;
     pipeline_layout_create_info.flags = 0;
-    pipeline_layout_create_info.setLayoutCount = 0;
-    pipeline_layout_create_info.pushConstantRangeCount = 0;
+    pipeline_layout_create_info.setLayoutCount = static_cast<uint32_t>(descriptor_set_layouts.size());
+    pipeline_layout_create_info.pSetLayouts = descriptor_set_layouts.data();
+    pipeline_layout_create_info.pushConstantRangeCount = reflector.get_push_constant_range_count();
+    pipeline_layout_create_info.pPushConstantRanges = reflector.get_push_constant_ranges();
 
     VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
     if (VK_FAILED(vkCreatePipelineLayout(m_device, &pipeline_layout_create_info, nullptr, &pipeline_layout)))

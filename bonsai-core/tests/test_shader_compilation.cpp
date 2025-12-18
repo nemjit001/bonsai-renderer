@@ -85,20 +85,23 @@ TEST(shader_compilation_tests, reflect_compute_shader_pipeline_layout_spirv)
     EXPECT_EQ(pc_ranges[0].size, 4);
 
     DescriptorBinding const* descriptor_bindings = reflector.get_descriptor_bindings();
-    EXPECT_EQ(descriptor_bindings[0].name, std::string("test_buffer"));
-    EXPECT_EQ(descriptor_bindings[0].set, 0);
-    EXPECT_EQ(descriptor_bindings[0].binding, 0);
-    EXPECT_EQ(descriptor_bindings[0].layout_binding.binding, descriptor_bindings[0].binding);
-    EXPECT_EQ(descriptor_bindings[0].layout_binding.stageFlags, VK_SHADER_STAGE_COMPUTE_BIT);
-    EXPECT_EQ(descriptor_bindings[0].layout_binding.descriptorType, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    EXPECT_EQ(descriptor_bindings[0].layout_binding.descriptorCount, 1);
-
-    EXPECT_EQ(descriptor_bindings[1].name, std::string("out_buffer"));
-    EXPECT_EQ(descriptor_bindings[1].set, 0);
-    EXPECT_EQ(descriptor_bindings[1].binding, 1);
-    EXPECT_EQ(descriptor_bindings[1].layout_binding.binding, descriptor_bindings[1].binding);
-    EXPECT_EQ(descriptor_bindings[1].layout_binding.stageFlags, VK_SHADER_STAGE_COMPUTE_BIT);
-    EXPECT_EQ(descriptor_bindings[1].layout_binding.descriptorType, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-    EXPECT_EQ(descriptor_bindings[1].layout_binding.descriptorCount, 1);
+    for (uint32_t i = 0; i < descriptor_binding_count; i++)
+    {
+        DescriptorBinding const& descriptor_binding = descriptor_bindings[i];
+        if (descriptor_binding.binding == 0 && descriptor_binding.set == 0)
+        {
+            EXPECT_EQ(descriptor_binding.layout_binding.binding, descriptor_binding.binding);
+            EXPECT_EQ(descriptor_binding.layout_binding.stageFlags, VK_SHADER_STAGE_COMPUTE_BIT);
+            EXPECT_EQ(descriptor_binding.layout_binding.descriptorType, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+            EXPECT_EQ(descriptor_binding.layout_binding.descriptorCount, 1);
+        }
+        else if (descriptor_binding.binding == 1 && descriptor_binding.set == 0)
+        {
+            EXPECT_EQ(descriptor_binding.layout_binding.binding, descriptor_binding.binding);
+            EXPECT_EQ(descriptor_binding.layout_binding.stageFlags, VK_SHADER_STAGE_COMPUTE_BIT);
+            EXPECT_EQ(descriptor_binding.layout_binding.descriptorType, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+            EXPECT_EQ(descriptor_binding.layout_binding.descriptorCount, 1);
+        }
+    }
 }
 #endif //BONSAI_USE_VULKAN

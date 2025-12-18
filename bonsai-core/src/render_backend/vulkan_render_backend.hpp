@@ -169,6 +169,11 @@ private:
         VulkanSwapchainConfiguration& swapchain_config
     );
 
+    /// @brief Compile shader source code using the shader compiler.
+    /// @param source Shader source structure.
+    /// @param target_profile Shader target profile.
+    /// @param compiled_shader Output compiled shader blob.
+    /// @return A boolean indicating successful compilation.
     bool compile_shader_source(ShaderSource const& source, LPCWSTR target_profile, IDxcBlob** compiled_shader) const;
 
 private:

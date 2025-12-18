@@ -7,13 +7,19 @@
 #include <vector>
 #include <spirv_reflect.h>
 #include <vulkan/vulkan.h>
-#include "render_backend/shader_compiler.hpp"
+#include <dxc/dxcapi.h>
 
+struct ReflectModule
+{
+    SpvReflectShaderModule spv_module;
+    SpvReflectEntryPoint spv_entrypoint;
+};
+
+/// @brief SPIR-V descriptor binding with associated name.
 struct DescriptorBinding
 {
     uint32_t binding;
     uint32_t set;
-    char const* name;
     VkDescriptorSetLayoutBinding layout_binding;
 };
 
@@ -21,11 +27,16 @@ struct DescriptorBinding
 class SPIRVReflector
 {
 public:
-    explicit SPIRVReflector(CComPtr<IDxcBlob> shader_source);
+    /// @brief Create a SPIR-V Reflector for a single shader module (useful for compute shaders)
+    explicit SPIRVReflector(IDxcBlob* shader_source);
+
+    /// @brief Create a SPIR-V Reflector for multiple shaders, this will combine push constants and bindings into
+    /// a unified shader interface.
+    SPIRVReflector(IDxcBlob** shader_sources, uint32_t source_count);
     ~SPIRVReflector();
 
-    SPIRVReflector(SPIRVReflector const&) = delete;
-    SPIRVReflector& operator=(SPIRVReflector const&) = delete;
+    SPIRVReflector(SPIRVReflector const&) = default;
+    SPIRVReflector& operator=(SPIRVReflector const&) = default;
 
     /// @brief Get the shader workgroup size. Only applicable to compute shaders.
     /// @param x Local size in the x dimension.
@@ -46,13 +57,24 @@ public:
     DescriptorBinding const* get_descriptor_bindings() const;
 
 private:
-    static std::vector<VkPushConstantRange> parse_push_constant_ranges(SpvReflectShaderModule const& reflect_module);
+    /// @brief Parse shader source blobs into a list of reflect modules.
+    /// @param shader_sources SPIR-V source blob array.
+    /// @param source_count Number of shader sources in the source blob array.
+    /// @return A list of reflect modules.
+    static std::vector<ReflectModule> parse_reflect_modules(IDxcBlob** shader_sources, uint32_t source_count);
 
-    static std::vector<DescriptorBinding> parse_descriptor_bindings(SpvReflectShaderModule const& reflect_module);
+    /// @brief Parse push constant ranges from a list of shader reflect modules.
+    /// @param reflect_modules The list of shader reflect modules to parse.
+    /// @return A list of used push constant ranges.
+    static std::vector<VkPushConstantRange> parse_push_constant_ranges(std::vector<ReflectModule> const& reflect_modules);
+
+    /// @brief Parse descriptor bindings from a list of shader reflect modules.
+    /// @param reflect_modules The list of shader reflect modules to parse.
+    /// @return A list of used descriptor bindings.
+    static std::vector<DescriptorBinding> parse_descriptor_bindings(std::vector<ReflectModule> const& reflect_modules);
 
 private:
-    SpvReflectShaderModule m_reflect_module;
-    SpvReflectEntryPoint m_entrypoint;
+    std::vector<ReflectModule> m_reflect_modules;
     std::vector<VkPushConstantRange> m_push_constant_ranges;
     std::vector<DescriptorBinding> m_descriptor_bindings;
 };
