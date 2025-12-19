@@ -7,7 +7,7 @@
 #include <vector>
 #include <spirv_reflect.h>
 #include <vulkan/vulkan.h>
-#include <dxc/dxcapi.h>
+#include "render_backend/shader_compiler.hpp"
 
 struct ReflectModule
 {
