@@ -677,8 +677,130 @@ RenderTexture* VulkanRenderBackend::create_texture(
 
 ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDescriptor pipeline_descriptor)
 {
-    VkPipelineLayout pipeline_layout = VK_NULL_HANDLE;
+    // TODO(nemjit001):
+    // - [X] Compile used shaders in pipeline & reflect data
+    // - [X] Generate pipeline layout using SPIR-V reflector
+    // - [ ] Set up fixed function state
+    // - [ ] ???
+    // - [ ] Profit
+
+    // Compiled used shader sources & store in compiled shaders array
+    std::vector<IDxcBlob*> compiled_shaders{};
+    std::unordered_map<VkShaderStageFlagBits, std::pair<ShaderSource, CComPtr<IDxcBlob>>> shaders{};
+    if (pipeline_descriptor.vertex_shader != nullptr)
+    {
+        CComPtr<IDxcBlob> vertex_shader{};
+        if (!compile_shader_source(*pipeline_descriptor.vertex_shader, BONSAI_TARGET_PROFILE_VS, &vertex_shader))
+        {
+            return nullptr;
+        }
+        shaders[VK_SHADER_STAGE_VERTEX_BIT] = { *pipeline_descriptor.vertex_shader, vertex_shader };
+        compiled_shaders.push_back(vertex_shader);
+    }
+
+    if (pipeline_descriptor.fragment_shader != nullptr)
+    {
+        CComPtr<IDxcBlob> fragment_shader{};
+        if (!compile_shader_source(*pipeline_descriptor.fragment_shader, BONSAI_TARGET_PROFILE_PS, &fragment_shader))
+        {
+            return nullptr;
+        }
+        shaders[VK_SHADER_STAGE_FRAGMENT_BIT] = { *pipeline_descriptor.fragment_shader, fragment_shader };
+        compiled_shaders.push_back(fragment_shader);
+    }
+
+    // Reflect shader info & bindings
+    SPIRVReflector reflector(compiled_shaders.data(), compiled_shaders.size());
+    std::vector<VkDescriptorSetLayout> descriptor_set_layouts{};
+    VkPipelineLayout pipeline_layout = generate_pipeline_layout(reflector, descriptor_set_layouts);
+    if (pipeline_layout == VK_NULL_HANDLE)
+    {
+        for (auto const& layout : descriptor_set_layouts)
+        {
+            vkDestroyDescriptorSetLayout(m_device, layout, nullptr);
+        }
+        return nullptr;
+    }
+
+    // Generate shader modules & shader stages
+    std::vector<VkShaderModule> shader_modules{};
+    std::vector<VkPipelineShaderStageCreateInfo> shader_stages{};
+    for (auto const& [stage, shader_data ] : shaders)
+    {
+        auto const& [ shader_source, shader_code ] = shader_data;
+        VkShaderModuleCreateInfo shader_module_create_info{};
+        shader_module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        shader_module_create_info.pNext = nullptr;
+        shader_module_create_info.flags = 0;
+        shader_module_create_info.pCode = static_cast<uint32_t*>(shader_code->GetBufferPointer());
+        shader_module_create_info.codeSize = shader_code->GetBufferSize();
+
+        VkShaderModule shader_module = VK_NULL_HANDLE;
+        if (VK_FAILED(vkCreateShaderModule(m_device, &shader_module_create_info, nullptr, &shader_module)))
+        {
+            return nullptr;
+        }
+
+        VkPipelineShaderStageCreateInfo shader_stage_create_info{};
+        shader_stage_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shader_stage_create_info.pNext = nullptr;
+        shader_stage_create_info.flags = 0;
+        shader_stage_create_info.stage = stage;
+        shader_stage_create_info.module = shader_module;
+        shader_stage_create_info.pName = shader_source.entrypoint;
+        shader_stage_create_info.pSpecializationInfo = nullptr;
+
+        shader_modules.push_back(shader_module);
+        shader_stages.push_back(shader_stage_create_info);
+    }
+
+    VkPipelineVertexInputStateCreateInfo vertex_input_state{};
+    vertex_input_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;\
+    vertex_input_state.pNext = nullptr;
+    vertex_input_state.flags = 0;
+    vertex_input_state.vertexBindingDescriptionCount = 0;
+    vertex_input_state.vertexAttributeDescriptionCount = 0;
+
+    VkGraphicsPipelineCreateInfo pipeline_create_info{};
+    pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipeline_create_info.pNext = nullptr;
+    pipeline_create_info.flags = 0;
+    pipeline_create_info.stageCount = static_cast<uint32_t>(shader_stages.size());
+    pipeline_create_info.pStages = shader_stages.data();
+    pipeline_create_info.pVertexInputState = &vertex_input_state;
+    pipeline_create_info.pInputAssemblyState = nullptr;
+    pipeline_create_info.pTessellationState = nullptr;
+    pipeline_create_info.pViewportState = nullptr;
+    pipeline_create_info.pRasterizationState = nullptr;
+    pipeline_create_info.pMultisampleState = nullptr;
+    pipeline_create_info.pDepthStencilState = nullptr;
+    pipeline_create_info.pColorBlendState = nullptr;
+    pipeline_create_info.pDynamicState = nullptr;
+    pipeline_create_info.layout = pipeline_layout;
+    pipeline_create_info.renderPass = VK_NULL_HANDLE;
+    pipeline_create_info.subpass = 0;
+    pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
+    pipeline_create_info.basePipelineIndex = 0;
+
     VkPipeline pipeline = VK_NULL_HANDLE;
+    if (VK_FAILED(vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipeline_create_info, nullptr, &pipeline)))
+    {
+        for (auto const& module : shader_modules)
+        {
+            vkDestroyShaderModule(m_device, module, nullptr);
+        }
+        vkDestroyPipelineLayout(m_device, pipeline_layout, nullptr);
+        for (auto const& layout : descriptor_set_layouts)
+        {
+            vkDestroyDescriptorSetLayout(m_device, layout, nullptr);
+        }
+        return nullptr;
+    }
+
+    for (auto const& module : shader_modules)
+    {
+        vkDestroyShaderModule(m_device, module, nullptr);
+    }
     return new VulkanShaderPipeline(ShaderPipeline::Graphics, ShaderPipeline::WorkgroupSize{}, m_device, {}, pipeline_layout, pipeline);
 }
 
@@ -700,6 +822,10 @@ ShaderPipeline* VulkanRenderBackend::create_compute_pipeline(ComputePipelineDesc
     VkPipelineLayout pipeline_layout = generate_pipeline_layout(reflector, descriptor_set_layouts);
     if (pipeline_layout == VK_NULL_HANDLE)
     {
+        for (auto const& layout : descriptor_set_layouts)
+        {
+            vkDestroyDescriptorSetLayout(m_device, layout, nullptr);
+        }
         return nullptr;
     }
 
@@ -714,6 +840,10 @@ ShaderPipeline* VulkanRenderBackend::create_compute_pipeline(ComputePipelineDesc
     if (VK_FAILED(vkCreateShaderModule(m_device, &shader_module_create_info, nullptr, &shader_module)))
     {
         vkDestroyPipelineLayout(m_device, pipeline_layout, nullptr);
+        for (auto const& layout : descriptor_set_layouts)
+        {
+            vkDestroyDescriptorSetLayout(m_device, layout, nullptr);
+        }
         return nullptr;
     }
 
@@ -737,6 +867,10 @@ ShaderPipeline* VulkanRenderBackend::create_compute_pipeline(ComputePipelineDesc
     {
         vkDestroyShaderModule(m_device, shader_module, nullptr);
         vkDestroyPipelineLayout(m_device, pipeline_layout, nullptr);
+        for (auto const& layout : descriptor_set_layouts)
+        {
+            vkDestroyDescriptorSetLayout(m_device, layout, nullptr);
+        }
         return nullptr;
     }
 

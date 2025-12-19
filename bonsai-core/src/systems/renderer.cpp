@@ -9,15 +9,15 @@ struct VertexInput
 {
     float3 position : POSITION0;
     float2 tex_coord : TEXCOORD0;
-}
+};
 
 struct VertexOutput
 {
     float4 position : SV_POSITION;
     float2 tex_coord : TEXCOORD0;
-}
+};
 
-[[shader("vertex")]]
+[shader("vertex")]
 VertexOutput VSmain(VertexInput input)
 {
     VertexOutput result;
@@ -26,7 +26,7 @@ VertexOutput VSmain(VertexInput input)
     return result;
 }
 
-[[shader("pixel")]]
+[shader("pixel")]
 float4 PSmain(VertexOutput input) : SV_TARGET0
 {
     return float4(input.tex_coord, 0, 1);
@@ -54,6 +54,10 @@ Renderer::Renderer(RenderBackend* render_backend)
     pipeline_descriptor.fragment_shader = &fragment_shader;
 
     m_shader_pipeline = m_render_backend->create_graphics_pipeline(pipeline_descriptor);
+    if (!m_shader_pipeline)
+    {
+        BONSAI_FATAL_EXIT("Failed to compile simple shader pipeline!\n");
+    }
 }
 
 Renderer::~Renderer()

@@ -32,6 +32,8 @@ bool ShaderCompiler::compile_source(
 {
     std::wstring const shader_name(name, name + std::strlen(name) + 1);
     std::wstring const entrypoint_name(entrypoint, entrypoint + std::strlen(entrypoint) + 1);
+    BONSAI_ENGINE_LOG_TRACE("Compiling shader blob ({}::{})", name, entrypoint);
+
     CComPtr<IDxcCompilerArgs> compiler_args{};
     HRESULT const arg_result = m_utils->BuildArguments(
         shader_name.c_str(),
@@ -84,7 +86,6 @@ bool ShaderCompiler::compile_source(
         return false;
     }
 
-    BONSAI_ENGINE_LOG_TRACE("Compiled shader blob");
     return true;
 }
 

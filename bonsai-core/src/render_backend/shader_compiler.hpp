@@ -60,7 +60,6 @@ private:
     /// @brief SPIR-V shader arguments to pass to the shader compiler.
     static constexpr std::array SPIRV_ARGUMENTS = {
         L"-spirv",                      // Generate SPIR-V bytecode
-        L"-fspv-reflect",               // Emit as much reflection data as possible
         L"-fspv-target-env=vulkan1.3"   // Use the Vulkan 1.3 target environment
     };
 
