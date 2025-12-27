@@ -7,6 +7,70 @@
 #define SPV_REFLECT_SUCCEEDED(result)   ((result) == SPV_REFLECT_RESULT_SUCCESS)
 #define SPV_REFLECT_FAILED(result)      ((result) != SPV_REFLECT_RESULT_SUCCESS)
 
+/// @brief Convert a SPIR-V reflect format to the number of bytes stored by that format.
+/// @param format SPIR-V format.
+/// @return The size of the format in bytes.
+static size_t get_spv_format_size(SpvReflectFormat format)
+{
+    switch (format)
+    {
+    case SPV_REFLECT_FORMAT_UNDEFINED:
+        return 0;
+    case SPV_REFLECT_FORMAT_R16_UINT:
+    case SPV_REFLECT_FORMAT_R16_SINT:
+    case SPV_REFLECT_FORMAT_R16_SFLOAT:
+        return 2;
+    case SPV_REFLECT_FORMAT_R16G16_UINT:
+    case SPV_REFLECT_FORMAT_R16G16_SINT:
+    case SPV_REFLECT_FORMAT_R16G16_SFLOAT:
+        return 4;
+    case SPV_REFLECT_FORMAT_R16G16B16_UINT:
+    case SPV_REFLECT_FORMAT_R16G16B16_SINT:
+    case SPV_REFLECT_FORMAT_R16G16B16_SFLOAT:
+        return 6;
+    case SPV_REFLECT_FORMAT_R16G16B16A16_UINT:
+    case SPV_REFLECT_FORMAT_R16G16B16A16_SINT:
+    case SPV_REFLECT_FORMAT_R16G16B16A16_SFLOAT:
+        return 8;
+    case SPV_REFLECT_FORMAT_R32_UINT:
+    case SPV_REFLECT_FORMAT_R32_SINT:
+    case SPV_REFLECT_FORMAT_R32_SFLOAT:
+        return 4;
+    case SPV_REFLECT_FORMAT_R32G32_UINT:
+    case SPV_REFLECT_FORMAT_R32G32_SINT:
+    case SPV_REFLECT_FORMAT_R32G32_SFLOAT:
+        return 8;
+    case SPV_REFLECT_FORMAT_R32G32B32_UINT:
+    case SPV_REFLECT_FORMAT_R32G32B32_SINT:
+    case SPV_REFLECT_FORMAT_R32G32B32_SFLOAT:
+        return 12;
+    case SPV_REFLECT_FORMAT_R32G32B32A32_UINT:
+    case SPV_REFLECT_FORMAT_R32G32B32A32_SINT:
+    case SPV_REFLECT_FORMAT_R32G32B32A32_SFLOAT:
+        return 16;
+    case SPV_REFLECT_FORMAT_R64_UINT:
+    case SPV_REFLECT_FORMAT_R64_SINT:
+    case SPV_REFLECT_FORMAT_R64_SFLOAT:
+        return 8;
+    case SPV_REFLECT_FORMAT_R64G64_UINT:
+    case SPV_REFLECT_FORMAT_R64G64_SINT:
+    case SPV_REFLECT_FORMAT_R64G64_SFLOAT:
+        return 16;
+    case SPV_REFLECT_FORMAT_R64G64B64_UINT:
+    case SPV_REFLECT_FORMAT_R64G64B64_SINT:
+    case SPV_REFLECT_FORMAT_R64G64B64_SFLOAT:
+        return 24;
+    case SPV_REFLECT_FORMAT_R64G64B64A64_UINT:
+    case SPV_REFLECT_FORMAT_R64G64B64A64_SINT:
+    case SPV_REFLECT_FORMAT_R64G64B64A64_SFLOAT:
+        return 32;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
 SPIRVReflector::SPIRVReflector(IDxcBlob* shader_source)
     :
     SPIRVReflector(&shader_source, 1)
@@ -17,6 +81,7 @@ SPIRVReflector::SPIRVReflector(IDxcBlob* shader_source)
 SPIRVReflector::SPIRVReflector(IDxcBlob** shader_sources, uint32_t source_count)
 {
     m_reflect_modules = parse_reflect_modules(shader_sources, source_count);
+    m_vertex_binding_layout = parse_vertex_binding_layout(m_reflect_modules);
     m_push_constant_ranges = parse_push_constant_ranges(m_reflect_modules);
     m_descriptor_bindings = parse_descriptor_bindings(m_reflect_modules);
 }
@@ -41,7 +106,22 @@ void SPIRVReflector::get_workgroup_size(uint32_t& x, uint32_t& y, uint32_t& z) c
 
 uint32_t SPIRVReflector::get_vertex_attribute_count() const
 {
-    return 0;
+    return m_vertex_binding_layout.vertex_attributes.size();
+}
+
+VkVertexInputAttributeDescription const* SPIRVReflector::get_vertex_attributes() const
+{
+    return m_vertex_binding_layout.vertex_attributes.data();
+}
+
+uint32_t SPIRVReflector::get_vertex_binding_count() const
+{
+    return m_vertex_binding_layout.vertex_bindings.size();
+}
+
+VkVertexInputBindingDescription const* SPIRVReflector::get_vertex_bindings() const
+{
+    return m_vertex_binding_layout.vertex_bindings.data();
 }
 
 uint32_t SPIRVReflector::get_push_constant_range_count() const
@@ -83,6 +163,43 @@ std::vector<ReflectModule> SPIRVReflector::parse_reflect_modules(IDxcBlob** shad
     }
 
     return reflect_modules;
+}
+
+VertexBindingLayout SPIRVReflector::parse_vertex_binding_layout(std::vector<ReflectModule> const& reflect_modules)
+{
+    std::vector<VkVertexInputBindingDescription> vertex_bindings{};
+    std::vector<VkVertexInputAttributeDescription> vertex_attributes{};
+    for (auto const& module : reflect_modules)
+    {
+        if (module.spv_entrypoint.shader_stage != SPV_REFLECT_SHADER_STAGE_VERTEX_BIT)
+        {
+            continue;
+        }
+
+        size_t attribute_byte_offset = 0;
+        for (uint32_t i = 0; i < module.spv_entrypoint.input_variable_count; i++)
+        {
+            SpvReflectInterfaceVariable const* input_variable = module.spv_entrypoint.input_variables[i];
+
+            VkVertexInputAttributeDescription attribute{};
+            attribute.location = input_variable->location;
+            attribute.binding = 0; // NOTE(nemjit001): This is always 0 since SPIR-V does not support marking attributes with a binding
+            attribute.format = static_cast<VkFormat>(input_variable->format); // This can be cast to the Vulkan format type
+            attribute.offset = attribute_byte_offset;
+
+            attribute_byte_offset += get_spv_format_size(input_variable->format);
+            vertex_attributes.push_back(attribute);
+        }
+
+        VkVertexInputBindingDescription binding{};
+        binding.binding = 0;
+        binding.stride = attribute_byte_offset; // Total offset is the assumed stride
+        binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        vertex_bindings.push_back(binding);
+        break; // Can stop after first vertex shader, pipeline layout is invalid otherwise.
+    }
+
+    return { vertex_bindings, vertex_attributes };
 }
 
 std::vector<VkPushConstantRange> SPIRVReflector::parse_push_constant_ranges(std::vector<ReflectModule> const& reflect_modules)

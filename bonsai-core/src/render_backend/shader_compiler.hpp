@@ -54,7 +54,7 @@ private:
     static constexpr std::array DEFAULT_ARGUMENTS = {
         DXC_ARG_DEBUG,                  // Generate Debug info
         DXC_ARG_OPTIMIZATION_LEVEL3,    // Set the optimization level to the max
-        L"-Wno-ignored-attributes",      // Disables ignored attributes (Vulkan specific attrs fall under this category...)
+        L"-Wno-ignored-attributes",     // Disables ignored attributes (Vulkan specific attrs fall under this category...)
     };
 
     /// @brief SPIR-V shader arguments to pass to the shader compiler.

@@ -32,14 +32,16 @@ void CSMain()
 static constexpr char const* VERTEX_SHADER = R"(
 struct VSInput
 {
-    float3 position : POSITION0;
-    float3 normal : NORMAL0;
-    float2 tex_coord : TEXCOORD0;
+    [[vk::location(0)]] float3 position     : POSITION0;
+    [[vk::location(1)]] float3 normal       : NORMAL0;
+    [[vk::location(2)]] float2 tex_coord    : TEXCOORD0;
 };
 
 struct PSInput
 {
-    float4 position : SV_Position0;
+    float4 position     : SV_Position;
+    [[vk::location(1)]] float3 normal       : NORMAL0;
+    [[vk::location(2)]] float2 tex_coord    : TEXCOORD0;
 };
 
 [shader("vertex")]
@@ -47,6 +49,8 @@ PSInput VSMain(VSInput input)
 {
     PSInput result;
     result.position = float4(input.position, 1.0);
+    result.normal = input.normal;
+    result.tex_coord = input.tex_coord;
     return result;
 }
 )";
@@ -136,8 +140,30 @@ TEST(shader_compilation_tests, reflect_vertex_binding_layout)
 
     SPIRVReflector reflector(spirv_shader);
     uint32_t const vertex_attr_count = reflector.get_vertex_attribute_count();
+    uint32_t const vertex_binding_count = reflector.get_vertex_binding_count();
     EXPECT_EQ(vertex_attr_count, 3);
-    // reflector.get_vertex_attributes();
+    EXPECT_EQ(vertex_binding_count, 1);
+
+
+    VkVertexInputAttributeDescription const* vertex_attributes = reflector.get_vertex_attributes();
+    EXPECT_EQ(vertex_attributes[0].binding, 0);
+    EXPECT_EQ(vertex_attributes[0].location, 0);
+    EXPECT_EQ(vertex_attributes[0].format, VK_FORMAT_R32G32B32_SFLOAT);
+    EXPECT_EQ(vertex_attributes[0].offset, 0);
+
+    EXPECT_EQ(vertex_attributes[1].binding, 0);
+    EXPECT_EQ(vertex_attributes[1].location, 1);
+    EXPECT_EQ(vertex_attributes[1].format, VK_FORMAT_R32G32B32_SFLOAT);
+    EXPECT_EQ(vertex_attributes[1].offset, 12);
+
+    EXPECT_EQ(vertex_attributes[2].binding, 0);
+    EXPECT_EQ(vertex_attributes[2].location, 2);
+    EXPECT_EQ(vertex_attributes[2].format, VK_FORMAT_R32G32_SFLOAT);
+    EXPECT_EQ(vertex_attributes[2].offset, 24);
+
+    VkVertexInputBindingDescription const* vertex_bindings = reflector.get_vertex_bindings();
+    EXPECT_EQ(vertex_bindings[0].binding, 0);
+    EXPECT_EQ(vertex_bindings[0].stride, 32);
 }
 
 #endif //BONSAI_USE_VULKAN
