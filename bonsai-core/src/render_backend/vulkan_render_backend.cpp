@@ -763,6 +763,69 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     vertex_input_state.vertexAttributeDescriptionCount = reflector.get_vertex_attribute_count();
     vertex_input_state.pVertexAttributeDescriptions = reflector.get_vertex_attributes();
 
+    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
+    VkPipelineInputAssemblyStateCreateInfo input_assembly_state{};
+    input_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    input_assembly_state.pNext = nullptr;
+    input_assembly_state.flags = 0;
+    input_assembly_state.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    input_assembly_state.primitiveRestartEnable = VK_FALSE;
+
+    VkPipelineTessellationStateCreateInfo tessellation_state{};
+    tessellation_state.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+    tessellation_state.pNext = nullptr;
+    tessellation_state.flags = 0;
+    tessellation_state.patchControlPoints = 0;
+
+    VkPipelineViewportStateCreateInfo viewport_state{};
+    viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewport_state.pNext = nullptr;
+    viewport_state.flags = 0;
+    viewport_state.viewportCount = 0;
+    viewport_state.pViewports = nullptr;
+    viewport_state.scissorCount = 0;
+    viewport_state.pScissors = nullptr;
+
+    VkPipelineRasterizationStateCreateInfo rasterization_state{};
+    rasterization_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterization_state.pNext = nullptr;
+    rasterization_state.flags = 0;
+    rasterization_state.depthClampEnable = VK_FALSE;
+    rasterization_state.rasterizerDiscardEnable = VK_FALSE;
+    rasterization_state.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterization_state.cullMode = VK_CULL_MODE_NONE;
+    rasterization_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterization_state.depthBiasEnable = VK_FALSE;
+    rasterization_state.depthBiasConstantFactor = 0.0F;
+    rasterization_state.depthBiasClamp = 0.0F;
+    rasterization_state.depthBiasSlopeFactor = 0.0F;
+    rasterization_state.lineWidth = 1.0F;
+
+    VkPipelineMultisampleStateCreateInfo multisample_state{};
+    multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisample_state.pNext = nullptr;
+    multisample_state.flags = 0;
+    multisample_state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisample_state.sampleShadingEnable = VK_TRUE;
+    multisample_state.minSampleShading = 1.0F;
+    multisample_state.pSampleMask = nullptr;
+    multisample_state.alphaToCoverageEnable = VK_FALSE;
+    multisample_state.alphaToOneEnable = VK_FALSE;
+
+    VkPipelineDepthStencilStateCreateInfo depth_stencil_state{};
+    depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depth_stencil_state.pNext = nullptr;
+    depth_stencil_state.flags = 0;
+    depth_stencil_state.depthTestEnable = VK_FALSE;
+    depth_stencil_state.depthWriteEnable = VK_FALSE;
+    depth_stencil_state.depthCompareOp = VK_COMPARE_OP_LESS;
+    depth_stencil_state.depthBoundsTestEnable = VK_FALSE;
+    depth_stencil_state.stencilTestEnable = VK_FALSE;
+    depth_stencil_state.front = {};
+    depth_stencil_state.back = {};
+    depth_stencil_state.minDepthBounds = 0.0F;
+    depth_stencil_state.maxDepthBounds = 0.0F;
+
     VkGraphicsPipelineCreateInfo pipeline_create_info{};
     pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipeline_create_info.pNext = nullptr;
@@ -770,12 +833,12 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     pipeline_create_info.stageCount = static_cast<uint32_t>(shader_stages.size());
     pipeline_create_info.pStages = shader_stages.data();
     pipeline_create_info.pVertexInputState = &vertex_input_state;
-    pipeline_create_info.pInputAssemblyState = nullptr;
-    pipeline_create_info.pTessellationState = nullptr;
-    pipeline_create_info.pViewportState = nullptr;
-    pipeline_create_info.pRasterizationState = nullptr;
-    pipeline_create_info.pMultisampleState = nullptr;
-    pipeline_create_info.pDepthStencilState = nullptr;
+    pipeline_create_info.pInputAssemblyState = &input_assembly_state;
+    pipeline_create_info.pTessellationState = &tessellation_state;
+    pipeline_create_info.pViewportState = &viewport_state;
+    pipeline_create_info.pRasterizationState = &rasterization_state;
+    pipeline_create_info.pMultisampleState = &multisample_state;
+    pipeline_create_info.pDepthStencilState = &depth_stencil_state;
     pipeline_create_info.pColorBlendState = nullptr;
     pipeline_create_info.pDynamicState = nullptr;
     pipeline_create_info.layout = pipeline_layout;
