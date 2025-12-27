@@ -60,7 +60,8 @@ private:
     /// @brief SPIR-V shader arguments to pass to the shader compiler.
     static constexpr std::array SPIRV_ARGUMENTS = {
         L"-spirv",                      // Generate SPIR-V bytecode
-        L"-fspv-target-env=vulkan1.3"   // Use the Vulkan 1.3 target environment
+        L"-fspv-preserve-interface",    // Preserve the interface variables, ensures vertex layout can be reflected consistently
+        L"-fspv-target-env=vulkan1.3",  // Use the Vulkan 1.3 target environment
     };
 
     CComPtr<IDxcUtils> m_utils = nullptr;

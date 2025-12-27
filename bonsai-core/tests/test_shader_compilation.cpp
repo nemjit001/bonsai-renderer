@@ -40,8 +40,8 @@ struct VSInput
 struct PSInput
 {
     float4 position     : SV_Position;
-    [[vk::location(1)]] float3 normal       : NORMAL0;
-    [[vk::location(2)]] float2 tex_coord    : TEXCOORD0;
+    float3 normal       : NORMAL0;
+    float2 tex_coord    : TEXCOORD0;
 };
 
 [shader("vertex")]

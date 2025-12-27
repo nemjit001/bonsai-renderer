@@ -758,8 +758,10 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     vertex_input_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;\
     vertex_input_state.pNext = nullptr;
     vertex_input_state.flags = 0;
-    vertex_input_state.vertexBindingDescriptionCount = 0;
-    vertex_input_state.vertexAttributeDescriptionCount = 0;
+    vertex_input_state.vertexBindingDescriptionCount = reflector.get_vertex_binding_count();
+    vertex_input_state.pVertexBindingDescriptions = reflector.get_vertex_bindings();
+    vertex_input_state.vertexAttributeDescriptionCount = reflector.get_vertex_attribute_count();
+    vertex_input_state.pVertexAttributeDescriptions = reflector.get_vertex_attributes();
 
     VkGraphicsPipelineCreateInfo pipeline_create_info{};
     pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
