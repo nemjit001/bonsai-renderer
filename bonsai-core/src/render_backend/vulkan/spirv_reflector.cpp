@@ -39,6 +39,11 @@ void SPIRVReflector::get_workgroup_size(uint32_t& x, uint32_t& y, uint32_t& z) c
     z = module.spv_entrypoint.local_size.z;
 }
 
+uint32_t SPIRVReflector::get_vertex_attribute_count() const
+{
+    return 0;
+}
+
 uint32_t SPIRVReflector::get_push_constant_range_count() const
 {
     return static_cast<uint32_t>(m_push_constant_ranges.size());

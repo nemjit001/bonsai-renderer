@@ -29,6 +29,28 @@ void CSMain()
 }
 )";
 
+static constexpr char const* VERTEX_SHADER = R"(
+struct VSInput
+{
+    float3 position : POSITION0;
+    float3 normal : NORMAL0;
+    float2 tex_coord : TEXCOORD0;
+};
+
+struct PSInput
+{
+    float4 position : SV_Position0;
+};
+
+[shader("vertex")]
+PSInput VSMain(VSInput input)
+{
+    PSInput result;
+    result.position = float4(input.position, 1.0);
+    return result;
+}
+)";
+
 TEST(shader_compilation_tests, compile_compute_shader)
 {
     ShaderCompiler const shader_compiler{};
@@ -42,8 +64,8 @@ TEST(shader_compilation_tests, compile_compute_shader)
     EXPECT_TRUE(spirv_shader && spirv_shader->GetBufferSize() > 0 && spirv_shader->GetBufferPointer() != nullptr);
 }
 
-/**
- * These are Vulkan only unit tests for the SPIRV reflector. This is separate from the Vulkan backend, but required Vulkan
+/*
+ * These are Vulkan only unit tests for the SPIRV reflector. This is separate from the Vulkan backend, but requires Vulkan
  * to be available before use.
  *
  * This tests the reflection capabilities of the backend only.
@@ -104,4 +126,18 @@ TEST(shader_compilation_tests, reflect_compute_shader_pipeline_layout_spirv)
         }
     }
 }
+
+TEST(shader_compilation_tests, reflect_vertex_binding_layout)
+{
+    ShaderCompiler shader_compiler{};
+    DxcBuffer const shader_source{ VERTEX_SHADER, std::strlen(VERTEX_SHADER), 0 };
+    CComPtr<IDxcBlob> spirv_shader{};
+    EXPECT_TRUE(shader_compiler.compile_source("reflect_shader", "VSMain", BONSAI_TARGET_PROFILE_VS, shader_source, nullptr, true, &spirv_shader));
+
+    SPIRVReflector reflector(spirv_shader);
+    uint32_t const vertex_attr_count = reflector.get_vertex_attribute_count();
+    EXPECT_EQ(vertex_attr_count, 3);
+    // reflector.get_vertex_attributes();
+}
+
 #endif //BONSAI_USE_VULKAN

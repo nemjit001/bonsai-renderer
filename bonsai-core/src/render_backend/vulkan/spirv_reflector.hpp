@@ -45,14 +45,25 @@ public:
     void get_workgroup_size(uint32_t& x, uint32_t& y, uint32_t& z) const;
 
     [[nodiscard]]
+    uint32_t get_vertex_attribute_count() const;
+
+    /// @brief Get the shader pipeline push constant range count.
+    /// @return The number of unique push constant ranges for the shaders in the reflector.
+    [[nodiscard]]
     uint32_t get_push_constant_range_count() const;
 
+    /// @brief Get the shader pipeline push constants.
+    /// @return The unique push constant ranges for the shaders in the reflector.
     [[nodiscard]]
     VkPushConstantRange const* get_push_constant_ranges() const;
 
+    /// @brief Get the number of descriptor bindings for the shaders in the reflector.
+    /// @return The number of deduplicated descriptor bindings for the shaders in the reflector.
     [[nodiscard]]
     uint32_t get_descriptor_binding_count() const;
 
+    /// @brief Get the descriptor bindings for the shaders in the reflector.
+    /// @return the deduplicated descriptor bindings for the shaders in the reflector.
     [[nodiscard]]
     DescriptorBinding const* get_descriptor_bindings() const;
 
