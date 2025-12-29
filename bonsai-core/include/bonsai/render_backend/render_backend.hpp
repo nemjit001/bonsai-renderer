@@ -158,6 +158,58 @@ enum ShaderSourceKind : uint32_t
     ShaderSourceKindFile    = 1,    /// @brief Expects a C string containing a shader file path.
 };
 
+enum IndexBufferStripCutValue : uint32_t
+{
+    IndexBufferStripCutValueDisabled = 0,
+    IndexBufferStripCutValueEnabled32Bit,
+    IndexBufferStripCutValueEnabled64Bit,
+};
+
+enum PrimitiveTopologyType : uint32_t
+{
+    PrimitiveTopologyTypePointList = 0,
+    PrimitiveTopologyTypeLineList,
+    PrimitiveTopologyTypeLineStrip,
+    PrimitiveTopologyTypeTriangleList,
+    PrimitiveTopologyTypeTriangleStrip,
+    PrimitiveTopologyTypeTriangleFan,
+    PrimitiveTopologyTypeLineListWithAdjacency,
+    PrimitiveTopologyTypeLineStripWithAdjacency,
+    PrimitiveTopologyTypeTriangleListWithAdjacency,
+    PrimitiveTopologyTypeTriangleStripWithAdjacency,
+    PrimitiveTopologyTypePatchList,
+};
+
+enum PolygonMode : uint32_t
+{
+    PolygonModeFill = 0,
+    PolygonModeLine,
+    PolygonModePoint,
+};
+
+enum CullMode
+{
+    CullModeNone = 0,
+    CullModeFront,
+    CullModeBack,
+};
+
+struct InputAssemblyState
+{
+    PrimitiveTopologyType primitive_topology;
+    IndexBufferStripCutValue strip_cut_value;
+};
+
+struct RasterizationState
+{
+    PolygonMode polygon_mode;
+    CullMode cull_mode;
+    bool front_face_counter_clockwise;
+    float depth_bias;
+    float depth_bias_clamp;
+    float depth_bias_slope_factor;
+};
+
 /// @brief A shader source contains a shader file that can be compiled by the render backend.
 /// All backends support HLSL as shader language.
 struct ShaderSource
@@ -172,6 +224,8 @@ struct GraphicsPipelineDescriptor
 {
     ShaderSource const* vertex_shader;
     ShaderSource const* fragment_shader;
+    InputAssemblyState input_assembly_state;
+    RasterizationState rasterization_state;
 };
 
 /// @brief The compute pipeline descriptor is used for creating compute shader pipelines.

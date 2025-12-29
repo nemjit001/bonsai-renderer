@@ -52,6 +52,14 @@ Renderer::Renderer(RenderBackend* render_backend)
     GraphicsPipelineDescriptor pipeline_descriptor{};
     pipeline_descriptor.vertex_shader = &vertex_shader;
     pipeline_descriptor.fragment_shader = &fragment_shader;
+    pipeline_descriptor.input_assembly_state.primitive_topology = PrimitiveTopologyTypeTriangleList;
+    pipeline_descriptor.input_assembly_state.strip_cut_value = IndexBufferStripCutValueDisabled;
+    pipeline_descriptor.rasterization_state.polygon_mode = PolygonModeFill;
+    pipeline_descriptor.rasterization_state.cull_mode = CullModeNone;
+    pipeline_descriptor.rasterization_state.front_face_counter_clockwise = true;
+    pipeline_descriptor.rasterization_state.depth_bias = 0.0F;
+    pipeline_descriptor.rasterization_state.depth_bias_clamp = 0.0F;
+    pipeline_descriptor.rasterization_state.depth_bias_slope_factor = 0.0F;
 
     m_shader_pipeline = m_render_backend->create_graphics_pipeline(pipeline_descriptor);
     if (!m_shader_pipeline)

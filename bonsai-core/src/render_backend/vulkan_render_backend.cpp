@@ -84,6 +84,82 @@ static VkFormat get_vulkan_format(RenderFormat format)
     return VK_FORMAT_UNDEFINED;
 }
 
+/// @brief Get a Vulkan primitive topology from a PrimitiveTopologyType.
+/// @param primitive_topology Primitive topology to translate.
+/// @return The Vulkan equivalent primitive topology.
+static VkPrimitiveTopology get_vulkan_topology(PrimitiveTopologyType primitive_topology)
+{
+    switch (primitive_topology)
+    {
+    case PrimitiveTopologyTypePointList:
+        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    case PrimitiveTopologyTypeLineList:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    case PrimitiveTopologyTypeLineStrip:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+    case PrimitiveTopologyTypeTriangleList:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    case PrimitiveTopologyTypeTriangleStrip:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    case PrimitiveTopologyTypeTriangleFan:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+    case PrimitiveTopologyTypeLineListWithAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+    case PrimitiveTopologyTypeLineStripWithAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+    case PrimitiveTopologyTypeTriangleListWithAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+    case PrimitiveTopologyTypeTriangleStripWithAdjacency:
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+    case PrimitiveTopologyTypePatchList:
+        return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+    default:
+        break;
+    }
+
+    return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+}
+
+/// @brief Get a Vulkan polygon mode from a PolygonMode.
+/// @param polygon_mode Polygon mode to translate.
+/// @return The Vulkan equivalent polygon mode.
+static VkPolygonMode get_vulkan_polygon_mode(PolygonMode polygon_mode)
+{
+    switch (polygon_mode)
+    {
+    case PolygonModeFill:
+        return VK_POLYGON_MODE_FILL;
+    case PolygonModeLine:
+        return VK_POLYGON_MODE_LINE;
+    case PolygonModePoint:
+        return VK_POLYGON_MODE_POINT;
+    default:
+        break;
+    }
+
+    return VK_POLYGON_MODE_MAX_ENUM;
+}
+
+/// @brief Get Vulkan cull mode flags from a cull mode.
+/// @param cull_mode Cull mode to translate.
+/// @return The Vulkan equivalent cull mode.
+static VkCullModeFlags get_vulkan_cull_mode(CullMode cull_mode)
+{
+    switch (cull_mode)
+    {
+    case CullModeNone:
+        return VK_CULL_MODE_NONE;
+    case CullModeBack:
+        return VK_CULL_MODE_BACK_BIT;
+    case CullModeFront:
+        return VK_CULL_MODE_FRONT_BIT;
+    default:
+        break;
+    }
+
+    return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
+}
+
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
 {
     std::vector<uint32_t> queue_families{ graphics_family, };
@@ -677,12 +753,16 @@ RenderTexture* VulkanRenderBackend::create_texture(
 
 ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDescriptor pipeline_descriptor)
 {
+    /*
+     * This function is quite long, but since Vulkan pipeline setup takes quite a bit of state management
+     * it's acceptable.
+     */
+
     // TODO(nemjit001):
     // - [X] Compile used shaders in pipeline & reflect data
     // - [X] Generate pipeline layout using SPIR-V reflector
-    // - [ ] Set up fixed function state
-    // - [ ] ???
-    // - [ ] Profit
+    // - [X] Set up fixed function state
+    // - [ ] Use pipeline descriptor fixed function state
 
     // Compiled used shader sources & store in compiled shaders array
     std::vector<IDxcBlob*> compiled_shaders{};
@@ -755,7 +835,7 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     }
 
     VkPipelineVertexInputStateCreateInfo vertex_input_state{};
-    vertex_input_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;\
+    vertex_input_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertex_input_state.pNext = nullptr;
     vertex_input_state.flags = 0;
     vertex_input_state.vertexBindingDescriptionCount = reflector.get_vertex_binding_count();
@@ -763,13 +843,12 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     vertex_input_state.vertexAttributeDescriptionCount = reflector.get_vertex_attribute_count();
     vertex_input_state.pVertexAttributeDescriptions = reflector.get_vertex_attributes();
 
-    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
     VkPipelineInputAssemblyStateCreateInfo input_assembly_state{};
     input_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     input_assembly_state.pNext = nullptr;
     input_assembly_state.flags = 0;
-    input_assembly_state.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    input_assembly_state.primitiveRestartEnable = VK_FALSE;
+    input_assembly_state.topology = get_vulkan_topology(pipeline_descriptor.input_assembly_state.primitive_topology);
+    input_assembly_state.primitiveRestartEnable = (pipeline_descriptor.input_assembly_state.strip_cut_value != IndexBufferStripCutValueDisabled);
 
     VkPipelineTessellationStateCreateInfo tessellation_state{};
     tessellation_state.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
@@ -777,30 +856,34 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     tessellation_state.flags = 0;
     tessellation_state.patchControlPoints = 0;
 
+    // Viewport and scissor will be set as dynamic state during command recording
+    VkViewport const viewport{ 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 1.0F };
+    VkRect2D const scissor{ { 0, 0 }, { 1, 1 } };
     VkPipelineViewportStateCreateInfo viewport_state{};
     viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewport_state.pNext = nullptr;
     viewport_state.flags = 0;
-    viewport_state.viewportCount = 0;
-    viewport_state.pViewports = nullptr;
-    viewport_state.scissorCount = 0;
-    viewport_state.pScissors = nullptr;
+    viewport_state.viewportCount = 1;
+    viewport_state.pViewports = &viewport;
+    viewport_state.scissorCount = 1;
+    viewport_state.pScissors = &scissor;
 
     VkPipelineRasterizationStateCreateInfo rasterization_state{};
     rasterization_state.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterization_state.pNext = nullptr;
     rasterization_state.flags = 0;
-    rasterization_state.depthClampEnable = VK_FALSE;
-    rasterization_state.rasterizerDiscardEnable = VK_FALSE;
-    rasterization_state.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterization_state.cullMode = VK_CULL_MODE_NONE;
-    rasterization_state.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-    rasterization_state.depthBiasEnable = VK_FALSE;
-    rasterization_state.depthBiasConstantFactor = 0.0F;
-    rasterization_state.depthBiasClamp = 0.0F;
-    rasterization_state.depthBiasSlopeFactor = 0.0F;
-    rasterization_state.lineWidth = 1.0F;
+    rasterization_state.depthClampEnable = (pipeline_descriptor.rasterization_state.depth_bias_clamp > 0.0F);
+    rasterization_state.rasterizerDiscardEnable = VK_FALSE; // TODO(nemjit001): Add support for disabling rasterization, find way to disable Output Merger in DX12
+    rasterization_state.polygonMode = get_vulkan_polygon_mode(pipeline_descriptor.rasterization_state.polygon_mode);
+    rasterization_state.cullMode = get_vulkan_cull_mode(pipeline_descriptor.rasterization_state.cull_mode);
+    rasterization_state.frontFace = pipeline_descriptor.rasterization_state.front_face_counter_clockwise ? VK_FRONT_FACE_COUNTER_CLOCKWISE : VK_FRONT_FACE_CLOCKWISE;
+    rasterization_state.depthBiasEnable = (pipeline_descriptor.rasterization_state.depth_bias > 0.0F);
+    rasterization_state.depthBiasConstantFactor = pipeline_descriptor.rasterization_state.depth_bias;
+    rasterization_state.depthBiasClamp = pipeline_descriptor.rasterization_state.depth_bias_clamp;
+    rasterization_state.depthBiasSlopeFactor = pipeline_descriptor.rasterization_state.depth_bias_slope_factor;
+    rasterization_state.lineWidth = 1.0F; // DX12 only supports a line width of 1 pixel
 
+    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
     VkPipelineMultisampleStateCreateInfo multisample_state{};
     multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisample_state.pNext = nullptr;
@@ -826,6 +909,32 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     depth_stencil_state.minDepthBounds = 0.0F;
     depth_stencil_state.maxDepthBounds = 0.0F;
 
+    VkPipelineColorBlendStateCreateInfo color_blend_state{};
+    color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    color_blend_state.pNext = nullptr;
+    color_blend_state.flags = 0;
+    color_blend_state.logicOpEnable = VK_FALSE;
+    color_blend_state.logicOp = VK_LOGIC_OP_CLEAR;
+    color_blend_state.attachmentCount = 0;
+    color_blend_state.pAttachments = nullptr;
+    color_blend_state.blendConstants[0] = 0.0F;
+    color_blend_state.blendConstants[1] = 0.0F;
+    color_blend_state.blendConstants[2] = 0.0F;
+    color_blend_state.blendConstants[3] = 0.0F;
+
+    VkDynamicState dynamic_states[] = {
+        // Dynamic states that are required to reach parity with DX12 pipeline state settings during command recording.
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR,
+        VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
+    };
+    VkPipelineDynamicStateCreateInfo dynamic_state{};
+    dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamic_state.pNext = nullptr;
+    dynamic_state.flags = 0;
+    dynamic_state.dynamicStateCount = std::size(dynamic_states);
+    dynamic_state.pDynamicStates = dynamic_states;
+
     VkGraphicsPipelineCreateInfo pipeline_create_info{};
     pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipeline_create_info.pNext = nullptr;
@@ -839,8 +948,8 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     pipeline_create_info.pRasterizationState = &rasterization_state;
     pipeline_create_info.pMultisampleState = &multisample_state;
     pipeline_create_info.pDepthStencilState = &depth_stencil_state;
-    pipeline_create_info.pColorBlendState = nullptr;
-    pipeline_create_info.pDynamicState = nullptr;
+    pipeline_create_info.pColorBlendState = &color_blend_state;
+    pipeline_create_info.pDynamicState = &dynamic_state;
     pipeline_create_info.layout = pipeline_layout;
     pipeline_create_info.renderPass = VK_NULL_HANDLE;
     pipeline_create_info.subpass = 0;
