@@ -196,13 +196,13 @@ enum CullMode : uint32_t
 
 enum SampleCount : uint32_t
 {
-    SampleCount1    = 1,
-    SampleCount2    = 2,
-    SampleCount4    = 4,
-    SampleCount8    = 8,
-    SampleCount16   = 16,
-    SampleCount32   = 32,
-    SampleCount64   = 64,
+    SampleCount1Sample      = 1,
+    SampleCount2Samples     = 2,
+    SampleCount4Samples     = 4,
+    SampleCount8Samples     = 8,
+    SampleCount16Samples    = 16,
+    SampleCount32Samples    = 32,
+    SampleCount64Samples    = 64,
 };
 
 struct InputAssemblyState
