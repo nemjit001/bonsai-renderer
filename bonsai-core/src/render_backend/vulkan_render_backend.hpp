@@ -94,7 +94,7 @@ public:
         uint32_t height,
         uint32_t depth_or_layers,
         uint32_t mip_levels,
-        uint32_t sample_count,
+        SampleCount sample_count,
         RenderTextureUsageFlags texture_usage,
         RenderTextureTilingMode tiling_mode
     ) override;

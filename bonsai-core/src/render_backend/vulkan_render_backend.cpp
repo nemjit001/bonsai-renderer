@@ -597,18 +597,11 @@ RenderTexture* VulkanRenderBackend::create_texture(
     uint32_t height,
     uint32_t depth_or_layers,
     uint32_t mip_levels,
-    uint32_t sample_count,
+    SampleCount sample_count,
     RenderTextureUsageFlags texture_usage,
     RenderTextureTilingMode tiling_mode
 )
 {
-    BONSAI_ASSERT(
-        (sample_count == 1 || sample_count % 2 == 0)
-        && sample_count >= 1
-        && sample_count <= 64
-        && "RenderTexture sample count must be a multiple of 2 and in range [1, 64]"
-    );
-
     // Set the image type
     VkImageType image_type = VK_IMAGE_TYPE_MAX_ENUM;
     if (texture_type == RenderTextureType1D)
@@ -883,18 +876,18 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     rasterization_state.depthBiasSlopeFactor = pipeline_descriptor.rasterization_state.depth_bias_slope_factor;
     rasterization_state.lineWidth = 1.0F; // DX12 only supports a line width of 1 pixel
 
-    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
     VkPipelineMultisampleStateCreateInfo multisample_state{};
     multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisample_state.pNext = nullptr;
     multisample_state.flags = 0;
-    multisample_state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-    multisample_state.sampleShadingEnable = VK_TRUE;
-    multisample_state.minSampleShading = 1.0F;
-    multisample_state.pSampleMask = nullptr;
-    multisample_state.alphaToCoverageEnable = VK_FALSE;
-    multisample_state.alphaToOneEnable = VK_FALSE;
+    multisample_state.rasterizationSamples = static_cast<VkSampleCountFlagBits>(pipeline_descriptor.multisample_state.sample_count);
+    multisample_state.sampleShadingEnable = VK_FALSE; // TODO(nemjit001): Enable this if the physical device supports sample rate shading
+    multisample_state.minSampleShading = 0.0F; // TODO(nemjit001): Set this to the max supported sample shading rate for the physical device
+    multisample_state.pSampleMask = pipeline_descriptor.multisample_state.sample_mask > 0 ? &pipeline_descriptor.multisample_state.sample_mask : nullptr;
+    multisample_state.alphaToCoverageEnable = VK_FALSE; // TODO(nemjit001): Check if alpha to coverage can be added as pipeline state
+    multisample_state.alphaToOneEnable = VK_FALSE; // TODO(nemjit001): Check if alpha to one can be added as pipeline state
 
+    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
     VkPipelineDepthStencilStateCreateInfo depth_stencil_state{};
     depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_stencil_state.pNext = nullptr;

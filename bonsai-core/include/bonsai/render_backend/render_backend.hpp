@@ -187,11 +187,22 @@ enum PolygonMode : uint32_t
     PolygonModePoint,
 };
 
-enum CullMode
+enum CullMode : uint32_t
 {
     CullModeNone = 0,
     CullModeFront,
     CullModeBack,
+};
+
+enum SampleCount : uint32_t
+{
+    SampleCount1    = 1,
+    SampleCount2    = 2,
+    SampleCount4    = 4,
+    SampleCount8    = 8,
+    SampleCount16   = 16,
+    SampleCount32   = 32,
+    SampleCount64   = 64,
 };
 
 struct InputAssemblyState
@@ -210,6 +221,12 @@ struct RasterizationState
     float depth_bias_slope_factor;
 };
 
+struct MultisampleState
+{
+    SampleCount sample_count;
+    uint32_t sample_mask;
+};
+
 /// @brief A shader source contains a shader file that can be compiled by the render backend.
 /// All backends support HLSL as shader language.
 struct ShaderSource
@@ -226,6 +243,7 @@ struct GraphicsPipelineDescriptor
     ShaderSource const* fragment_shader;
     InputAssemblyState input_assembly_state;
     RasterizationState rasterization_state;
+    MultisampleState multisample_state;
 };
 
 /// @brief The compute pipeline descriptor is used for creating compute shader pipelines.
@@ -440,7 +458,7 @@ public:
     /// @param height Texture height in pixels.
     /// @param depth_or_layers Texture depth, or layers if a non-3D texture type.
     /// @param mip_levels Number of mip levels to use for this texture.
-    /// @param sample_count Number of samples to use for this image, must be a multiple of 2.
+    /// @param sample_count Number of MSAA samples to use for this image.
     /// @param texture_usage Texture usage flags.
     /// @param tiling_mode Texture tiling mode.
     /// @return A new render texture object, or nullptr on failure.
@@ -452,7 +470,7 @@ public:
         uint32_t height,
         uint32_t depth_or_layers,
         uint32_t mip_levels,
-        uint32_t sample_count,
+        SampleCount sample_count,
         RenderTextureUsageFlags texture_usage,
         RenderTextureTilingMode tiling_mode
     ) = 0;

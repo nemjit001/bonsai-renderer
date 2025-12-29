@@ -60,6 +60,8 @@ Renderer::Renderer(RenderBackend* render_backend)
     pipeline_descriptor.rasterization_state.depth_bias = 0.0F;
     pipeline_descriptor.rasterization_state.depth_bias_clamp = 0.0F;
     pipeline_descriptor.rasterization_state.depth_bias_slope_factor = 0.0F;
+    pipeline_descriptor.multisample_state.sample_count = SampleCount1;
+    pipeline_descriptor.multisample_state.sample_mask = 0;
 
     m_shader_pipeline = m_render_backend->create_graphics_pipeline(pipeline_descriptor);
     if (!m_shader_pipeline)
