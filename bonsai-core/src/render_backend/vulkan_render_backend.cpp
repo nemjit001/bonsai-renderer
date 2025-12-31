@@ -160,6 +160,60 @@ static VkCullModeFlags get_vulkan_cull_mode(CullMode cull_mode)
     return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
 }
 
+static VkCompareOp get_vulkan_compare_op(CompareOp compare_op)
+{
+    switch (compare_op)
+    {
+    case CompareOpNever:
+        return VK_COMPARE_OP_NEVER;
+    case CompareOpLess:
+        return VK_COMPARE_OP_LESS;
+    case CompareOpEqual:
+        return VK_COMPARE_OP_EQUAL;
+    case CompareOpLessOrEqual:
+        return VK_COMPARE_OP_LESS_OR_EQUAL;
+    case CompareOpGreater:
+        return VK_COMPARE_OP_GREATER;
+    case CompareOpNotEqual:
+        return VK_COMPARE_OP_NOT_EQUAL;
+    case CompareOpGreaterOrEqual:
+        return VK_COMPARE_OP_GREATER_OR_EQUAL;
+    case CompareOpAlways:
+        return VK_COMPARE_OP_ALWAYS;
+    default:
+        break;
+    }
+
+    return VK_COMPARE_OP_MAX_ENUM;
+}
+
+static VkStencilOp get_vulkan_stencil_op(StencilOp stencil_op)
+{
+    switch (stencil_op)
+    {
+    case StencilOpKeep:
+        return VK_STENCIL_OP_KEEP;
+    case StencilOpZero:
+        return VK_STENCIL_OP_ZERO;
+    case StencilOpReplace:
+        return VK_STENCIL_OP_REPLACE;
+    case StencilOpIncrementSaturate:
+        return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+    case StencilOpDecrementSaturate:
+        return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+    case StencilOpInvert:
+        return VK_STENCIL_OP_INVERT;
+    case StencilOpIncrementWrap:
+        return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+    case StencilOpDecrementWrap:
+        return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+    default:
+        break;
+    }
+
+    return VK_STENCIL_OP_MAX_ENUM;
+}
+
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
 {
     std::vector<uint32_t> queue_families{ graphics_family, };
@@ -883,25 +937,41 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     multisample_state.rasterizationSamples = static_cast<VkSampleCountFlagBits>(pipeline_descriptor.multisample_state.sample_count);
     multisample_state.sampleShadingEnable = VK_FALSE; // TODO(nemjit001): Enable this if the physical device supports sample rate shading
     multisample_state.minSampleShading = 0.0F; // TODO(nemjit001): Set this to the max supported sample shading rate for the physical device
-    multisample_state.pSampleMask = pipeline_descriptor.multisample_state.sample_mask > 0 ? &pipeline_descriptor.multisample_state.sample_mask : nullptr;
+    multisample_state.pSampleMask = pipeline_descriptor.multisample_state.sample_mask;
     multisample_state.alphaToCoverageEnable = VK_FALSE; // TODO(nemjit001): Check if alpha to coverage can be added as pipeline state
     multisample_state.alphaToOneEnable = VK_FALSE; // TODO(nemjit001): Check if alpha to one can be added as pipeline state
 
-    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
     VkPipelineDepthStencilStateCreateInfo depth_stencil_state{};
     depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_stencil_state.pNext = nullptr;
     depth_stencil_state.flags = 0;
-    depth_stencil_state.depthTestEnable = VK_FALSE;
-    depth_stencil_state.depthWriteEnable = VK_FALSE;
-    depth_stencil_state.depthCompareOp = VK_COMPARE_OP_LESS;
-    depth_stencil_state.depthBoundsTestEnable = VK_FALSE;
-    depth_stencil_state.stencilTestEnable = VK_FALSE;
-    depth_stencil_state.front = {};
-    depth_stencil_state.back = {};
+    depth_stencil_state.depthTestEnable = pipeline_descriptor.depth_stencil_state.depth_test_enable;
+    depth_stencil_state.depthWriteEnable = pipeline_descriptor.depth_stencil_state.depth_write_enable;
+    depth_stencil_state.depthCompareOp = get_vulkan_compare_op(pipeline_descriptor.depth_stencil_state.depth_compare_op);
+    depth_stencil_state.depthBoundsTestEnable = pipeline_descriptor.depth_stencil_state.depth_bounds_test_enable;
+    depth_stencil_state.stencilTestEnable = pipeline_descriptor.depth_stencil_state.stencil_test_enable;
+    depth_stencil_state.front = {
+        get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.front.fail_op),
+        get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.front.pass_op),
+        get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.front.depth_fail_op),
+        get_vulkan_compare_op(pipeline_descriptor.depth_stencil_state.front.compare_op),
+        pipeline_descriptor.depth_stencil_state.stencil_read_mask,
+        pipeline_descriptor.depth_stencil_state.stencil_write_mask,
+        0
+    };
+    depth_stencil_state.back = {
+        get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.back.fail_op),
+        get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.back.pass_op),
+        get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.back.depth_fail_op),
+        get_vulkan_compare_op(pipeline_descriptor.depth_stencil_state.back.compare_op),
+        pipeline_descriptor.depth_stencil_state.stencil_read_mask,
+        pipeline_descriptor.depth_stencil_state.stencil_write_mask,
+        0
+    };
     depth_stencil_state.minDepthBounds = 0.0F;
-    depth_stencil_state.maxDepthBounds = 0.0F;
+    depth_stencil_state.maxDepthBounds = 1.0F;
 
+    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
     VkPipelineColorBlendStateCreateInfo color_blend_state{};
     color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     color_blend_state.pNext = nullptr;
@@ -919,6 +989,8 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
         // Dynamic states that are required to reach parity with DX12 pipeline state settings during command recording.
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
+        VK_DYNAMIC_STATE_DEPTH_BOUNDS,
+        VK_DYNAMIC_STATE_STENCIL_REFERENCE,
         VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
     };
     VkPipelineDynamicStateCreateInfo dynamic_state{};

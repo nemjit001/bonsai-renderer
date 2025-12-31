@@ -70,16 +70,16 @@ typedef uint32_t RenderTextureUsageFlags;
 /// @brief Render load op for attachments.
 enum RenderLoadOp : uint32_t
 {
-    RenderLoadOpLoad = 0,
-    RenderLoadOpClear = 1,
-    RenderLoadOpDontCare = 2,
+    RenderLoadOpLoad        = 0,
+    RenderLoadOpClear       = 1,
+    RenderLoadOpDontCare    = 2,
 };
 
 /// @brief Render store op for attachments.
 enum RenderStoreOp : uint32_t
 {
-    RenderStoreOpStore = 0,
-    RenderStoreOpDontCare = 1,
+    RenderStoreOpStore      = 0,
+    RenderStoreOpDontCare   = 1,
 };
 
 /// @brief Render clear color value for attachments.
@@ -160,38 +160,38 @@ enum ShaderSourceKind : uint32_t
 
 enum IndexBufferStripCutValue : uint32_t
 {
-    IndexBufferStripCutValueDisabled = 0,
-    IndexBufferStripCutValueEnabled32Bit,
-    IndexBufferStripCutValueEnabled64Bit,
+    IndexBufferStripCutValueDisabled        = 0,
+    IndexBufferStripCutValueEnabled32Bit    = 1,
+    IndexBufferStripCutValueEnabled64Bit    = 2,
 };
 
 enum PrimitiveTopologyType : uint32_t
 {
-    PrimitiveTopologyTypePointList = 0,
-    PrimitiveTopologyTypeLineList,
-    PrimitiveTopologyTypeLineStrip,
-    PrimitiveTopologyTypeTriangleList,
-    PrimitiveTopologyTypeTriangleStrip,
-    PrimitiveTopologyTypeTriangleFan,
-    PrimitiveTopologyTypeLineListWithAdjacency,
-    PrimitiveTopologyTypeLineStripWithAdjacency,
-    PrimitiveTopologyTypeTriangleListWithAdjacency,
-    PrimitiveTopologyTypeTriangleStripWithAdjacency,
-    PrimitiveTopologyTypePatchList,
+    PrimitiveTopologyTypePointList                      = 0,
+    PrimitiveTopologyTypeLineList                       = 1,
+    PrimitiveTopologyTypeLineStrip                      = 2,
+    PrimitiveTopologyTypeTriangleList                   = 3,
+    PrimitiveTopologyTypeTriangleStrip                  = 4,
+    PrimitiveTopologyTypeTriangleFan                    = 5,
+    PrimitiveTopologyTypeLineListWithAdjacency          = 6,
+    PrimitiveTopologyTypeLineStripWithAdjacency         = 7,
+    PrimitiveTopologyTypeTriangleListWithAdjacency      = 8,
+    PrimitiveTopologyTypeTriangleStripWithAdjacency     = 9,
+    PrimitiveTopologyTypePatchList                      = 10,
 };
 
 enum PolygonMode : uint32_t
 {
-    PolygonModeFill = 0,
-    PolygonModeLine,
-    PolygonModePoint,
+    PolygonModeFill     = 0,
+    PolygonModeLine     = 1,
+    PolygonModePoint    = 2,
 };
 
 enum CullMode : uint32_t
 {
-    CullModeNone = 0,
-    CullModeFront,
-    CullModeBack,
+    CullModeNone    = 0,
+    CullModeFront   = 1,
+    CullModeBack    = 2,
 };
 
 enum SampleCount : uint32_t
@@ -203,6 +203,30 @@ enum SampleCount : uint32_t
     SampleCount16Samples    = 16,
     SampleCount32Samples    = 32,
     SampleCount64Samples    = 64,
+};
+
+enum CompareOp
+{
+    CompareOpNever              = 0,
+    CompareOpLess               = 1,
+    CompareOpEqual              = 2,
+    CompareOpLessOrEqual        = 3,
+    CompareOpGreater            = 4,
+    CompareOpNotEqual           = 5,
+    CompareOpGreaterOrEqual     = 6,
+    CompareOpAlways             = 7,
+};
+
+enum StencilOp
+{
+    StencilOpKeep               = 0,
+    StencilOpZero               = 1,
+    StencilOpReplace            = 2,
+    StencilOpIncrementSaturate  = 3,
+    StencilOpDecrementSaturate  = 4,
+    StencilOpInvert             = 5,
+    StencilOpIncrementWrap      = 6,
+    StencilOpDecrementWrap      = 7,
 };
 
 struct InputAssemblyState
@@ -224,7 +248,28 @@ struct RasterizationState
 struct MultisampleState
 {
     SampleCount sample_count;
-    uint32_t sample_mask;
+    uint32_t* sample_mask;
+};
+
+struct StencilOpState
+{
+    StencilOp fail_op;
+    StencilOp pass_op;
+    StencilOp depth_fail_op;
+    CompareOp compare_op;
+};
+
+struct DepthStencilState
+{
+    bool depth_test_enable;
+    bool depth_write_enable;
+    CompareOp depth_compare_op;
+    bool depth_bounds_test_enable;
+    bool stencil_test_enable;
+    uint32_t stencil_read_mask;
+    uint32_t stencil_write_mask;
+    StencilOpState front;
+    StencilOpState back;
 };
 
 /// @brief A shader source contains a shader file that can be compiled by the render backend.
@@ -244,6 +289,7 @@ struct GraphicsPipelineDescriptor
     InputAssemblyState input_assembly_state;
     RasterizationState rasterization_state;
     MultisampleState multisample_state;
+    DepthStencilState depth_stencil_state;
 };
 
 /// @brief The compute pipeline descriptor is used for creating compute shader pipelines.
