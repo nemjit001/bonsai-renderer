@@ -229,12 +229,23 @@ enum StencilOp
     StencilOpDecrementWrap      = 7,
 };
 
+/// @brief A shader source contains a shader file that can be compiled by the render backend.
+/// All backends support HLSL as shader language.
+struct ShaderSource
+{
+    ShaderSourceKind source_kind;   /// @brief Shader source type stored in this structure.
+    char const* entrypoint;         /// @brief Shader entrypoint function.
+    char const* shader_source;      /// @brief Shader source file path or code.
+};
+
+/// @brief Fixed function pipeline input assembly state.
 struct InputAssemblyState
 {
     PrimitiveTopologyType primitive_topology;
     IndexBufferStripCutValue strip_cut_value;
 };
 
+/// @brief Fixed function pipeline rasterization state.
 struct RasterizationState
 {
     PolygonMode polygon_mode;
@@ -245,12 +256,15 @@ struct RasterizationState
     float depth_bias_slope_factor;
 };
 
+/// @brief Fixed function pipeline multisample state.
 struct MultisampleState
 {
     SampleCount sample_count;
     uint32_t* sample_mask;
+    bool alpha_to_coverage;
 };
 
+/// @brief Stencil op state for stencil testing.
 struct StencilOpState
 {
     StencilOp fail_op;
@@ -259,26 +273,18 @@ struct StencilOpState
     CompareOp compare_op;
 };
 
+/// @brief Fixed function pipeline depth/stencil state.
 struct DepthStencilState
 {
-    bool depth_test_enable;
-    bool depth_write_enable;
+    bool depth_test;
+    bool depth_write;
     CompareOp depth_compare_op;
-    bool depth_bounds_test_enable;
-    bool stencil_test_enable;
+    bool depth_bounds_test;
+    bool stencil_test;
     uint32_t stencil_read_mask;
     uint32_t stencil_write_mask;
     StencilOpState front;
     StencilOpState back;
-};
-
-/// @brief A shader source contains a shader file that can be compiled by the render backend.
-/// All backends support HLSL as shader language.
-struct ShaderSource
-{
-    ShaderSourceKind source_kind;   /// @brief Shader source type stored in this structure.
-    char const* entrypoint;         /// @brief Shader entrypoint function.
-    char const* shader_source;      /// @brief Shader source file path or code.
 };
 
 /// @brief The graphics pipeline descriptor is used for creating rasterization graphics pipelines.

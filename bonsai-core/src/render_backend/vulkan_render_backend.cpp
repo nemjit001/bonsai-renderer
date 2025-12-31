@@ -938,18 +938,18 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     multisample_state.sampleShadingEnable = VK_FALSE; // TODO(nemjit001): Enable this if the physical device supports sample rate shading
     multisample_state.minSampleShading = 0.0F; // TODO(nemjit001): Set this to the max supported sample shading rate for the physical device
     multisample_state.pSampleMask = pipeline_descriptor.multisample_state.sample_mask;
-    multisample_state.alphaToCoverageEnable = VK_FALSE; // TODO(nemjit001): Check if alpha to coverage can be added as pipeline state
+    multisample_state.alphaToCoverageEnable = pipeline_descriptor.multisample_state.alpha_to_coverage;
     multisample_state.alphaToOneEnable = VK_FALSE; // TODO(nemjit001): Check if alpha to one can be added as pipeline state
 
     VkPipelineDepthStencilStateCreateInfo depth_stencil_state{};
     depth_stencil_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_stencil_state.pNext = nullptr;
     depth_stencil_state.flags = 0;
-    depth_stencil_state.depthTestEnable = pipeline_descriptor.depth_stencil_state.depth_test_enable;
-    depth_stencil_state.depthWriteEnable = pipeline_descriptor.depth_stencil_state.depth_write_enable;
+    depth_stencil_state.depthTestEnable = pipeline_descriptor.depth_stencil_state.depth_test;
+    depth_stencil_state.depthWriteEnable = pipeline_descriptor.depth_stencil_state.depth_write;
     depth_stencil_state.depthCompareOp = get_vulkan_compare_op(pipeline_descriptor.depth_stencil_state.depth_compare_op);
-    depth_stencil_state.depthBoundsTestEnable = pipeline_descriptor.depth_stencil_state.depth_bounds_test_enable;
-    depth_stencil_state.stencilTestEnable = pipeline_descriptor.depth_stencil_state.stencil_test_enable;
+    depth_stencil_state.depthBoundsTestEnable = pipeline_descriptor.depth_stencil_state.depth_bounds_test;
+    depth_stencil_state.stencilTestEnable = pipeline_descriptor.depth_stencil_state.stencil_test;
     depth_stencil_state.front = {
         get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.front.fail_op),
         get_vulkan_stencil_op(pipeline_descriptor.depth_stencil_state.front.pass_op),
@@ -989,6 +989,7 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
         // Dynamic states that are required to reach parity with DX12 pipeline state settings during command recording.
         VK_DYNAMIC_STATE_VIEWPORT,
         VK_DYNAMIC_STATE_SCISSOR,
+        VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,
         VK_DYNAMIC_STATE_STENCIL_REFERENCE,
         VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
