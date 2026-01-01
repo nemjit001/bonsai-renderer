@@ -33,6 +33,12 @@ float4 PSmain(VertexOutput input) : SV_TARGET0
 }
 )";
 
+static float VERTEX_DATA[] = {
+    0.0F, 0.5F, 0.0F, 0.0F, 0.0F,
+    -0.5F, -0.5F, 0.0F, 1.0F, 0.0F,
+    0.5F, 0.5F, 0.0F, 1.0F, 1.0F,
+};
+
 Renderer::Renderer(RenderBackend* render_backend)
     :
     m_render_backend(render_backend)
@@ -87,10 +93,20 @@ Renderer::Renderer(RenderBackend* render_backend)
     {
         BONSAI_FATAL_EXIT("Failed to compile simple shader pipeline!\n");
     }
+
+    m_vertex_buffer = m_render_backend->create_buffer(sizeof(VERTEX_DATA), RenderBufferUsageVertexBuffer, true);
+    void* buffer_data = nullptr;
+    if (!m_vertex_buffer || !m_vertex_buffer->map(&buffer_data, 0, m_vertex_buffer->size()))
+    {
+        BONSAI_FATAL_EXIT("Failed to create or map Vertex buffer\n");
+    }
+    memcpy(buffer_data, VERTEX_DATA, sizeof(VERTEX_DATA));
+    m_vertex_buffer->unmap();
 }
 
 Renderer::~Renderer()
 {
+    delete m_vertex_buffer;
     delete m_shader_pipeline;
 }
 
@@ -144,7 +160,8 @@ void Renderer::render()
 
     frame_commands->begin_render_pass(render_area, &color_attachment, 1, nullptr, nullptr);
     frame_commands->set_pipeline(m_shader_pipeline);
-    // TODO(nemjit001): Record draw commands
+    // frame_commands->bind_vertex_buffers(0, 1, &m_vertex_buffer);
+    // frame_commands->draw_instanced(3, 1, 0, 0);
     frame_commands->end_render_pass();
 
     RenderAttachmentInfo imgui_color_attachment{};

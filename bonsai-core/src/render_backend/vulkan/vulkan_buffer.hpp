@@ -21,10 +21,15 @@ public:
     VulkanBuffer(VulkanBuffer const&) = delete;
     VulkanBuffer& operator=(VulkanBuffer const&) = delete;
 
+    size_t size() const override { return m_desc.size; }
+
     bool map(void** data, size_t size, size_t offset) override;
 
     void unmap() override;
 
+    /// @brief Get the underlying Vulkan buffer.
+    /// @return The underlying Vulkan buffer handle.
+    [[nodiscard]]
     VkBuffer get_buffer() const { return m_buffer; }
 
 private:

@@ -653,8 +653,7 @@ RenderBuffer* VulkanRenderBackend::create_buffer(
     {
         memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
             | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        allocation_create_flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
-            | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+        allocation_create_flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
     }
 
     VkBufferCreateInfo buffer_create_info{};

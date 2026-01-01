@@ -400,6 +400,11 @@ class RenderBuffer
 public:
     virtual ~RenderBuffer() = default;
 
+    /// @brief Get the buffer size in bytes.
+    /// @return The buffer size in bytes.
+    [[nodiscard]]
+    virtual size_t size() const = 0;
+
     /// @brief Map this buffer to host visible memory.
     /// @param data Data pointer to use for mapped region.
     /// @param size Size of buffer to map.
@@ -418,6 +423,7 @@ public:
     virtual ~RenderTexture() = default;
 
     /// @brief Get the texture extent.
+    /// @return The texture extent.
     [[nodiscard]]
     virtual RenderExtent3D extent() const = 0;
 };

@@ -36,9 +36,13 @@ public:
     [[nodiscard]]
     VkImageLayout get_current_layout() const { return m_layout; }
 
+    /// @brief Get the underlying Vulkan image.
+    /// @return The Vulkan image handle.
     [[nodiscard]]
     VkImage get_image() const { return m_image; }
 
+    /// @brief Get the underlying Vulkan image view.
+    /// @return The Vulkan image view handle.
     [[nodiscard]]
     VkImageView get_image_view() const { return m_image_view; }
 
