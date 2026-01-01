@@ -52,23 +52,35 @@ Renderer::Renderer(RenderBackend* render_backend)
     GraphicsPipelineDescriptor pipeline_descriptor{};
     pipeline_descriptor.vertex_shader = &vertex_shader;
     pipeline_descriptor.fragment_shader = &fragment_shader;
+
     pipeline_descriptor.input_assembly_state.primitive_topology = PrimitiveTopologyTypeTriangleList;
     pipeline_descriptor.input_assembly_state.strip_cut_value = IndexBufferStripCutValueDisabled;
+
     pipeline_descriptor.rasterization_state.polygon_mode = PolygonModeFill;
     pipeline_descriptor.rasterization_state.cull_mode = CullModeNone;
     pipeline_descriptor.rasterization_state.front_face_counter_clockwise = true;
     pipeline_descriptor.rasterization_state.depth_bias = 0.0F;
     pipeline_descriptor.rasterization_state.depth_bias_clamp = 0.0F;
     pipeline_descriptor.rasterization_state.depth_bias_slope_factor = 0.0F;
+
     pipeline_descriptor.multisample_state.sample_count = SampleCount1Sample;
     pipeline_descriptor.multisample_state.sample_mask = nullptr;
-    pipeline_descriptor.depth_stencil_state.depth_test = true;
-    pipeline_descriptor.depth_stencil_state.depth_write = true;
-    pipeline_descriptor.depth_stencil_state.depth_compare_op = CompareOpLess;
+
+    pipeline_descriptor.depth_stencil_state.depth_test = false;
+    pipeline_descriptor.depth_stencil_state.depth_write = false;
+    pipeline_descriptor.depth_stencil_state.depth_compare_op = CompareOpNever;
     pipeline_descriptor.depth_stencil_state.depth_bounds_test = false;
     pipeline_descriptor.depth_stencil_state.stencil_test = false;
     pipeline_descriptor.depth_stencil_state.front = {};
     pipeline_descriptor.depth_stencil_state.back = {};
+
+    pipeline_descriptor.color_blend_state.logic_op_enable = false;
+    pipeline_descriptor.color_blend_state.logic_op = LogicOpClear;
+    pipeline_descriptor.color_blend_state.attachments[0].blend_enable = false;
+
+    pipeline_descriptor.color_attachment_count = 1;
+    pipeline_descriptor.color_attachment_formats[0] = m_render_backend->get_swap_format();
+    pipeline_descriptor.depth_stencil_attachment_format = RenderFormatUndefined;
 
     m_shader_pipeline = m_render_backend->create_graphics_pipeline(pipeline_descriptor);
     if (!m_shader_pipeline)
@@ -109,6 +121,7 @@ void Renderer::render()
 
     ImGui::NewFrame();
     // TODO(nemjit001): render GUI here (using app specific function?)
+    ImGui::EndFrame();
     ImGui::Render();
 
     RenderCommands* frame_commands = m_render_backend->get_frame_commands();
@@ -138,7 +151,7 @@ void Renderer::render()
     imgui_color_attachment.render_target = swap_texture;
     imgui_color_attachment.load_op = RenderLoadOpLoad;
     imgui_color_attachment.store_op = RenderStoreOpStore;
-    imgui_color_attachment.clear_value = RenderClearValue{{{ 0.0F, 0.0F, 0.0F, 0.0F }}};
+    imgui_color_attachment.clear_value = {};
 
     frame_commands->begin_render_pass(render_area, &imgui_color_attachment, 1, nullptr, nullptr);
     frame_commands->imgui_render_draw_data(ImGui::GetDrawData());

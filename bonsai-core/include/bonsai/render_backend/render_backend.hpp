@@ -7,6 +7,8 @@
 #include <imgui.h>
 #include "bonsai/core/platform.hpp"
 
+static constexpr uint32_t BONSAI_MAX_COLOR_ATTACHMENT_COUNT = 8;
+
 class RenderBuffer;
 class RenderTexture;
 
@@ -205,7 +207,7 @@ enum SampleCount : uint32_t
     SampleCount64Samples    = 64,
 };
 
-enum CompareOp
+enum CompareOp : uint32_t
 {
     CompareOpNever              = 0,
     CompareOpLess               = 1,
@@ -217,7 +219,7 @@ enum CompareOp
     CompareOpAlways             = 7,
 };
 
-enum StencilOp
+enum StencilOp : uint32_t
 {
     StencilOpKeep               = 0,
     StencilOpZero               = 1,
@@ -228,6 +230,68 @@ enum StencilOp
     StencilOpIncrementWrap      = 6,
     StencilOpDecrementWrap      = 7,
 };
+
+enum LogicOp : uint32_t
+{
+    LogicOpClear        = 0,
+    LogicOpAND          = 1,
+    LogicOpANDReverse   = 2,
+    LogicOpCopy         = 3,
+    LogicOpANDInverted  = 4,
+    LogicOpNoOp         = 5,
+    LogixOpXOR          = 6,
+    LogicOpOR           = 7,
+    LogicOpNOR          = 8,
+    LogicOpEquivalent   = 9,
+    LogicOpInvert       = 10,
+    LogicOpORReverse    = 11,
+    LogicOpCopyInverted = 12,
+    LogicOpORInverted   = 13,
+    LogicOpNAND         = 14,
+    LogicOpSet          = 15,
+};
+
+enum BlendOp : uint32_t
+{
+    BlendOpAdd              = 0,
+    BlendOpSubtract         = 1,
+    BlendOpReverseSubtract  = 2,
+    BlendOpMin              = 3,
+    BlendOpMax              = 4,
+};
+
+enum BlendFactor : uint32_t
+{
+    BlendFactorZero                     = 0,
+    BlendFactorOne                      = 1,
+    BlendFactorSrcColor                 = 2,
+    BlendFactorOneMinusSrcColor         = 3,
+    BlendFactorDstColor                 = 4,
+    BlendFactorOneMinusDstColor         = 5,
+    BlendFactorSrcAlpha                 = 6,
+    BlendFactorOneMinusSrcAlpha         = 7,
+    BlendFactorDstAlpha                 = 8,
+    BlendFactorOneMinusDstAlpha         = 9,
+    BlendFactorConstantColor            = 10,
+    BlendFactorOneMinusConstantColor    = 11,
+    BlendFactorConstantAlpha            = 12,
+    BlendFactorOneMinusConstantAlpha    = 13,
+    BlendFactorSrcAlphaSaturate         = 14,
+    BlendFactorSrc1Color                = 15,
+    BlendFactorOneMinusSrc1Color        = 16,
+    BlendFactorSrc1Alpha                = 17,
+    BlendFactorOneMinusSrc1Alpha        = 18,
+};
+
+enum ColorComponent : uint32_t
+{
+    ColorComponentRed   = 0x01,
+    ColorComponentGreen = 0x02,
+    ColorComponentBlue  = 0x04,
+    ColorComponentAlpha = 0x08,
+    ColorComponentAll   = ColorComponentRed | ColorComponentGreen | ColorComponentBlue | ColorComponentAlpha,
+};
+typedef uint32_t ColorComponentFlags;
 
 /// @brief A shader source contains a shader file that can be compiled by the render backend.
 /// All backends support HLSL as shader language.
@@ -287,6 +351,28 @@ struct DepthStencilState
     StencilOpState back;
 };
 
+/// @brief Color blend attachment state.
+struct ColorBlendAttachmentState
+{
+    bool blend_enable;
+    BlendFactor src_blend_factor;
+    BlendFactor dst_blend_factor;
+    BlendOp blend_op;
+    BlendFactor src_blend_alpha_factor;
+    BlendFactor dst_blend_alpha_factor;
+    BlendOp blend_op_alpha;
+    ColorComponentFlags color_write_mask;
+};
+
+/// @brief Fixed function pipeline color blend state.
+/// DX12 supports up to 8 color attachments.
+struct ColorBlendState
+{
+    bool logic_op_enable;
+    LogicOp logic_op;
+    ColorBlendAttachmentState attachments[BONSAI_MAX_COLOR_ATTACHMENT_COUNT];
+};
+
 /// @brief The graphics pipeline descriptor is used for creating rasterization graphics pipelines.
 struct GraphicsPipelineDescriptor
 {
@@ -296,6 +382,10 @@ struct GraphicsPipelineDescriptor
     RasterizationState rasterization_state;
     MultisampleState multisample_state;
     DepthStencilState depth_stencil_state;
+    ColorBlendState color_blend_state;
+    uint32_t color_attachment_count;
+    RenderFormat color_attachment_formats[BONSAI_MAX_COLOR_ATTACHMENT_COUNT];
+    RenderFormat depth_stencil_attachment_format;
 };
 
 /// @brief The compute pipeline descriptor is used for creating compute shader pipelines.
@@ -470,6 +560,11 @@ public:
     /// @return The current 2D swap extent.
     [[nodiscard]]
     virtual RenderExtent2D get_swap_extent() const = 0;
+
+    /// @brief Get the current swap chain format.
+    /// @return The current swap render format.
+    [[nodiscard]]
+    virtual RenderFormat get_swap_format() const = 0;
 
     /// @brief Start a new render backend frame.
     /// @return A render backend frame result.

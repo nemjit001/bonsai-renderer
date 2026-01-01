@@ -73,6 +73,8 @@ public:
 
     RenderExtent2D get_swap_extent() const override;
 
+    RenderFormat get_swap_format() const override;
+
     RenderBackendFrameResult new_frame() override;
 
     RenderBackendFrameResult end_frame() override;

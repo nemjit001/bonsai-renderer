@@ -68,9 +68,6 @@ static VkDebugUtilsMessengerCreateInfoEXT get_debug_messenger_create_info()
     return create_info;
 }
 
-/// @brief Get a Vulkan format from a RenderFormat.
-/// @param format Format to translate.
-/// @return The Vulkan equivalent format.
 static VkFormat get_vulkan_format(RenderFormat format)
 {
     switch (format)
@@ -84,9 +81,6 @@ static VkFormat get_vulkan_format(RenderFormat format)
     return VK_FORMAT_UNDEFINED;
 }
 
-/// @brief Get a Vulkan primitive topology from a PrimitiveTopologyType.
-/// @param primitive_topology Primitive topology to translate.
-/// @return The Vulkan equivalent primitive topology.
 static VkPrimitiveTopology get_vulkan_topology(PrimitiveTopologyType primitive_topology)
 {
     switch (primitive_topology)
@@ -120,9 +114,6 @@ static VkPrimitiveTopology get_vulkan_topology(PrimitiveTopologyType primitive_t
     return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
 }
 
-/// @brief Get a Vulkan polygon mode from a PolygonMode.
-/// @param polygon_mode Polygon mode to translate.
-/// @return The Vulkan equivalent polygon mode.
 static VkPolygonMode get_vulkan_polygon_mode(PolygonMode polygon_mode)
 {
     switch (polygon_mode)
@@ -140,9 +131,6 @@ static VkPolygonMode get_vulkan_polygon_mode(PolygonMode polygon_mode)
     return VK_POLYGON_MODE_MAX_ENUM;
 }
 
-/// @brief Get Vulkan cull mode flags from a cull mode.
-/// @param cull_mode Cull mode to translate.
-/// @return The Vulkan equivalent cull mode.
 static VkCullModeFlags get_vulkan_cull_mode(CullMode cull_mode)
 {
     switch (cull_mode)
@@ -212,6 +200,59 @@ static VkStencilOp get_vulkan_stencil_op(StencilOp stencil_op)
     }
 
     return VK_STENCIL_OP_MAX_ENUM;
+}
+
+static VkLogicOp get_vulkan_logic_op(LogicOp logic_op)
+{
+    switch (logic_op)
+    {
+    case LogicOpClear:
+        return VK_LOGIC_OP_CLEAR;
+    case LogicOpAND:
+        return VK_LOGIC_OP_AND;
+    case LogicOpANDReverse:
+        return VK_LOGIC_OP_AND_REVERSE;
+    case LogicOpCopy:
+        return VK_LOGIC_OP_COPY;
+    case LogicOpANDInverted:
+        return VK_LOGIC_OP_AND_INVERTED;
+    case LogicOpNoOp:
+        return VK_LOGIC_OP_NO_OP;
+    case LogixOpXOR:
+        return VK_LOGIC_OP_XOR;
+    case LogicOpOR:
+        return VK_LOGIC_OP_OR;
+    case LogicOpNOR:
+        return VK_LOGIC_OP_NOR;
+    case LogicOpEquivalent:
+        return VK_LOGIC_OP_EQUIVALENT;
+    case LogicOpInvert:
+        return VK_LOGIC_OP_INVERT;
+    case LogicOpORReverse:
+        return VK_LOGIC_OP_OR_REVERSE;
+    case LogicOpCopyInverted:
+        return VK_LOGIC_OP_COPY_INVERTED;
+    case LogicOpORInverted:
+        return VK_LOGIC_OP_OR_INVERTED;
+    case LogicOpNAND:
+        return VK_LOGIC_OP_NAND;
+    case LogicOpSet:
+        return VK_LOGIC_OP_SET;
+    default:
+        break;
+    }
+
+    return VK_LOGIC_OP_MAX_ENUM;
+}
+
+static VkBlendFactor get_vulkan_blend_factor(BlendFactor blend_factor)
+{
+    return VK_BLEND_FACTOR_MAX_ENUM;
+}
+
+static VkBlendOp get_vulkan_blend_op(BlendOp blend_op)
+{
+    return VK_BLEND_OP_MAX_ENUM;
 }
 
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
@@ -502,6 +543,11 @@ RenderExtent2D VulkanRenderBackend::get_swap_extent() const
         m_swapchain_config.image_extent.width,
         m_swapchain_config.image_extent.height,
     };
+}
+
+RenderFormat VulkanRenderBackend::get_swap_format() const
+{
+    return RenderFormatUndefined;
 }
 
 RenderBackendFrameResult VulkanRenderBackend::new_frame()
@@ -804,12 +850,7 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
      * This function is quite long, but since Vulkan pipeline setup takes quite a bit of state management
      * it's acceptable.
      */
-
-    // TODO(nemjit001):
-    // - [X] Compile used shaders in pipeline & reflect data
-    // - [X] Generate pipeline layout using SPIR-V reflector
-    // - [X] Set up fixed function state
-    // - [ ] Use pipeline descriptor fixed function state
+    BONSAI_ASSERT(pipeline_descriptor.color_attachment_count <= BONSAI_MAX_COLOR_ATTACHMENT_COUNT && "The number of pipeline color attachments must be less than the max number of color attachments");
 
     // Compiled used shader sources & store in compiled shaders array
     std::vector<IDxcBlob*> compiled_shaders{};
@@ -901,7 +942,7 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     tessellation_state.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
     tessellation_state.pNext = nullptr;
     tessellation_state.flags = 0;
-    tessellation_state.patchControlPoints = 0;
+    tessellation_state.patchControlPoints = 0; // TODO(nemjit001): Reflect this from shaders
 
     // Viewport and scissor will be set as dynamic state during command recording
     VkViewport const viewport{ 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 1.0F };
@@ -971,16 +1012,28 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     depth_stencil_state.minDepthBounds = 0.0F;
     depth_stencil_state.maxDepthBounds = 1.0F;
 
-    // TODO(nemjit001): Set fixed function state based on pipeline descriptor
+    VkPipelineColorBlendAttachmentState color_blend_attachments[BONSAI_MAX_COLOR_ATTACHMENT_COUNT]{};
+    for (uint32_t i = 0; i < BONSAI_MAX_COLOR_ATTACHMENT_COUNT; i++)
+    {
+        color_blend_attachments[i].blendEnable = pipeline_descriptor.color_blend_state.attachments[i].blend_enable;
+        color_blend_attachments[i].srcColorBlendFactor = get_vulkan_blend_factor(pipeline_descriptor.color_blend_state.attachments[i].src_blend_factor);
+        color_blend_attachments[i].dstColorBlendFactor = get_vulkan_blend_factor(pipeline_descriptor.color_blend_state.attachments[i].dst_blend_factor);
+        color_blend_attachments[i].colorBlendOp = get_vulkan_blend_op(pipeline_descriptor.color_blend_state.attachments[i].blend_op);
+        color_blend_attachments[i].srcAlphaBlendFactor = get_vulkan_blend_factor(pipeline_descriptor.color_blend_state.attachments[i].src_blend_alpha_factor);
+        color_blend_attachments[i].dstAlphaBlendFactor = get_vulkan_blend_factor(pipeline_descriptor.color_blend_state.attachments[i].dst_blend_alpha_factor);
+        color_blend_attachments[i].alphaBlendOp = get_vulkan_blend_op(pipeline_descriptor.color_blend_state.attachments[i].blend_op_alpha);
+        color_blend_attachments[i].colorWriteMask = pipeline_descriptor.color_blend_state.attachments[i].color_write_mask;
+    }
+
     VkPipelineColorBlendStateCreateInfo color_blend_state{};
     color_blend_state.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     color_blend_state.pNext = nullptr;
     color_blend_state.flags = 0;
-    color_blend_state.logicOpEnable = VK_FALSE;
-    color_blend_state.logicOp = VK_LOGIC_OP_CLEAR;
-    color_blend_state.attachmentCount = 0;
-    color_blend_state.pAttachments = nullptr;
-    color_blend_state.blendConstants[0] = 0.0F;
+    color_blend_state.logicOpEnable = pipeline_descriptor.color_blend_state.logic_op_enable;
+    color_blend_state.logicOp = get_vulkan_logic_op(pipeline_descriptor.color_blend_state.logic_op);
+    color_blend_state.attachmentCount = pipeline_descriptor.color_attachment_count;
+    color_blend_state.pAttachments = color_blend_attachments;
+    color_blend_state.blendConstants[0] = 0.0F; // Blend constants are set during command recording
     color_blend_state.blendConstants[1] = 0.0F;
     color_blend_state.blendConstants[2] = 0.0F;
     color_blend_state.blendConstants[3] = 0.0F;
@@ -1001,9 +1054,24 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     dynamic_state.dynamicStateCount = std::size(dynamic_states);
     dynamic_state.pDynamicStates = dynamic_states;
 
+    VkFormat color_attachment_formats[BONSAI_MAX_COLOR_ATTACHMENT_COUNT]{};
+    for (uint32_t i = 0; i < BONSAI_MAX_COLOR_ATTACHMENT_COUNT; i++)
+    {
+        color_attachment_formats[i] = get_vulkan_format(pipeline_descriptor.color_attachment_formats[i]);
+    }
+
+    VkPipelineRenderingCreateInfo rendering_create_info{};
+    rendering_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    rendering_create_info.pNext = nullptr;
+    rendering_create_info.viewMask = 0;
+    rendering_create_info.colorAttachmentCount = pipeline_descriptor.color_attachment_count;
+    rendering_create_info.pColorAttachmentFormats = color_attachment_formats;
+    rendering_create_info.depthAttachmentFormat = get_vulkan_format(pipeline_descriptor.depth_stencil_attachment_format);
+    rendering_create_info.stencilAttachmentFormat = get_vulkan_format(pipeline_descriptor.depth_stencil_attachment_format);
+
     VkGraphicsPipelineCreateInfo pipeline_create_info{};
     pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipeline_create_info.pNext = nullptr;
+    pipeline_create_info.pNext = &rendering_create_info;
     pipeline_create_info.flags = 0;
     pipeline_create_info.stageCount = static_cast<uint32_t>(shader_stages.size());
     pipeline_create_info.pStages = shader_stages.data();
