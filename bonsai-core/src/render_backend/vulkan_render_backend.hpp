@@ -39,6 +39,7 @@ struct VulkanSwapchainCapabilities
 {
     uint32_t min_image_count;
     uint32_t image_count;
+    RenderFormat render_format;
     VkSurfaceFormatKHR preferred_format;
     std::vector<VkPresentModeKHR> present_modes;
 };

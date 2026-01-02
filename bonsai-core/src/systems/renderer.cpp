@@ -7,14 +7,16 @@
 static char const* SHADER_CODE = R"(
 struct VertexInput
 {
-    float3 position : POSITION0;
-    float2 tex_coord : TEXCOORD0;
+    float3 position     : POSITION0;
+    float3 color        : COLOR0;
+    float2 tex_coord    : TEXCOORD0;
 };
 
 struct VertexOutput
 {
-    float4 position : SV_POSITION;
-    float2 tex_coord : TEXCOORD0;
+    float4 position     : SV_POSITION;
+    float3 color        : COLOR0;
+    float2 tex_coord    : TEXCOORD0;
 };
 
 [shader("vertex")]
@@ -22,6 +24,7 @@ VertexOutput VSmain(VertexInput input)
 {
     VertexOutput result;
     result.position = float4(input.position, 1);
+    result.color = input.color;
     result.tex_coord = input.tex_coord;
     return result;
 }
@@ -29,14 +32,14 @@ VertexOutput VSmain(VertexInput input)
 [shader("pixel")]
 float4 PSmain(VertexOutput input) : SV_TARGET0
 {
-    return float4(input.tex_coord, 0, 1);
+    return float4(input.color, 1);
 }
 )";
 
 static float VERTEX_DATA[] = {
-    0.0F, 0.5F, 0.0F, 0.0F, 0.0F,
-    -0.5F, -0.5F, 0.0F, 1.0F, 0.0F,
-    0.5F, 0.5F, 0.0F, 1.0F, 1.0F,
+    /* position */  0.0F, -0.5F, 0.0F, /* color */ 1.0F, 0.0F, 0.0F , /* tex coord */ 0.0F, 0.0F,
+    /* position */ -0.5F,  0.5F, 0.0F, /* color */ 0.0F, 1.0F, 0.0F , /* tex coord */ 1.0F, 0.0F,
+    /* position */  0.5F,  0.5F, 0.0F, /* color */ 0.0F, 0.0F, 1.0F , /* tex coord */ 1.0F, 1.0F,
 };
 
 Renderer::Renderer(RenderBackend* render_backend)
@@ -74,7 +77,7 @@ Renderer::Renderer(RenderBackend* render_backend)
 
     pipeline_descriptor.depth_stencil_state.depth_test = false;
     pipeline_descriptor.depth_stencil_state.depth_write = false;
-    pipeline_descriptor.depth_stencil_state.depth_compare_op = CompareOpNever;
+    pipeline_descriptor.depth_stencil_state.depth_compare_op = CompareOpLess;
     pipeline_descriptor.depth_stencil_state.depth_bounds_test = false;
     pipeline_descriptor.depth_stencil_state.stencil_test = false;
     pipeline_descriptor.depth_stencil_state.front = {};
@@ -83,6 +86,7 @@ Renderer::Renderer(RenderBackend* render_backend)
     pipeline_descriptor.color_blend_state.logic_op_enable = false;
     pipeline_descriptor.color_blend_state.logic_op = LogicOpClear;
     pipeline_descriptor.color_blend_state.attachments[0].blend_enable = false;
+    pipeline_descriptor.color_blend_state.attachments[0].color_write_mask = ColorComponentAll;
 
     pipeline_descriptor.color_attachment_count = 1;
     pipeline_descriptor.color_attachment_formats[0] = m_render_backend->get_swap_format();
@@ -96,7 +100,7 @@ Renderer::Renderer(RenderBackend* render_backend)
 
     m_vertex_buffer = m_render_backend->create_buffer(sizeof(VERTEX_DATA), RenderBufferUsageVertexBuffer, true);
     void* buffer_data = nullptr;
-    if (!m_vertex_buffer || !m_vertex_buffer->map(&buffer_data, 0, m_vertex_buffer->size()))
+    if (!m_vertex_buffer || !m_vertex_buffer->map(&buffer_data, m_vertex_buffer->size(), 0))
     {
         BONSAI_FATAL_EXIT("Failed to create or map Vertex buffer\n");
     }

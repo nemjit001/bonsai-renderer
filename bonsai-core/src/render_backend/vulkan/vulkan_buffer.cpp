@@ -21,12 +21,13 @@ VulkanBuffer::~VulkanBuffer()
 bool VulkanBuffer::map(void** data, [[maybe_unused]] size_t size, size_t offset)
 {
     BONSAI_ASSERT(data != nullptr && "Pointer to data block was NULL!");
-    if (VK_FAILED(vmaMapMemory(m_allocator, m_allocation, data)))
+	void* buffer_data = nullptr;
+    if (VK_FAILED(vmaMapMemory(m_allocator, m_allocation, &buffer_data)))
     {
         return false;
     }
 
-    *data = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(data) + offset);
+    *data = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(buffer_data) + offset);
     return true;
 }
 

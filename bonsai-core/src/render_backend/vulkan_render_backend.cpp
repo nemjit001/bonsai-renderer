@@ -361,8 +361,7 @@ RenderExtent2D VulkanRenderBackend::get_swap_extent() const
 
 RenderFormat VulkanRenderBackend::get_swap_format() const
 {
-    // TODO(nemjit001): Get this from swap chain state
-    return RenderFormatUndefined;
+    return m_swapchain_capabilities.render_format;
 }
 
 RenderBackendFrameResult VulkanRenderBackend::new_frame()
@@ -468,7 +467,7 @@ RenderBuffer* VulkanRenderBackend::create_buffer(
     {
         memory_property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
             | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        allocation_create_flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+        allocation_create_flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
     }
 
     VkBufferCreateInfo buffer_create_info{};
@@ -1107,18 +1106,31 @@ VulkanSwapchainCapabilities VulkanRenderBackend::get_swapchain_capabilities(
     std::vector<VkSurfaceFormatKHR> surface_formats(surface_format_count);
     vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &surface_format_count, surface_formats.data());
 
-    VkSurfaceFormatKHR preferred_format = surface_formats[0];
+    RenderFormat render_format = RenderFormatUndefined;
+    VkSurfaceFormatKHR preferred_format = { VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
     for (auto const format : surface_formats)
     {
-        if ((format.format == VK_FORMAT_R8G8B8A8_SRGB || format.format == VK_FORMAT_B8G8R8A8_SRGB)
-            && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        if (format.format == VK_FORMAT_R8G8B8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
         {
+            render_format = RenderFormatRGBA8_SRGB;
             preferred_format = format;
             break;
         }
-        if ((format.format == VK_FORMAT_R8G8B8A8_UNORM || format.format == VK_FORMAT_B8G8R8A8_UNORM)
-            && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
         {
+            render_format = RenderFormatBGRA8_SRGB;
+            preferred_format = format;
+            break;
+        }
+        if (format.format == VK_FORMAT_R8G8B8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
+            render_format = RenderFormatRGBA8_UNORM;
+            preferred_format = format;
+            break;
+        }
+        if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
+            render_format = RenderFormatBGRA8_UNORM;
             preferred_format = format;
             break;
         }
@@ -1132,6 +1144,7 @@ VulkanSwapchainCapabilities VulkanRenderBackend::get_swapchain_capabilities(
     return {
         surface_capabilities.minImageCount,
         image_count,
+        render_format,
         preferred_format,
         present_modes
     };
@@ -1245,9 +1258,9 @@ bool VulkanRenderBackend::configure_swapchain(
 
         // Create render texture for swap
         VulkanTextureDesc texture_desc{};
-        // texture_desc.format = swap_capabilities.preferred_format.format; // TODO(nemjit001): Set this to a valid render format pls
+        texture_desc.format = swap_capabilities.render_format;
         texture_desc.extent = { image_extent.width, image_extent.height, 1 };
-        texture_desc.vk_aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT;
+        texture_desc.vk_aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT; // This is always a color format
 
         swapchain_config.swap_render_textures[i] = new VulkanTexture(
             swapchain_config.swap_images[i],

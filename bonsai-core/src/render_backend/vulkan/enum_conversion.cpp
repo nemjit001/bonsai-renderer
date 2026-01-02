@@ -6,6 +6,14 @@ VkFormat get_vulkan_format(RenderFormat format)
     {
     case RenderFormatUndefined:
         return VK_FORMAT_UNDEFINED;
+    case RenderFormatBGRA8_UNORM:
+        return VK_FORMAT_B8G8R8A8_UNORM;
+    case RenderFormatBGRA8_SRGB:
+        return VK_FORMAT_B8G8R8A8_SRGB;
+    case RenderFormatRGBA8_UNORM:
+        return VK_FORMAT_R8G8B8A8_UNORM;
+    case RenderFormatRGBA8_SRGB:
+        return VK_FORMAT_R8G8B8A8_SRGB;
     default:
         break;
     }
@@ -19,6 +27,11 @@ VkImageAspectFlags get_vulkan_aspect_flags(RenderFormat format)
     {
     case RenderFormatUndefined:
         return VK_IMAGE_ASPECT_NONE;
+    case RenderFormatBGRA8_UNORM:
+    case RenderFormatBGRA8_SRGB:
+    case RenderFormatRGBA8_UNORM:
+    case RenderFormatRGBA8_SRGB:
+        return VK_IMAGE_ASPECT_COLOR_BIT;
     default:
         break;
     }

@@ -24,7 +24,11 @@ enum class RenderBackendFrameResult
 enum RenderFormat : uint32_t
 {
     RenderFormatUndefined = 0,
-    // TODO(nemjit001): Fill out common formats for backends
+    // TODO(nemjit001): actually add all available color formats for Vulkan & DX12
+    RenderFormatRGBA8_UNORM,
+    RenderFormatRGBA8_SRGB,
+    RenderFormatBGRA8_UNORM,
+    RenderFormatBGRA8_SRGB,
 };
 
 /// @brief Render buffer usage flag bits.
