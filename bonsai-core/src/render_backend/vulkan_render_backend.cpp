@@ -299,8 +299,8 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface, ImGu
     }
 
     ImGuiIO& imgui_io = ImGui::GetIO();
-    if (m_swapchain_capabilities.preferred_format.format == VK_FORMAT_R8G8B8A8_SRGB
-        || m_swapchain_capabilities.preferred_format.format == VK_FORMAT_B8G8R8A8_SRGB)
+    if (m_swapchain_capabilities.render_format == RenderFormatBGRA8_SRGB
+        || m_swapchain_capabilities.render_format == RenderFormatRGBA8_SRGB)
     {
         imgui_io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
     }
