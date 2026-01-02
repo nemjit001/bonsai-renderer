@@ -614,6 +614,11 @@ public:
     [[nodiscard]]
     virtual RenderFormat get_swap_format() const = 0;
 
+    /// @brief Check if the swap chain format is an sRGB format, i.e. if sRGB conversion still needs to happen before present.
+    /// @return Whether the swap format is sRGB.
+    [[nodiscard]]
+    virtual bool is_swap_srgb() const = 0;
+
     /// @brief Start a new render backend frame.
     /// @return A render backend frame result.
     [[nodiscard]]

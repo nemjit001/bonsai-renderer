@@ -76,6 +76,8 @@ public:
 
     RenderFormat get_swap_format() const override;
 
+    bool is_swap_srgb() const override;
+
     RenderBackendFrameResult new_frame() override;
 
     RenderBackendFrameResult end_frame() override;

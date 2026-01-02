@@ -364,6 +364,12 @@ RenderFormat VulkanRenderBackend::get_swap_format() const
     return m_swapchain_capabilities.render_format;
 }
 
+bool VulkanRenderBackend::is_swap_srgb() const
+{
+    return m_swapchain_capabilities.render_format == RenderFormatBGRA8_SRGB
+        || m_swapchain_capabilities.render_format == RenderFormatRGBA8_SRGB;
+}
+
 RenderBackendFrameResult VulkanRenderBackend::new_frame()
 {
     vkWaitForFences(m_device, 1, &m_frame_ready, VK_TRUE, UINT64_MAX);
