@@ -41,6 +41,8 @@ if (BONSAI_USE_VULKAN)
 
     # TODO(nemjit001): Make this a separate library, will make engine/renderer split more obvious
     target_sources(bonsai_core PRIVATE
+            src/render_backend/vulkan/enum_conversion.hpp
+            src/render_backend/vulkan/enum_conversion.cpp
             src/render_backend/vulkan/spirv_reflector.cpp
             src/render_backend/vulkan/spirv_reflector.hpp
             src/render_backend/vulkan/vk_check.hpp

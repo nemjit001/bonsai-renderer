@@ -22,6 +22,15 @@ public:
     VulkanShaderPipeline(VulkanShaderPipeline const&) = delete;
     VulkanShaderPipeline &operator=(VulkanShaderPipeline const&) = delete;
 
+    [[nodiscard]]
+    VkPipelineLayout get_pipeline_layout() const { return m_layout; }
+
+    [[nodiscard]]
+    VkPipeline get_pipeline() const { return m_pipeline; }
+
+    [[nodiscard]]
+    VkPipelineBindPoint get_bind_point() const;
+
 private:
     VkDevice m_device = VK_NULL_HANDLE;
     std::vector<VkDescriptorSetLayout> m_descriptor_set_layouts;

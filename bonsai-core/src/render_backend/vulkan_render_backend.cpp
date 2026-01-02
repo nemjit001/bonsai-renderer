@@ -9,6 +9,7 @@
 #include "bonsai/core/assert.hpp"
 #include "bonsai/core/fatal_exit.hpp"
 #include "bonsai/core/logger.hpp"
+#include "render_backend/vulkan/enum_conversion.hpp"
 #include "render_backend/vulkan/vk_check.hpp"
 #include "render_backend/vulkan/vulkan_buffer.hpp"
 #include "render_backend/vulkan/vulkan_shader_pipeline.hpp"
@@ -66,193 +67,6 @@ static VkDebugUtilsMessengerCreateInfoEXT get_debug_messenger_create_info()
     create_info.pUserData = nullptr;
 
     return create_info;
-}
-
-static VkFormat get_vulkan_format(RenderFormat format)
-{
-    switch (format)
-    {
-    case RenderFormatUndefined:
-        return VK_FORMAT_UNDEFINED;
-    default:
-        break;
-    }
-
-    return VK_FORMAT_UNDEFINED;
-}
-
-static VkPrimitiveTopology get_vulkan_topology(PrimitiveTopologyType primitive_topology)
-{
-    switch (primitive_topology)
-    {
-    case PrimitiveTopologyTypePointList:
-        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-    case PrimitiveTopologyTypeLineList:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-    case PrimitiveTopologyTypeLineStrip:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-    case PrimitiveTopologyTypeTriangleList:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    case PrimitiveTopologyTypeTriangleStrip:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-    case PrimitiveTopologyTypeTriangleFan:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
-    case PrimitiveTopologyTypeLineListWithAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
-    case PrimitiveTopologyTypeLineStripWithAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
-    case PrimitiveTopologyTypeTriangleListWithAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
-    case PrimitiveTopologyTypeTriangleStripWithAdjacency:
-        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
-    case PrimitiveTopologyTypePatchList:
-        return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-    default:
-        break;
-    }
-
-    return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
-}
-
-static VkPolygonMode get_vulkan_polygon_mode(PolygonMode polygon_mode)
-{
-    switch (polygon_mode)
-    {
-    case PolygonModeFill:
-        return VK_POLYGON_MODE_FILL;
-    case PolygonModeLine:
-        return VK_POLYGON_MODE_LINE;
-    case PolygonModePoint:
-        return VK_POLYGON_MODE_POINT;
-    default:
-        break;
-    }
-
-    return VK_POLYGON_MODE_MAX_ENUM;
-}
-
-static VkCullModeFlags get_vulkan_cull_mode(CullMode cull_mode)
-{
-    switch (cull_mode)
-    {
-    case CullModeNone:
-        return VK_CULL_MODE_NONE;
-    case CullModeBack:
-        return VK_CULL_MODE_BACK_BIT;
-    case CullModeFront:
-        return VK_CULL_MODE_FRONT_BIT;
-    default:
-        break;
-    }
-
-    return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
-}
-
-static VkCompareOp get_vulkan_compare_op(CompareOp compare_op)
-{
-    switch (compare_op)
-    {
-    case CompareOpNever:
-        return VK_COMPARE_OP_NEVER;
-    case CompareOpLess:
-        return VK_COMPARE_OP_LESS;
-    case CompareOpEqual:
-        return VK_COMPARE_OP_EQUAL;
-    case CompareOpLessOrEqual:
-        return VK_COMPARE_OP_LESS_OR_EQUAL;
-    case CompareOpGreater:
-        return VK_COMPARE_OP_GREATER;
-    case CompareOpNotEqual:
-        return VK_COMPARE_OP_NOT_EQUAL;
-    case CompareOpGreaterOrEqual:
-        return VK_COMPARE_OP_GREATER_OR_EQUAL;
-    case CompareOpAlways:
-        return VK_COMPARE_OP_ALWAYS;
-    default:
-        break;
-    }
-
-    return VK_COMPARE_OP_MAX_ENUM;
-}
-
-static VkStencilOp get_vulkan_stencil_op(StencilOp stencil_op)
-{
-    switch (stencil_op)
-    {
-    case StencilOpKeep:
-        return VK_STENCIL_OP_KEEP;
-    case StencilOpZero:
-        return VK_STENCIL_OP_ZERO;
-    case StencilOpReplace:
-        return VK_STENCIL_OP_REPLACE;
-    case StencilOpIncrementSaturate:
-        return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
-    case StencilOpDecrementSaturate:
-        return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
-    case StencilOpInvert:
-        return VK_STENCIL_OP_INVERT;
-    case StencilOpIncrementWrap:
-        return VK_STENCIL_OP_INCREMENT_AND_WRAP;
-    case StencilOpDecrementWrap:
-        return VK_STENCIL_OP_DECREMENT_AND_WRAP;
-    default:
-        break;
-    }
-
-    return VK_STENCIL_OP_MAX_ENUM;
-}
-
-static VkLogicOp get_vulkan_logic_op(LogicOp logic_op)
-{
-    switch (logic_op)
-    {
-    case LogicOpClear:
-        return VK_LOGIC_OP_CLEAR;
-    case LogicOpAND:
-        return VK_LOGIC_OP_AND;
-    case LogicOpANDReverse:
-        return VK_LOGIC_OP_AND_REVERSE;
-    case LogicOpCopy:
-        return VK_LOGIC_OP_COPY;
-    case LogicOpANDInverted:
-        return VK_LOGIC_OP_AND_INVERTED;
-    case LogicOpNoOp:
-        return VK_LOGIC_OP_NO_OP;
-    case LogixOpXOR:
-        return VK_LOGIC_OP_XOR;
-    case LogicOpOR:
-        return VK_LOGIC_OP_OR;
-    case LogicOpNOR:
-        return VK_LOGIC_OP_NOR;
-    case LogicOpEquivalent:
-        return VK_LOGIC_OP_EQUIVALENT;
-    case LogicOpInvert:
-        return VK_LOGIC_OP_INVERT;
-    case LogicOpORReverse:
-        return VK_LOGIC_OP_OR_REVERSE;
-    case LogicOpCopyInverted:
-        return VK_LOGIC_OP_COPY_INVERTED;
-    case LogicOpORInverted:
-        return VK_LOGIC_OP_OR_INVERTED;
-    case LogicOpNAND:
-        return VK_LOGIC_OP_NAND;
-    case LogicOpSet:
-        return VK_LOGIC_OP_SET;
-    default:
-        break;
-    }
-
-    return VK_LOGIC_OP_MAX_ENUM;
-}
-
-static VkBlendFactor get_vulkan_blend_factor(BlendFactor blend_factor)
-{
-    return VK_BLEND_FACTOR_MAX_ENUM;
-}
-
-static VkBlendOp get_vulkan_blend_op(BlendOp blend_op)
-{
-    return VK_BLEND_OP_MAX_ENUM;
 }
 
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
@@ -547,6 +361,7 @@ RenderExtent2D VulkanRenderBackend::get_swap_extent() const
 
 RenderFormat VulkanRenderBackend::get_swap_format() const
 {
+    // TODO(nemjit001): Get this from swap chain state
     return RenderFormatUndefined;
 }
 
@@ -701,36 +516,6 @@ RenderTexture* VulkanRenderBackend::create_texture(
     RenderTextureTilingMode tiling_mode
 )
 {
-    // Set the image type
-    VkImageType image_type = VK_IMAGE_TYPE_MAX_ENUM;
-    if (texture_type == RenderTextureType1D)
-    {
-        image_type = VK_IMAGE_TYPE_1D;
-    }
-    else if (texture_type == RenderTextureType2D)
-    {
-        image_type = VK_IMAGE_TYPE_2D;
-    }
-    else if (texture_type == RenderTextureType3D)
-    {
-        image_type = VK_IMAGE_TYPE_3D;
-    }
-
-    // Set flags, depth, and array layers based on image type
-    VkImageCreateFlags image_flags = 0;
-    uint32_t depth = 1;
-    uint32_t array_layers = depth_or_layers;
-    if (texture_type == RenderTextureType3D)
-    {
-        depth = depth_or_layers;
-        array_layers = 1;
-    }
-
-    if (texture_type == RenderTextureType2D && array_layers == 6)
-    {
-        image_flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-    }
-
     // Set image usage flags
     VkImageUsageFlags usage_flags = 0;
     if (texture_usage & RenderTextureUsageTransferSrc)
@@ -746,15 +531,18 @@ RenderTexture* VulkanRenderBackend::create_texture(
     if (texture_usage & RenderTextureUsageDepthStencilTarget)
         usage_flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-    // Set image tiling mode
-    VkImageTiling image_tiling = VK_IMAGE_TILING_MAX_ENUM;
-    if (tiling_mode == RenderTextureTilingLinear)
+    // Set flags, depth, and array layers based on image type
+    VkImageCreateFlags image_flags = 0;
+    uint32_t depth = 1;
+    uint32_t array_layers = depth_or_layers;
+    if (texture_type == RenderTextureType3D)
     {
-        image_tiling = VK_IMAGE_TILING_LINEAR;
+        depth = depth_or_layers;
+        array_layers = 1;
     }
-    else if (tiling_mode == RenderTextureTilingOptimal)
+    else if (texture_type == RenderTextureType2D && array_layers == 6)
     {
-        image_tiling = VK_IMAGE_TILING_OPTIMAL;
+        image_flags |= VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
     }
 
     VkFormat const image_format = get_vulkan_format(format);
@@ -762,13 +550,13 @@ RenderTexture* VulkanRenderBackend::create_texture(
     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_create_info.pNext = nullptr;
     image_create_info.flags = image_flags;
-    image_create_info.imageType = image_type;
+    image_create_info.imageType = get_vulkan_image_type(texture_type);
     image_create_info.format = image_format;
     image_create_info.extent = VkExtent3D{ width, height, depth };
     image_create_info.mipLevels = mip_levels;
     image_create_info.arrayLayers = array_layers;
     image_create_info.samples = static_cast<VkSampleCountFlagBits>(sample_count);
-    image_create_info.tiling = image_tiling;
+    image_create_info.tiling = get_vulkan_image_tiling(tiling_mode);
     image_create_info.usage = usage_flags;
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     image_create_info.queueFamilyIndexCount = 0;
@@ -792,7 +580,7 @@ RenderTexture* VulkanRenderBackend::create_texture(
         return nullptr;
     }
 
-    // Set image view type
+    // Set image view type based  on input params
     VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_MAX_ENUM;
     if (texture_type == RenderTextureType1D && depth_or_layers == 1)
         view_type = VK_IMAGE_VIEW_TYPE_1D;
@@ -807,9 +595,7 @@ RenderTexture* VulkanRenderBackend::create_texture(
     else if (texture_type == RenderTextureType3D)
         view_type = VK_IMAGE_VIEW_TYPE_3D;
 
-    VkImageAspectFlags image_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
-    // TODO(nemjit001): Set aspect based on texture format
-
+    VkImageAspectFlags image_aspect = get_vulkan_aspect_flags(format);
     VkImageViewCreateInfo view_create_info{};
     view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     view_create_info.pNext = nullptr;
@@ -837,7 +623,7 @@ RenderTexture* VulkanRenderBackend::create_texture(
     }
 
     VulkanTextureDesc texture_desc{};
-    texture_desc.format = image_format;
+    texture_desc.format = format;
     texture_desc.extent = { width, height, depth };
 
     return new VulkanTexture(m_device, m_allocator, image, image_view, allocation, texture_desc);
@@ -1459,8 +1245,9 @@ bool VulkanRenderBackend::configure_swapchain(
 
         // Create render texture for swap
         VulkanTextureDesc texture_desc{};
-        texture_desc.format = swap_capabilities.preferred_format.format;
+        // texture_desc.format = swap_capabilities.preferred_format.format; // TODO(nemjit001): Set this to a valid render format pls
         texture_desc.extent = { image_extent.width, image_extent.height, 1 };
+        texture_desc.vk_aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT;
 
         swapchain_config.swap_render_textures[i] = new VulkanTexture(
             swapchain_config.swap_images[i],

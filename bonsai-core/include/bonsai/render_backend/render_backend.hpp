@@ -84,6 +84,13 @@ enum RenderStoreOp : uint32_t
     RenderStoreOpDontCare   = 1,
 };
 
+/// @brief Index type for index buffers.
+enum IndexType : uint32_t
+{
+    IndexTypeUint16 = 0,
+    IndexTypeUint32 = 1,
+};
+
 /// @brief Render clear color value for attachments.
 union RenderClearColor
 {
@@ -134,6 +141,17 @@ struct RenderExtent3D
     uint32_t width;
     uint32_t height;
     uint32_t depth;
+};
+
+/// @brief Render viewport structure.
+struct RenderViewport
+{
+    float x;
+    float y;
+    float width;
+    float height;
+    float min_depth;
+    float max_depth;
 };
 
 /// @brief 2D rect value.
@@ -422,6 +440,11 @@ class RenderTexture
 public:
     virtual ~RenderTexture() = default;
 
+    /// @brief Get the render format.
+    /// @return The render format.
+    [[nodiscard]]
+    virtual RenderFormat format() const = 0;
+
     /// @brief Get the texture extent.
     /// @return The texture extent.
     [[nodiscard]]
@@ -510,24 +533,39 @@ public:
     /// @param pipeline Pipeline to activate.
     virtual void set_pipeline(ShaderPipeline* pipeline) = 0;
 
-    /// @brief Bind a uniform buffer to a named shader location.
-    /// @param name Binding location name.
-    /// @param buffer Uniform buffer to bind.
-    /// @param size Buffer size to bind.
-    /// @param offset Buffer offset to bind.
-    virtual void bind_uniform(char const* name, RenderBuffer* buffer, size_t size, size_t offset) = 0;
+    /// @brief Set the rasterizer primitive topology type.
+    /// @param primitive_topology
+    virtual void set_primitive_topology(PrimitiveTopologyType primitive_topology) = 0;
 
-    /// @brief Bind a storage buffer to a named shader location.
-    /// @param name Binding location name.
-    /// @param buffer Buffer to bind.
-    /// @param size Buffer size to bind.
-    /// @param offset Buffer offset to bind.
-    virtual void bind_buffer(char const* name, RenderBuffer* buffer, size_t size, size_t offset) = 0;
+    /// @brief Set the rasterizer viewports.
+    /// @param count
+    /// @param viewports
+    virtual void set_viewports(size_t count, RenderViewport* viewports) = 0;
 
-    /// @brief Bind a texture to a named shader location.
-    /// @param name Binding location name.
-    /// @param texture Texture to bind.
-    virtual void bind_texture(char const* name, RenderTexture* texture) = 0;
+    /// @brief Set the rasterizer scissor rects.
+    /// @param count
+    /// @param scissor_rects
+    virtual void set_scissor_rects(size_t count, RenderRect2D* scissor_rects) = 0;
+
+    /// @brief Bind vertex buffers for the input assembly.
+    /// @param base_binding First binding slot index.
+    /// @param count Number of vertex buffers to bind.
+    /// @param buffers Vertex buffers to bind.
+    /// @param offsets Byte offsets into the vertex buffers that are bound.
+    virtual void bind_vertex_buffers(size_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets) = 0;
+
+    /// @brief Bind an index buffer.
+    /// @param buffer Index buffer to bind.
+    /// @param offset Byte offset into the index buffer to bind.
+    /// @param index_type Index type stored in the index buffer.
+    virtual void bind_index_buffer(RenderBuffer* buffer, size_t offset, IndexType index_type) = 0;
+
+    /// @brief Draw instanced vertices.
+    /// @param vertex_count Number of vertices to draw.
+    /// @param instance_count Number of instances to draw.
+    /// @param first_vertex First vertex ID.
+    /// @param first_instance First instance ID.
+    virtual void draw_instanced(size_t vertex_count, size_t instance_count, size_t first_vertex, size_t first_instance) = 0;
 
     /// @brief Dispatch compute workgroups using the active compute pipeline.
     /// @param x Dispatch dimension x.

@@ -27,3 +27,20 @@ VulkanShaderPipeline::~VulkanShaderPipeline()
         vkDestroyDescriptorSetLayout(m_device, layout, nullptr);
     }
 }
+
+VkPipelineBindPoint VulkanShaderPipeline::get_bind_point() const
+{
+    switch (get_type())
+    {
+    case PipelineType::None:
+        break;
+    case PipelineType::Graphics:
+        return VK_PIPELINE_BIND_POINT_GRAPHICS;
+    case PipelineType::Compute:
+        return VK_PIPELINE_BIND_POINT_COMPUTE;
+    default:
+        break;
+    }
+
+    return VK_PIPELINE_BIND_POINT_MAX_ENUM;
+}

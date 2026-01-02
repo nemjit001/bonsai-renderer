@@ -91,7 +91,7 @@ Renderer::Renderer(RenderBackend* render_backend)
     m_shader_pipeline = m_render_backend->create_graphics_pipeline(pipeline_descriptor);
     if (!m_shader_pipeline)
     {
-        BONSAI_FATAL_EXIT("Failed to compile simple shader pipeline!\n");
+        BONSAI_FATAL_EXIT("Failed to compile simple shader pipeline\n");
     }
 
     m_vertex_buffer = m_render_backend->create_buffer(sizeof(VERTEX_DATA), RenderBufferUsageVertexBuffer, true);
@@ -106,6 +106,7 @@ Renderer::Renderer(RenderBackend* render_backend)
 
 Renderer::~Renderer()
 {
+    m_render_backend->wait_idle();
     delete m_vertex_buffer;
     delete m_shader_pipeline;
 }
@@ -120,7 +121,7 @@ void Renderer::on_resize(uint32_t width, uint32_t height)
 
     m_render_backend->wait_idle();
     m_render_backend->reconfigure_swap_chain(width, height);
-    m_swap_extent = { width, height };
+    m_swap_extent = m_render_backend->get_swap_extent();
 }
 
 void Renderer::render()
@@ -147,10 +148,9 @@ void Renderer::render()
         BONSAI_FATAL_EXIT("Failed to start renderer frame command recording\n");
     }
 
-    RenderExtent3D const swap_extent = swap_texture->extent();
     RenderRect2D render_area{};
     render_area.offset = { 0, 0 };
-    render_area.extent = { swap_extent.width, swap_extent.height  };
+    render_area.extent = { m_swap_extent.width, m_swap_extent.height  };
 
     RenderAttachmentInfo color_attachment{};
     color_attachment.render_target = swap_texture;
@@ -160,8 +160,16 @@ void Renderer::render()
 
     frame_commands->begin_render_pass(render_area, &color_attachment, 1, nullptr, nullptr);
     frame_commands->set_pipeline(m_shader_pipeline);
-    // frame_commands->bind_vertex_buffers(0, 1, &m_vertex_buffer);
-    // frame_commands->draw_instanced(3, 1, 0, 0);
+
+    RenderViewport viewport{ 0.0F, 0.0F, static_cast<float>(m_swap_extent.width), static_cast<float>(m_swap_extent.height), 0.0F, 1.0F };
+    RenderRect2D scissor{ { 0, 0 }, { m_swap_extent.width, m_swap_extent.height } };
+    frame_commands->set_viewports(1, &viewport);
+    frame_commands->set_scissor_rects(1, &scissor);
+    frame_commands->set_primitive_topology(PrimitiveTopologyTypeTriangleList);
+
+    size_t offsets[] = { 0 };
+    frame_commands->bind_vertex_buffers(0, 1, &m_vertex_buffer, offsets);
+    frame_commands->draw_instanced(3, 1, 0, 0);
     frame_commands->end_render_pass();
 
     RenderAttachmentInfo imgui_color_attachment{};
