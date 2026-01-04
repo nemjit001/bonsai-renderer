@@ -145,19 +145,18 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface, ImGu
         BONSAI_FATAL_EXIT("Failed to create Vulkan surface\n");
     }
 
-    VkPhysicalDeviceProperties device_properties{};
     VulkanDeviceFeatures enabled_features{};
     std::vector<char const*> enabled_device_extensions{};
     enabled_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-    m_physical_device = find_physical_device(m_instance, device_properties, enabled_features, enabled_device_extensions);
+    m_physical_device = find_physical_device(m_instance, m_device_properties, enabled_features, enabled_device_extensions);
     if (m_physical_device == VK_NULL_HANDLE)
     {
         BONSAI_FATAL_EXIT("Failed to find suitable physical device\n");
     }
     BONSAI_ENGINE_LOG_TRACE("Selected Vulkan physical device: \"{} ({})\"",
-        device_properties.deviceName,
-        device_properties.deviceID
+        m_device_properties.properties2.properties.deviceName,
+        m_device_properties.properties2.properties.deviceID
     );
 
     uint32_t queue_count = 0;
@@ -759,8 +758,8 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
     multisample_state.pNext = nullptr;
     multisample_state.flags = 0;
     multisample_state.rasterizationSamples = static_cast<VkSampleCountFlagBits>(pipeline_descriptor.multisample_state.sample_count);
-    multisample_state.sampleShadingEnable = VK_FALSE; // TODO(nemjit001): Enable this if the physical device supports sample rate shading
-    multisample_state.minSampleShading = 0.0F; // TODO(nemjit001): Set this to the max supported sample shading rate for the physical device
+    multisample_state.sampleShadingEnable = VK_TRUE; // Always enabled
+    multisample_state.minSampleShading = 1.0F; // Just bump to max
     multisample_state.pSampleMask = pipeline_descriptor.multisample_state.sample_mask;
     multisample_state.alphaToCoverageEnable = pipeline_descriptor.multisample_state.alpha_to_coverage;
     multisample_state.alphaToOneEnable = VK_FALSE; // TODO(nemjit001): Check if alpha to one can be added as pipeline state
@@ -1000,11 +999,15 @@ bool VulkanRenderBackend::has_device_extensions(
 
 VkPhysicalDevice VulkanRenderBackend::find_physical_device(
     VkInstance instance,
-    VkPhysicalDeviceProperties& device_properties,
+    VulkanPhysicalDeviceProperties& device_properties,
     VulkanDeviceFeatures& enabled_device_features,
     std::vector<char const*> const& enabled_device_extensions
 )
 {
+    // Set up properties struct
+    device_properties.properties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    device_properties.properties2.pNext = nullptr;
+
     // Set up features struct
     enabled_device_features.features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     enabled_device_features.features2.pNext = &enabled_device_features.vulkan11_features;
@@ -1025,9 +1028,9 @@ VkPhysicalDevice VulkanRenderBackend::find_physical_device(
     vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
     for (auto const& device : devices)
     {
-        vkGetPhysicalDeviceProperties(device, &device_properties);
+        vkGetPhysicalDeviceProperties2(device, &device_properties.properties2);
 
-        if (device_properties.apiVersion < BONSAI_VULKAN_VERSION)
+        if (device_properties.properties2.properties.apiVersion < BONSAI_VULKAN_VERSION)
         {
             continue;
         }

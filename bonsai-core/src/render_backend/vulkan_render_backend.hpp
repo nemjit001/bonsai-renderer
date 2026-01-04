@@ -34,6 +34,11 @@ struct VulkanQueueFamilies
     uint32_t graphics_family; /// @brief The graphics queue family is also guaranteed to support presenting to surfaces.
 };
 
+struct VulkanPhysicalDeviceProperties
+{
+    VkPhysicalDeviceProperties2 properties2;
+};
+
 /// @brief Queried swap chain capabilities for a surface & physical device.
 struct VulkanSwapchainCapabilities
 {
@@ -128,7 +133,7 @@ private:
     /// @return A suitable physical device, or VK_NULL_HANDLE on failure.
     static VkPhysicalDevice find_physical_device(
         VkInstance instance,
-        VkPhysicalDeviceProperties& device_properties,
+        VulkanPhysicalDeviceProperties& device_properties,
         VulkanDeviceFeatures& enabled_device_features,
         std::vector<char const*> const& enabled_device_extensions
     );
@@ -198,6 +203,7 @@ private:
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
     VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
+    VulkanPhysicalDeviceProperties m_device_properties = {};
     VulkanQueueFamilies m_queue_families = {};
     VkDevice m_device = VK_NULL_HANDLE;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
