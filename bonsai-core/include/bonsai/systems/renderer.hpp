@@ -26,6 +26,7 @@ private:
     RenderExtent2D m_swap_extent = {};
     ShaderPipeline* m_shader_pipeline = nullptr;
     RenderBuffer* m_vertex_buffer = nullptr;
+    RenderBuffer* m_index_buffer = nullptr;
 };
 
 #endif //BONSAI_RENDERER_RENDERER_HPP

@@ -24,11 +24,67 @@ enum class RenderBackendFrameResult
 enum RenderFormat : uint32_t
 {
     RenderFormatUndefined = 0,
-    // TODO(nemjit001): actually add all available color formats for Vulkan & DX12
+
+    RenderFormatR8_UNORM,
+    RenderFormatR8_SNORM,
+    RenderFormatR8_UINT,
+    RenderFormatR8_SINT,
+
+    RenderFormatRG8_UNORM,
+    RenderFormatRG8_SNORM,
+    RenderFormatRG8_UINT,
+    RenderFormatRG8_SINT,
+
     RenderFormatRGBA8_UNORM,
+    RenderFormatRGBA8_SNORM,
+    RenderFormatRGBA8_UINT,
+    RenderFormatRGBA8_SINT,
     RenderFormatRGBA8_SRGB,
+
     RenderFormatBGRA8_UNORM,
+    RenderFormatBGRA8_SNORM,
+    RenderFormatBGRA8_UINT,
+    RenderFormatBGRA8_SINT,
     RenderFormatBGRA8_SRGB,
+
+    RenderFormatR16_SFLOAT,
+    RenderFormatR16_UNORM,
+    RenderFormatR16_SNORM,
+    RenderFormatR16_UINT,
+    RenderFormatR16_SINT,
+
+    RenderFormatRG16_SFLOAT,
+    RenderFormatRG16_UNORM,
+    RenderFormatRG16_SNORM,
+    RenderFormatRG16_UINT,
+    RenderFormatRG16_SINT,
+
+    RenderFormatRGBA16_SFLOAT,
+    RenderFormatRGBA16_UNORM,
+    RenderFormatRGBA16_SNORM,
+    RenderFormatRGBA16_UINT,
+    RenderFormatRGBA16_SINT,
+
+    RenderFormatR32_SFLOAT,
+    RenderFormatR32_UINT,
+    RenderFormatR32_SINT,
+
+    RenderFormatRG32_SFLOAT,
+    RenderFormatRG32_UINT,
+    RenderFormatRG32_SINT,
+
+    RenderFormatRGB32_SFLOAT,
+    RenderFormatRGB32_UINT,
+    RenderFormatRGB32_SINT,
+
+    RenderFormatRGBA32_SFLOAT,
+    RenderFormatRGBA32_UINT,
+    RenderFormatRGBA32_SINT,
+
+    RenderFormatD16_UNORM,
+    RenderFormatD24_UNORM_S8_UINT,
+    RenderFormatD32_SFLOAT,
+    RenderFormatD32_SFLOAT_S8_UINT,
 };
 
 /// @brief Render buffer usage flag bits.
@@ -182,6 +238,7 @@ enum ShaderSourceKind : uint32_t
     ShaderSourceKindFile    = 1,    /// @brief Expects a C string containing a shader file path.
 };
 
+/// @brief Index buffer strip cut value to use for strip topology types.
 enum IndexBufferStripCutValue : uint32_t
 {
     IndexBufferStripCutValueDisabled        = 0,
@@ -189,6 +246,7 @@ enum IndexBufferStripCutValue : uint32_t
     IndexBufferStripCutValueEnabled64Bit    = 2,
 };
 
+/// @brief Primitive topology type to use during rasterization.
 enum PrimitiveTopologyType : uint32_t
 {
     PrimitiveTopologyTypePointList                      = 0,
@@ -204,6 +262,7 @@ enum PrimitiveTopologyType : uint32_t
     PrimitiveTopologyTypePatchList                      = 10,
 };
 
+/// @brief Polygon fill mode to use during rasterization.
 enum PolygonMode : uint32_t
 {
     PolygonModeFill     = 0,
@@ -211,6 +270,7 @@ enum PolygonMode : uint32_t
     PolygonModePoint    = 2,
 };
 
+/// @brief Cull mode to use during rasterization.
 enum CullMode : uint32_t
 {
     CullModeNone    = 0,
@@ -218,6 +278,7 @@ enum CullMode : uint32_t
     CullModeBack    = 2,
 };
 
+/// @brief MSAA sample count for rasterization operations or textures.
 enum SampleCount : uint32_t
 {
     SampleCount1Sample      = 1,
@@ -229,6 +290,7 @@ enum SampleCount : uint32_t
     SampleCount64Samples    = 64,
 };
 
+/// @brief Compare operations for fixed function state.
 enum CompareOp : uint32_t
 {
     CompareOpNever              = 0,
@@ -241,6 +303,7 @@ enum CompareOp : uint32_t
     CompareOpAlways             = 7,
 };
 
+/// @brief Stencil operations for fixed function state.
 enum StencilOp : uint32_t
 {
     StencilOpKeep               = 0,
@@ -253,6 +316,7 @@ enum StencilOp : uint32_t
     StencilOpDecrementWrap      = 7,
 };
 
+/// @brief Logic operations for fixed function state.
 enum LogicOp : uint32_t
 {
     LogicOpClear        = 0,
@@ -273,6 +337,7 @@ enum LogicOp : uint32_t
     LogicOpSet          = 15,
 };
 
+/// @brief Blend operations for color blending.
 enum BlendOp : uint32_t
 {
     BlendOpAdd              = 0,
@@ -282,6 +347,7 @@ enum BlendOp : uint32_t
     BlendOpMax              = 4,
 };
 
+/// @brief Blend factors for color blending.
 enum BlendFactor : uint32_t
 {
     BlendFactorZero                     = 0,
@@ -305,6 +371,7 @@ enum BlendFactor : uint32_t
     BlendFactorOneMinusSrc1Alpha        = 18,
 };
 
+/// @brief Color component bitwise flags.
 enum ColorComponent : uint32_t
 {
     ColorComponentRed   = 0x01,
@@ -556,7 +623,7 @@ public:
     /// @param count Number of vertex buffers to bind.
     /// @param buffers Vertex buffers to bind.
     /// @param offsets Byte offsets into the vertex buffers that are bound.
-    virtual void bind_vertex_buffers(size_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets) = 0;
+    virtual void bind_vertex_buffers(uint32_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets) = 0;
 
     /// @brief Bind an index buffer.
     /// @param buffer Index buffer to bind.
@@ -569,7 +636,15 @@ public:
     /// @param instance_count Number of instances to draw.
     /// @param first_vertex First vertex ID.
     /// @param first_instance First instance ID.
-    virtual void draw_instanced(size_t vertex_count, size_t instance_count, size_t first_vertex, size_t first_instance) = 0;
+    virtual void draw_instanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) = 0;
+
+    /// @brief Draw instanced indexed vertices.
+    /// @param index_count Number of indices to draw.
+    /// @param instance_count Number of instances to draw.
+    /// @param first_index First index ID.
+    /// @param vertex_offset Vertex offset added to indices.
+    /// @param first_instance First instance ID.
+    virtual void draw_indexed_instanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance) = 0;
 
     /// @brief Dispatch compute workgroups using the active compute pipeline.
     /// @param x Dispatch dimension x.

@@ -297,13 +297,6 @@ VulkanRenderBackend::VulkanRenderBackend(PlatformSurface* platform_surface, ImGu
     {
         BONSAI_FATAL_EXIT("Failed to initialize Vulkan ImGui backend\n");
     }
-
-    ImGuiIO& imgui_io = ImGui::GetIO();
-    if (m_swapchain_capabilities.render_format == RenderFormatBGRA8_SRGB
-        || m_swapchain_capabilities.render_format == RenderFormatRGBA8_SRGB)
-    {
-        imgui_io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
-    }
 }
 
 VulkanRenderBackend::~VulkanRenderBackend()
@@ -1114,7 +1107,7 @@ VulkanSwapchainCapabilities VulkanRenderBackend::get_swapchain_capabilities(
 
     RenderFormat render_format = RenderFormatUndefined;
     VkSurfaceFormatKHR preferred_format = { VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
-    for (auto const format : surface_formats)
+    for (auto const& format : surface_formats)
     {
         if (format.format == VK_FORMAT_R8G8B8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
         {
@@ -1128,17 +1121,24 @@ VulkanSwapchainCapabilities VulkanRenderBackend::get_swapchain_capabilities(
             preferred_format = format;
             break;
         }
-        if (format.format == VK_FORMAT_R8G8B8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+    }
+
+    if (render_format == RenderFormatUndefined) // Search for non-srgb formats if srgb formats are not supported
+    {
+        for (auto const& format : surface_formats)
         {
-            render_format = RenderFormatRGBA8_UNORM;
-            preferred_format = format;
-            break;
-        }
-        if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-        {
-            render_format = RenderFormatBGRA8_UNORM;
-            preferred_format = format;
-            break;
+            if (format.format == VK_FORMAT_R8G8B8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            {
+                render_format = RenderFormatRGBA8_UNORM;
+                preferred_format = format;
+                break;
+            }
+            if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            {
+                render_format = RenderFormatBGRA8_UNORM;
+                preferred_format = format;
+                break;
+            }
         }
     }
 

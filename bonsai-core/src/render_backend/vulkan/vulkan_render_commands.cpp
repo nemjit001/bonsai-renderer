@@ -330,7 +330,7 @@ void VulkanRenderCommands::set_scissor_rects(size_t count, RenderRect2D* scissor
     vkCmdSetScissor(m_command_buffer, 0, 1, &vk_scissor_rect);
 }
 
-void VulkanRenderCommands::bind_vertex_buffers(size_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets)
+void VulkanRenderCommands::bind_vertex_buffers(uint32_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets)
 {
     std::vector<VkBuffer> vertex_buffers;
     vertex_buffers.resize(count);
@@ -342,7 +342,7 @@ void VulkanRenderCommands::bind_vertex_buffers(size_t base_binding, size_t count
 
     vkCmdBindVertexBuffers(
         m_command_buffer,
-        static_cast<uint32_t>(base_binding),
+        base_binding,
         static_cast<uint32_t>(count),
         vertex_buffers.data(),
         offsets
@@ -355,14 +355,26 @@ void VulkanRenderCommands::bind_index_buffer(RenderBuffer* buffer, size_t offset
     vkCmdBindIndexBuffer(m_command_buffer, vk_buffer->get_buffer(), offset, get_vulkan_index_type(index_type));
 }
 
-void VulkanRenderCommands::draw_instanced(size_t vertex_count, size_t instance_count, size_t first_vertex, size_t first_instance)
+void VulkanRenderCommands::draw_instanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
 {
     vkCmdDraw(
         m_command_buffer,
-        static_cast<uint32_t>(vertex_count),
-        static_cast<uint32_t>(instance_count),
-        static_cast<uint32_t>(first_vertex),
-        static_cast<uint32_t>(first_instance)
+        vertex_count,
+        instance_count,
+        first_vertex,
+        first_instance
+    );
+}
+
+void VulkanRenderCommands::draw_indexed_instanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance)
+{
+    vkCmdDrawIndexed(
+        m_command_buffer,
+        index_count,
+        instance_count,
+        first_index,
+        vertex_offset,
+        first_instance
     );
 }
 

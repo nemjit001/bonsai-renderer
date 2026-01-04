@@ -6,14 +6,104 @@ VkFormat get_vulkan_format(RenderFormat format)
     {
     case RenderFormatUndefined:
         return VK_FORMAT_UNDEFINED;
-    case RenderFormatBGRA8_UNORM:
-        return VK_FORMAT_B8G8R8A8_UNORM;
-    case RenderFormatBGRA8_SRGB:
-        return VK_FORMAT_B8G8R8A8_SRGB;
+    case RenderFormatR8_UNORM:
+        return VK_FORMAT_R8_UNORM;
+    case RenderFormatR8_SNORM:
+        return VK_FORMAT_R8_SNORM;
+    case RenderFormatR8_UINT:
+        return VK_FORMAT_R8_UINT;
+    case RenderFormatR8_SINT:
+        return VK_FORMAT_R8_SINT;
+    case RenderFormatRG8_UNORM:
+        return VK_FORMAT_R8G8_UNORM;
+    case RenderFormatRG8_SNORM:
+        return VK_FORMAT_R8G8_SNORM;
+    case RenderFormatRG8_UINT:
+        return VK_FORMAT_R8G8_UINT;
+    case RenderFormatRG8_SINT:
+        return VK_FORMAT_R8G8_SINT;
     case RenderFormatRGBA8_UNORM:
         return VK_FORMAT_R8G8B8A8_UNORM;
+    case RenderFormatRGBA8_SNORM:
+        return VK_FORMAT_R8G8B8A8_SNORM;
+    case RenderFormatRGBA8_UINT:
+        return VK_FORMAT_R8G8B8A8_UINT;
+    case RenderFormatRGBA8_SINT:
+        return VK_FORMAT_R8G8B8A8_SINT;
     case RenderFormatRGBA8_SRGB:
         return VK_FORMAT_R8G8B8A8_SRGB;
+    case RenderFormatBGRA8_UNORM:
+        return VK_FORMAT_B8G8R8A8_UNORM;
+    case RenderFormatBGRA8_SNORM:
+        return VK_FORMAT_B8G8R8A8_SNORM;
+    case RenderFormatBGRA8_UINT:
+        return VK_FORMAT_B8G8R8A8_UINT;
+    case RenderFormatBGRA8_SINT:
+        return VK_FORMAT_B8G8R8A8_SINT;
+    case RenderFormatBGRA8_SRGB:
+        return VK_FORMAT_B8G8R8A8_SRGB;
+    case RenderFormatR16_SFLOAT:
+        return VK_FORMAT_R16_SFLOAT;
+    case RenderFormatR16_UNORM:
+        return VK_FORMAT_R16_UNORM;
+    case RenderFormatR16_SNORM:
+        return VK_FORMAT_R16_SNORM;
+    case RenderFormatR16_UINT:
+        return VK_FORMAT_R16_UINT;
+    case RenderFormatR16_SINT:
+        return VK_FORMAT_R16_SINT;
+    case RenderFormatRG16_SFLOAT:
+        return VK_FORMAT_R16G16_SFLOAT;
+    case RenderFormatRG16_UNORM:
+        return VK_FORMAT_R16G16_UNORM;
+    case RenderFormatRG16_SNORM:
+        return VK_FORMAT_R16G16_SNORM;
+    case RenderFormatRG16_UINT:
+        return VK_FORMAT_R16G16_UINT;
+    case RenderFormatRG16_SINT:
+        return VK_FORMAT_R16G16_SINT;
+    case RenderFormatRGBA16_SFLOAT:
+        return VK_FORMAT_R16G16B16A16_SFLOAT;
+    case RenderFormatRGBA16_UNORM:
+        return VK_FORMAT_R16G16B16A16_UNORM;
+    case RenderFormatRGBA16_SNORM:
+        return VK_FORMAT_R16G16B16A16_SNORM;
+    case RenderFormatRGBA16_UINT:
+        return VK_FORMAT_R16G16B16A16_UINT;
+    case RenderFormatRGBA16_SINT:
+        return VK_FORMAT_R16G16B16A16_SINT;
+    case RenderFormatR32_SFLOAT:
+        return VK_FORMAT_R32_SFLOAT;
+    case RenderFormatR32_UINT:
+        return VK_FORMAT_R32_UINT;
+    case RenderFormatR32_SINT:
+        return VK_FORMAT_R32_SINT;
+    case RenderFormatRG32_SFLOAT:
+        return VK_FORMAT_R32G32_SFLOAT;
+    case RenderFormatRG32_UINT:
+        return VK_FORMAT_R32G32_UINT;
+    case RenderFormatRG32_SINT:
+        return VK_FORMAT_R32G32_SINT;
+    case RenderFormatRGB32_SFLOAT:
+        return VK_FORMAT_R32G32B32_SFLOAT;
+    case RenderFormatRGB32_UINT:
+        return VK_FORMAT_R32G32B32_UINT;
+    case RenderFormatRGB32_SINT:
+        return VK_FORMAT_R32G32B32_SINT;
+    case RenderFormatRGBA32_SFLOAT:
+        return VK_FORMAT_R32G32B32A32_SFLOAT;
+    case RenderFormatRGBA32_UINT:
+        return VK_FORMAT_R32G32B32A32_UINT;
+    case RenderFormatRGBA32_SINT:
+        return VK_FORMAT_R32G32B32A32_SINT;
+    case RenderFormatD16_UNORM:
+        return VK_FORMAT_D16_UNORM;
+    case RenderFormatD24_UNORM_S8_UINT:
+        return VK_FORMAT_D24_UNORM_S8_UINT;
+    case RenderFormatD32_SFLOAT:
+        return VK_FORMAT_D32_SFLOAT;
+    case RenderFormatD32_SFLOAT_S8_UINT:
+        return VK_FORMAT_D32_SFLOAT_S8_UINT;
     default:
         break;
     }
@@ -27,11 +117,58 @@ VkImageAspectFlags get_vulkan_aspect_flags(RenderFormat format)
     {
     case RenderFormatUndefined:
         return VK_IMAGE_ASPECT_NONE;
-    case RenderFormatBGRA8_UNORM:
-    case RenderFormatBGRA8_SRGB:
+    case RenderFormatR8_UNORM:
+    case RenderFormatR8_SNORM:
+    case RenderFormatR8_UINT:
+    case RenderFormatR8_SINT:
+    case RenderFormatRG8_UNORM:
+    case RenderFormatRG8_SNORM:
+    case RenderFormatRG8_UINT:
+    case RenderFormatRG8_SINT:
     case RenderFormatRGBA8_UNORM:
+    case RenderFormatRGBA8_SNORM:
+    case RenderFormatRGBA8_UINT:
+    case RenderFormatRGBA8_SINT:
     case RenderFormatRGBA8_SRGB:
+    case RenderFormatBGRA8_UNORM:
+    case RenderFormatBGRA8_SNORM:
+    case RenderFormatBGRA8_UINT:
+    case RenderFormatBGRA8_SINT:
+    case RenderFormatBGRA8_SRGB:
+    case RenderFormatR16_SFLOAT:
+    case RenderFormatR16_UNORM:
+    case RenderFormatR16_SNORM:
+    case RenderFormatR16_UINT:
+    case RenderFormatR16_SINT:
+    case RenderFormatRG16_SFLOAT:
+    case RenderFormatRG16_UNORM:
+    case RenderFormatRG16_SNORM:
+    case RenderFormatRG16_UINT:
+    case RenderFormatRG16_SINT:
+    case RenderFormatRGBA16_SFLOAT:
+    case RenderFormatRGBA16_UNORM:
+    case RenderFormatRGBA16_SNORM:
+    case RenderFormatRGBA16_UINT:
+    case RenderFormatRGBA16_SINT:
+    case RenderFormatR32_SFLOAT:
+    case RenderFormatR32_UINT:
+    case RenderFormatR32_SINT:
+    case RenderFormatRG32_SFLOAT:
+    case RenderFormatRG32_UINT:
+    case RenderFormatRG32_SINT:
+    case RenderFormatRGB32_SFLOAT:
+    case RenderFormatRGB32_UINT:
+    case RenderFormatRGB32_SINT:
+    case RenderFormatRGBA32_SFLOAT:
+    case RenderFormatRGBA32_UINT:
+    case RenderFormatRGBA32_SINT:
         return VK_IMAGE_ASPECT_COLOR_BIT;
+    case RenderFormatD16_UNORM:
+    case RenderFormatD32_SFLOAT:
+        return VK_IMAGE_ASPECT_DEPTH_BIT;
+    case RenderFormatD24_UNORM_S8_UINT:
+    case RenderFormatD32_SFLOAT_S8_UINT:
+        return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
     default:
         break;
     }
@@ -237,13 +374,71 @@ VkLogicOp get_vulkan_logic_op(LogicOp logic_op)
 
 VkBlendFactor get_vulkan_blend_factor(BlendFactor blend_factor)
 {
-    // FIXME(nemjit001): implement this
+    switch (blend_factor)
+    {
+    case BlendFactorZero:
+        return VK_BLEND_FACTOR_ZERO;
+    case BlendFactorOne:
+        return VK_BLEND_FACTOR_ONE;
+    case BlendFactorSrcColor:
+        return VK_BLEND_FACTOR_SRC_COLOR;
+    case BlendFactorOneMinusSrcColor:
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+    case BlendFactorDstColor:
+        return VK_BLEND_FACTOR_DST_COLOR;
+    case BlendFactorOneMinusDstColor:
+        return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+    case BlendFactorSrcAlpha:
+        return VK_BLEND_FACTOR_SRC_ALPHA;
+    case BlendFactorOneMinusSrcAlpha:
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    case BlendFactorDstAlpha:
+        return VK_BLEND_FACTOR_DST_ALPHA;
+    case BlendFactorOneMinusDstAlpha:
+        return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+    case BlendFactorConstantColor:
+        return VK_BLEND_FACTOR_CONSTANT_COLOR;
+    case BlendFactorOneMinusConstantColor:
+        return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+    case BlendFactorConstantAlpha:
+        return VK_BLEND_FACTOR_CONSTANT_ALPHA;
+    case BlendFactorOneMinusConstantAlpha:
+        return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+    case BlendFactorSrcAlphaSaturate:
+        return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+    case BlendFactorSrc1Color:
+        return VK_BLEND_FACTOR_SRC1_COLOR;
+    case BlendFactorOneMinusSrc1Color:
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+    case BlendFactorSrc1Alpha:
+        return VK_BLEND_FACTOR_SRC1_ALPHA;
+    case BlendFactorOneMinusSrc1Alpha:
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+    default:
+        break;
+    }
+
     return VK_BLEND_FACTOR_MAX_ENUM;
 }
 
 VkBlendOp get_vulkan_blend_op(BlendOp blend_op)
 {
-    // FIXME(nemjit001): implement this
+    switch (blend_op)
+    {
+    case BlendOpAdd:
+        return VK_BLEND_OP_ADD;
+    case BlendOpSubtract:
+        return VK_BLEND_OP_SUBTRACT;
+    case BlendOpReverseSubtract:
+        return VK_BLEND_OP_REVERSE_SUBTRACT;
+    case BlendOpMin:
+        return VK_BLEND_OP_MIN;
+    case BlendOpMax:
+        return VK_BLEND_OP_MAX;
+    default:
+        break;
+    }
+
     return VK_BLEND_OP_MAX_ENUM;
 }
 

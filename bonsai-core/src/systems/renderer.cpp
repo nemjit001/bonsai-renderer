@@ -37,9 +37,15 @@ float4 PSmain(VertexOutput input) : SV_TARGET0
 )";
 
 static float VERTEX_DATA[] = {
-    /* position */  0.0F, -0.5F, 0.0F, /* color */ 1.0F, 0.0F, 0.0F , /* tex coord */ 0.0F, 0.0F,
-    /* position */ -0.5F,  0.5F, 0.0F, /* color */ 0.0F, 1.0F, 0.0F , /* tex coord */ 1.0F, 0.0F,
-    /* position */  0.5F,  0.5F, 0.0F, /* color */ 0.0F, 0.0F, 1.0F , /* tex coord */ 1.0F, 1.0F,
+    /* position */ -0.5F, -0.5F, 0.0F, /* color */ 1.0F, 0.0F, 0.0F , /* tex coord */ 0.0F, 0.0F,
+    /* position */ -0.5F,  0.5F, 0.0F, /* color */ 0.0F, 1.0F, 0.0F , /* tex coord */ 0.0F, 1.0F,
+    /* position */  0.5F,  0.5F, 0.0F, /* color */ 0.0F, 0.0F, 1.0F , /* tex coord */ 1.0F, 0.0F,
+    /* position */  0.5F, -0.5F, 0.0F, /* color */ 1.0F, 1.0F, 1.0F , /* tex coord */ 1.0F, 1.0F,
+};
+
+static uint16_t INDEX_DATA[] = {
+    0, 1, 2,
+    2, 3, 0,
 };
 
 Renderer::Renderer(RenderBackend* render_backend)
@@ -99,18 +105,29 @@ Renderer::Renderer(RenderBackend* render_backend)
     }
 
     m_vertex_buffer = m_render_backend->create_buffer(sizeof(VERTEX_DATA), RenderBufferUsageVertexBuffer, true);
-    void* buffer_data = nullptr;
-    if (!m_vertex_buffer || !m_vertex_buffer->map(&buffer_data, m_vertex_buffer->size(), 0))
+    m_index_buffer = m_render_backend->create_buffer(sizeof(INDEX_DATA), RenderBufferUsageIndexBuffer, true);
+
+    void* vertex_buffer_data = nullptr;
+    if (!m_vertex_buffer || !m_vertex_buffer->map(&vertex_buffer_data, m_vertex_buffer->size(), 0))
     {
         BONSAI_FATAL_EXIT("Failed to create or map Vertex buffer\n");
     }
-    memcpy(buffer_data, VERTEX_DATA, sizeof(VERTEX_DATA));
+    memcpy(vertex_buffer_data, VERTEX_DATA, sizeof(VERTEX_DATA));
     m_vertex_buffer->unmap();
+
+    void* index_buffer_data = nullptr;
+    if (!m_index_buffer || !m_index_buffer->map(&index_buffer_data, m_index_buffer->size(), 0))
+    {
+        BONSAI_FATAL_EXIT("Failed to create or map Index buffer\n");
+    }
+    memcpy(index_buffer_data, INDEX_DATA, sizeof(INDEX_DATA));
+    m_index_buffer->unmap();
 }
 
 Renderer::~Renderer()
 {
     m_render_backend->wait_idle();
+    delete m_index_buffer;
     delete m_vertex_buffer;
     delete m_shader_pipeline;
 }
@@ -173,7 +190,8 @@ void Renderer::render()
 
     size_t offsets[] = { 0 };
     frame_commands->bind_vertex_buffers(0, 1, &m_vertex_buffer, offsets);
-    frame_commands->draw_instanced(3, 1, 0, 0);
+    frame_commands->bind_index_buffer(m_index_buffer, 0, IndexTypeUint16);
+    frame_commands->draw_indexed_instanced(6, 1, 0, 0, 0);
     frame_commands->end_render_pass();
 
     RenderAttachmentInfo imgui_color_attachment{};
