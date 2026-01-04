@@ -81,7 +81,7 @@ if (BONSAI_BUILD_TESTS)
 
     # Link internally used libraries for testing
     if (BONSAI_USE_VULKAN)
-        target_link_libraries(bonsai_core_tests PRIVATE spirv-reflect-static)
+        target_link_libraries(bonsai_core_tests PRIVATE dxcompiler spirv-reflect-static)
         target_compile_definitions(bonsai_core_tests PUBLIC BONSAI_USE_VULKAN=1)
     endif()
 
