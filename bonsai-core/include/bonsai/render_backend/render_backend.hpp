@@ -7,6 +7,8 @@
 #include <imgui.h>
 #include "bonsai/core/platform.hpp"
 
+static constexpr uint32_t BONSAI_MAX_COLOR_ATTACHMENT_COUNT = 8;
+
 class RenderBuffer;
 class RenderTexture;
 
@@ -22,7 +24,67 @@ enum class RenderBackendFrameResult
 enum RenderFormat : uint32_t
 {
     RenderFormatUndefined = 0,
-    // TODO(nemjit001): Fill out common formats for backends
+
+    RenderFormatR8_UNORM,
+    RenderFormatR8_SNORM,
+    RenderFormatR8_UINT,
+    RenderFormatR8_SINT,
+
+    RenderFormatRG8_UNORM,
+    RenderFormatRG8_SNORM,
+    RenderFormatRG8_UINT,
+    RenderFormatRG8_SINT,
+
+    RenderFormatRGBA8_UNORM,
+    RenderFormatRGBA8_SNORM,
+    RenderFormatRGBA8_UINT,
+    RenderFormatRGBA8_SINT,
+    RenderFormatRGBA8_SRGB,
+
+    RenderFormatBGRA8_UNORM,
+    RenderFormatBGRA8_SNORM,
+    RenderFormatBGRA8_UINT,
+    RenderFormatBGRA8_SINT,
+    RenderFormatBGRA8_SRGB,
+
+    RenderFormatR16_SFLOAT,
+    RenderFormatR16_UNORM,
+    RenderFormatR16_SNORM,
+    RenderFormatR16_UINT,
+    RenderFormatR16_SINT,
+
+    RenderFormatRG16_SFLOAT,
+    RenderFormatRG16_UNORM,
+    RenderFormatRG16_SNORM,
+    RenderFormatRG16_UINT,
+    RenderFormatRG16_SINT,
+
+    RenderFormatRGBA16_SFLOAT,
+    RenderFormatRGBA16_UNORM,
+    RenderFormatRGBA16_SNORM,
+    RenderFormatRGBA16_UINT,
+    RenderFormatRGBA16_SINT,
+
+    RenderFormatR32_SFLOAT,
+    RenderFormatR32_UINT,
+    RenderFormatR32_SINT,
+
+    RenderFormatRG32_SFLOAT,
+    RenderFormatRG32_UINT,
+    RenderFormatRG32_SINT,
+
+    RenderFormatRGB32_SFLOAT,
+    RenderFormatRGB32_UINT,
+    RenderFormatRGB32_SINT,
+
+    RenderFormatRGBA32_SFLOAT,
+    RenderFormatRGBA32_UINT,
+    RenderFormatRGBA32_SINT,
+
+    RenderFormatD16_UNORM,
+    RenderFormatD24_UNORM_S8_UINT,
+    RenderFormatD32_SFLOAT,
+    RenderFormatD32_SFLOAT_S8_UINT,
 };
 
 /// @brief Render buffer usage flag bits.
@@ -70,16 +132,23 @@ typedef uint32_t RenderTextureUsageFlags;
 /// @brief Render load op for attachments.
 enum RenderLoadOp : uint32_t
 {
-    RenderLoadOpLoad = 0,
-    RenderLoadOpClear = 1,
-    RenderLoadOpDontCare = 2,
+    RenderLoadOpLoad        = 0,
+    RenderLoadOpClear       = 1,
+    RenderLoadOpDontCare    = 2,
 };
 
 /// @brief Render store op for attachments.
 enum RenderStoreOp : uint32_t
 {
-    RenderStoreOpStore = 0,
-    RenderStoreOpDontCare = 1,
+    RenderStoreOpStore      = 0,
+    RenderStoreOpDontCare   = 1,
+};
+
+/// @brief Index type for index buffers.
+enum IndexType : uint32_t
+{
+    IndexTypeUint16 = 0,
+    IndexTypeUint32 = 1,
 };
 
 /// @brief Render clear color value for attachments.
@@ -134,6 +203,17 @@ struct RenderExtent3D
     uint32_t depth;
 };
 
+/// @brief Render viewport structure.
+struct RenderViewport
+{
+    float x;
+    float y;
+    float width;
+    float height;
+    float min_depth;
+    float max_depth;
+};
+
 /// @brief 2D rect value.
 struct RenderRect2D
 {
@@ -151,11 +231,293 @@ struct RenderAttachmentInfo
     RenderClearValue clear_value;
 };
 
+/// @brief The ShaderSourceKind determines the type of shader code stored in a ShaderSource.
+enum ShaderSourceKind : uint32_t
+{
+    ShaderSourceKindInline  = 0,    /// @brief Expects a C string containing HLSL source code.
+    ShaderSourceKindFile    = 1,    /// @brief Expects a C string containing a shader file path.
+};
+
+/// @brief Vertex input rate for rasterization pipelines.
+enum VertexInputRate : uint32_t
+{
+    VertexInputRatePerVertex    = 0,
+    VertexInputRatePerInstance  = 1,
+};
+
+/// @brief Index buffer strip cut value to use for strip topology types.
+enum IndexBufferStripCutValue : uint32_t
+{
+    IndexBufferStripCutValueDisabled        = 0,
+    IndexBufferStripCutValueEnabled32Bit    = 1,
+    IndexBufferStripCutValueEnabled64Bit    = 2,
+};
+
+/// @brief Primitive topology type to use during rasterization.
+enum PrimitiveTopologyType : uint32_t
+{
+    PrimitiveTopologyTypePointList                      = 0,
+    PrimitiveTopologyTypeLineList                       = 1,
+    PrimitiveTopologyTypeLineStrip                      = 2,
+    PrimitiveTopologyTypeTriangleList                   = 3,
+    PrimitiveTopologyTypeTriangleStrip                  = 4,
+    PrimitiveTopologyTypeTriangleFan                    = 5,
+    PrimitiveTopologyTypeLineListWithAdjacency          = 6,
+    PrimitiveTopologyTypeLineStripWithAdjacency         = 7,
+    PrimitiveTopologyTypeTriangleListWithAdjacency      = 8,
+    PrimitiveTopologyTypeTriangleStripWithAdjacency     = 9,
+    PrimitiveTopologyTypePatchList                      = 10,
+};
+
+/// @brief Polygon fill mode to use during rasterization.
+enum PolygonMode : uint32_t
+{
+    PolygonModeFill     = 0,
+    PolygonModeLine     = 1,
+    PolygonModePoint    = 2,
+};
+
+/// @brief Cull mode to use during rasterization.
+enum CullMode : uint32_t
+{
+    CullModeNone    = 0,
+    CullModeFront   = 1,
+    CullModeBack    = 2,
+};
+
+/// @brief MSAA sample count for rasterization operations or textures.
+enum SampleCount : uint32_t
+{
+    SampleCount1Sample      = 1,
+    SampleCount2Samples     = 2,
+    SampleCount4Samples     = 4,
+    SampleCount8Samples     = 8,
+    SampleCount16Samples    = 16,
+    SampleCount32Samples    = 32,
+    SampleCount64Samples    = 64,
+};
+
+/// @brief Compare operations for fixed function state.
+enum CompareOp : uint32_t
+{
+    CompareOpNever              = 0,
+    CompareOpLess               = 1,
+    CompareOpEqual              = 2,
+    CompareOpLessOrEqual        = 3,
+    CompareOpGreater            = 4,
+    CompareOpNotEqual           = 5,
+    CompareOpGreaterOrEqual     = 6,
+    CompareOpAlways             = 7,
+};
+
+/// @brief Stencil operations for fixed function state.
+enum StencilOp : uint32_t
+{
+    StencilOpKeep               = 0,
+    StencilOpZero               = 1,
+    StencilOpReplace            = 2,
+    StencilOpIncrementSaturate  = 3,
+    StencilOpDecrementSaturate  = 4,
+    StencilOpInvert             = 5,
+    StencilOpIncrementWrap      = 6,
+    StencilOpDecrementWrap      = 7,
+};
+
+/// @brief Logic operations for fixed function state.
+enum LogicOp : uint32_t
+{
+    LogicOpClear        = 0,
+    LogicOpAND          = 1,
+    LogicOpANDReverse   = 2,
+    LogicOpCopy         = 3,
+    LogicOpANDInverted  = 4,
+    LogicOpNoOp         = 5,
+    LogixOpXOR          = 6,
+    LogicOpOR           = 7,
+    LogicOpNOR          = 8,
+    LogicOpEquivalent   = 9,
+    LogicOpInvert       = 10,
+    LogicOpORReverse    = 11,
+    LogicOpCopyInverted = 12,
+    LogicOpORInverted   = 13,
+    LogicOpNAND         = 14,
+    LogicOpSet          = 15,
+};
+
+/// @brief Blend operations for color blending.
+enum BlendOp : uint32_t
+{
+    BlendOpAdd              = 0,
+    BlendOpSubtract         = 1,
+    BlendOpReverseSubtract  = 2,
+    BlendOpMin              = 3,
+    BlendOpMax              = 4,
+};
+
+/// @brief Blend factors for color blending.
+enum BlendFactor : uint32_t
+{
+    BlendFactorZero                     = 0,
+    BlendFactorOne                      = 1,
+    BlendFactorSrcColor                 = 2,
+    BlendFactorOneMinusSrcColor         = 3,
+    BlendFactorDstColor                 = 4,
+    BlendFactorOneMinusDstColor         = 5,
+    BlendFactorSrcAlpha                 = 6,
+    BlendFactorOneMinusSrcAlpha         = 7,
+    BlendFactorDstAlpha                 = 8,
+    BlendFactorOneMinusDstAlpha         = 9,
+    BlendFactorConstantColor            = 10,
+    BlendFactorOneMinusConstantColor    = 11,
+    BlendFactorConstantAlpha            = 12,
+    BlendFactorOneMinusConstantAlpha    = 13,
+    BlendFactorSrcAlphaSaturate         = 14,
+    BlendFactorSrc1Color                = 15,
+    BlendFactorOneMinusSrc1Color        = 16,
+    BlendFactorSrc1Alpha                = 17,
+    BlendFactorOneMinusSrc1Alpha        = 18,
+};
+
+/// @brief Color component bitwise flags.
+enum ColorComponent : uint32_t
+{
+    ColorComponentRed   = 0x01,
+    ColorComponentGreen = 0x02,
+    ColorComponentBlue  = 0x04,
+    ColorComponentAlpha = 0x08,
+    ColorComponentAll   = ColorComponentRed | ColorComponentGreen | ColorComponentBlue | ColorComponentAlpha,
+};
+typedef uint32_t ColorComponentFlags;
+
+/// @brief A shader source contains a shader file that can be compiled by the render backend.
+/// All backends support HLSL as shader language.
+struct ShaderSource
+{
+    ShaderSourceKind source_kind;   /// @brief Shader source type stored in this structure.
+    char const* entrypoint;         /// @brief Shader entrypoint function.
+    char const* shader_source;      /// @brief Shader source file path or code.
+};
+
+struct VertexAttributeDescription
+{
+    uint32_t binding;
+    uint32_t location;
+    char const* semantic_name;
+    uint32_t semantic_index;
+    RenderFormat format;
+    uint32_t offset;
+    VertexInputRate input_rate;
+};
+
+struct VertexInputState
+{
+    uint32_t input_attribute_count;
+    VertexAttributeDescription* input_attributes;
+};
+
+/// @brief Fixed function pipeline input assembly state.
+struct InputAssemblyState
+{
+    PrimitiveTopologyType primitive_topology;
+    IndexBufferStripCutValue strip_cut_value;
+};
+
+/// @brief Fixed function pipeline rasterization state.
+struct RasterizationState
+{
+    PolygonMode polygon_mode;
+    CullMode cull_mode;
+    bool front_face_counter_clockwise;
+    float depth_bias;
+    float depth_bias_clamp;
+    float depth_bias_slope_factor;
+};
+
+/// @brief Fixed function pipeline multisample state.
+struct MultisampleState
+{
+    SampleCount sample_count;
+    uint32_t* sample_mask;
+    bool alpha_to_coverage;
+};
+
+/// @brief Stencil op state for stencil testing.
+struct StencilOpState
+{
+    StencilOp fail_op;
+    StencilOp pass_op;
+    StencilOp depth_fail_op;
+    CompareOp compare_op;
+};
+
+/// @brief Fixed function pipeline depth/stencil state.
+struct DepthStencilState
+{
+    bool depth_test;
+    bool depth_write;
+    CompareOp depth_compare_op;
+    bool depth_bounds_test;
+    bool stencil_test;
+    uint32_t stencil_read_mask;
+    uint32_t stencil_write_mask;
+    StencilOpState front;
+    StencilOpState back;
+};
+
+/// @brief Color blend attachment state.
+struct ColorBlendAttachmentState
+{
+    bool blend_enable;
+    BlendFactor src_blend_factor;
+    BlendFactor dst_blend_factor;
+    BlendOp blend_op;
+    BlendFactor src_blend_alpha_factor;
+    BlendFactor dst_blend_alpha_factor;
+    BlendOp blend_op_alpha;
+    ColorComponentFlags color_write_mask;
+};
+
+/// @brief Fixed function pipeline color blend state.
+/// DX12 supports up to 8 color attachments.
+struct ColorBlendState
+{
+    bool logic_op_enable;
+    LogicOp logic_op;
+    ColorBlendAttachmentState attachments[BONSAI_MAX_COLOR_ATTACHMENT_COUNT];
+};
+
+/// @brief The graphics pipeline descriptor is used for creating rasterization graphics pipelines.
+struct GraphicsPipelineDescriptor
+{
+    ShaderSource const* vertex_shader;
+    ShaderSource const* fragment_shader;
+    VertexInputState vertex_input_state;
+    InputAssemblyState input_assembly_state;
+    RasterizationState rasterization_state;
+    MultisampleState multisample_state;
+    DepthStencilState depth_stencil_state;
+    ColorBlendState color_blend_state;
+    uint32_t color_attachment_count;
+    RenderFormat color_attachment_formats[BONSAI_MAX_COLOR_ATTACHMENT_COUNT];
+    RenderFormat depth_stencil_attachment_format;
+};
+
+/// @brief The compute pipeline descriptor is used for creating compute shader pipelines.
+struct ComputePipelineDescriptor
+{
+    ShaderSource compute_shader;
+};
+
 /// @brief The RenderBuffer represents a backend buffer type that can store data.
 class RenderBuffer
 {
 public:
     virtual ~RenderBuffer() = default;
+
+    /// @brief Get the buffer size in bytes.
+    /// @return The buffer size in bytes.
+    [[nodiscard]]
+    virtual size_t size() const = 0;
 
     /// @brief Map this buffer to host visible memory.
     /// @param data Data pointer to use for mapped region.
@@ -174,7 +536,13 @@ class RenderTexture
 public:
     virtual ~RenderTexture() = default;
 
+    /// @brief Get the render format.
+    /// @return The render format.
+    [[nodiscard]]
+    virtual RenderFormat format() const = 0;
+
     /// @brief Get the texture extent.
+    /// @return The texture extent.
     [[nodiscard]]
     virtual RenderExtent3D extent() const = 0;
 };
@@ -200,12 +568,14 @@ public:
     };
 
 public:
+    ShaderPipeline(PipelineType pipeline_type, WorkgroupSize const& workgroup_size)
+        : m_pipeline_type(pipeline_type), m_workgroup_size(workgroup_size) {}
     virtual ~ShaderPipeline() = default;
 
     /// @brief Get the shader pipeline type.
     /// @return The type of shader pipeline.
     [[nodiscard]]
-    PipelineType get_type() const { return m_type; }
+    PipelineType get_type() const { return m_pipeline_type; }
 
     /// @brief Get the shader pipeline workgroup size, if it was specified in the shader.
     /// Only compute shaders specify a workgroup size.
@@ -214,7 +584,7 @@ public:
     WorkgroupSize get_workgroup_size() const { return m_workgroup_size; }
 
 private:
-    PipelineType m_type = PipelineType::None;
+    PipelineType m_pipeline_type = PipelineType::None;
     WorkgroupSize m_workgroup_size = { 0, 0, 0 };
 };
 
@@ -259,24 +629,47 @@ public:
     /// @param pipeline Pipeline to activate.
     virtual void set_pipeline(ShaderPipeline* pipeline) = 0;
 
-    /// @brief Bind a uniform buffer to a named shader location.
-    /// @param name Binding location name.
-    /// @param buffer Uniform buffer to bind.
-    /// @param size Buffer size to bind.
-    /// @param offset Buffer offset to bind.
-    virtual void bind_uniform(char const* name, RenderBuffer* buffer, size_t size, size_t offset) = 0;
+    /// @brief Set the rasterizer primitive topology type.
+    /// @param primitive_topology
+    virtual void set_primitive_topology(PrimitiveTopologyType primitive_topology) = 0;
 
-    /// @brief Bind a storage buffer to a named shader location.
-    /// @param name Binding location name.
-    /// @param buffer Buffer to bind.
-    /// @param size Buffer size to bind.
-    /// @param offset Buffer offset to bind.
-    virtual void bind_buffer(char const* name, RenderBuffer* buffer, size_t size, size_t offset) = 0;
+    /// @brief Set the rasterizer viewports.
+    /// @param count
+    /// @param viewports
+    virtual void set_viewports(size_t count, RenderViewport* viewports) = 0;
 
-    /// @brief Bind a texture to a named shader location.
-    /// @param name Binding location name.
-    /// @param texture Texture to bind.
-    virtual void bind_texture(char const* name, RenderTexture* texture) = 0;
+    /// @brief Set the rasterizer scissor rects.
+    /// @param count
+    /// @param scissor_rects
+    virtual void set_scissor_rects(size_t count, RenderRect2D* scissor_rects) = 0;
+
+    /// @brief Bind vertex buffers for the input assembly.
+    /// @param base_binding First binding slot index.
+    /// @param count Number of vertex buffers to bind.
+    /// @param buffers Vertex buffers to bind.
+    /// @param offsets Byte offsets into the vertex buffers that are bound.
+    virtual void bind_vertex_buffers(uint32_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets) = 0;
+
+    /// @brief Bind an index buffer.
+    /// @param buffer Index buffer to bind.
+    /// @param offset Byte offset into the index buffer to bind.
+    /// @param index_type Index type stored in the index buffer.
+    virtual void bind_index_buffer(RenderBuffer* buffer, size_t offset, IndexType index_type) = 0;
+
+    /// @brief Draw instanced vertices.
+    /// @param vertex_count Number of vertices to draw.
+    /// @param instance_count Number of instances to draw.
+    /// @param first_vertex First vertex ID.
+    /// @param first_instance First instance ID.
+    virtual void draw_instanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) = 0;
+
+    /// @brief Draw instanced indexed vertices.
+    /// @param index_count Number of indices to draw.
+    /// @param instance_count Number of instances to draw.
+    /// @param first_index First index ID.
+    /// @param vertex_offset Vertex offset added to indices.
+    /// @param first_instance First instance ID.
+    virtual void draw_indexed_instanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance) = 0;
 
     /// @brief Dispatch compute workgroups using the active compute pipeline.
     /// @param x Dispatch dimension x.
@@ -313,7 +706,18 @@ public:
 
     /// @brief Get the current swap chain extent.
     /// @return The current 2D swap extent.
+    [[nodiscard]]
     virtual RenderExtent2D get_swap_extent() const = 0;
+
+    /// @brief Get the current swap chain format.
+    /// @return The current swap render format.
+    [[nodiscard]]
+    virtual RenderFormat get_swap_format() const = 0;
+
+    /// @brief Check if the swap chain format is an sRGB format, i.e. if sRGB conversion still needs to happen before present.
+    /// @return Whether the swap format is sRGB.
+    [[nodiscard]]
+    virtual bool is_swap_srgb() const = 0;
 
     /// @brief Start a new render backend frame.
     /// @return A render backend frame result.
@@ -354,7 +758,7 @@ public:
     /// @param height Texture height in pixels.
     /// @param depth_or_layers Texture depth, or layers if a non-3D texture type.
     /// @param mip_levels Number of mip levels to use for this texture.
-    /// @param sample_count Number of samples to use for this image, must be a multiple of 2.
+    /// @param sample_count Number of MSAA samples to use for this image.
     /// @param texture_usage Texture usage flags.
     /// @param tiling_mode Texture tiling mode.
     /// @return A new render texture object, or nullptr on failure.
@@ -366,10 +770,16 @@ public:
         uint32_t height,
         uint32_t depth_or_layers,
         uint32_t mip_levels,
-        uint32_t sample_count,
+        SampleCount sample_count,
         RenderTextureUsageFlags texture_usage,
         RenderTextureTilingMode tiling_mode
     ) = 0;
+
+    [[nodiscard]]
+    virtual ShaderPipeline* create_graphics_pipeline(GraphicsPipelineDescriptor pipeline_descriptor) = 0;
+
+    [[nodiscard]]
+    virtual ShaderPipeline* create_compute_pipeline(ComputePipelineDescriptor pipeline_descriptor) = 0;
 
     /// @brief Get the current frame index.
     /// @return The currently active frame index.

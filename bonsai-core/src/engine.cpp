@@ -41,6 +41,10 @@ Engine::Engine()
     BONSAI_ENGINE_LOG_TRACE("Initializing Render Backend");
     s_render_backend = RenderBackend::create(s_main_surface, s_imgui_context);
     BONSAI_ASSERT(s_render_backend != nullptr && "No Render Backend selected for Bonsai");
+    if (s_render_backend->is_swap_srgb())
+    {
+        imgui_io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
+    }
 
     BONSAI_ENGINE_LOG_TRACE("Initializing Renderer System");
     s_renderer = new Renderer(s_render_backend);

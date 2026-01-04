@@ -41,6 +41,11 @@ add_subdirectory(spdlog SYSTEM EXCLUDE_FROM_ALL)
 # Set up SDL
 add_subdirectory(SDL SYSTEM EXCLUDE_FROM_ALL)
 
+# Set up SPIRV-Reflect
+set(SPIRV_REFLECT_EXECUTABLE OFF CACHE BOOL "" FORCE)
+set(SPIRV_REFLECT_STATIC_LIB ON CACHE BOOL "" FORCE)
+add_subdirectory(SPIRV-Reflect SYSTEM EXCLUDE_FROM_ALL)
+
 # Set up VMA
 add_subdirectory(VMA SYSTEM EXCLUDE_FROM_ALL)
 

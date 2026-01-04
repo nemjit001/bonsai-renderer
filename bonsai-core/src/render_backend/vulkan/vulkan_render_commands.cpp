@@ -3,7 +3,10 @@
 #include <vector>
 #include <backends/imgui_impl_vulkan.h>
 #include "bonsai/core/assert.hpp"
+#include "enum_conversion.hpp"
 #include "vk_check.hpp"
+#include "vulkan_buffer.hpp"
+#include "vulkan_shader_pipeline.hpp"
 #include "vulkan_texture.hpp"
 
 static VkImageMemoryBarrier2 get_image_memory_barrier(
@@ -33,36 +36,6 @@ static VkImageMemoryBarrier2 get_image_memory_barrier(
     return image_barrier;
 }
 
-static VkAttachmentLoadOp get_load_op(RenderLoadOp load_op)
-{
-    if (load_op == RenderLoadOpLoad)
-    {
-        return VK_ATTACHMENT_LOAD_OP_LOAD;
-    }
-    if (load_op == RenderLoadOpClear)
-    {
-        return VK_ATTACHMENT_LOAD_OP_CLEAR;
-    }
-    if (load_op == RenderLoadOpDontCare)
-    {
-        return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    }
-    return VK_ATTACHMENT_LOAD_OP_MAX_ENUM;
-}
-
-static VkAttachmentStoreOp get_store_op(RenderStoreOp store_op)
-{
-    if (store_op == RenderStoreOpStore)
-    {
-        return VK_ATTACHMENT_STORE_OP_STORE;
-    }
-    else if (store_op == RenderStoreOpDontCare)
-    {
-        return VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    }
-    return VK_ATTACHMENT_STORE_OP_MAX_ENUM;
-}
-
 VulkanRenderCommands::VulkanRenderCommands(VkCommandBuffer command_buffer)
     :
     m_command_buffer(command_buffer)
@@ -88,7 +61,7 @@ bool VulkanRenderCommands::end()
 
 void VulkanRenderCommands::mark_for_present(RenderTexture* texture)
 {
-    VulkanTexture* vulkan_texture = static_cast<VulkanTexture*>(texture);
+    VulkanTexture* vulkan_texture = dynamic_cast<VulkanTexture*>(texture);
     VkImageMemoryBarrier2 present_image_barrier{};
     present_image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
     present_image_barrier.pNext = nullptr;
@@ -102,7 +75,7 @@ void VulkanRenderCommands::mark_for_present(RenderTexture* texture)
     present_image_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     present_image_barrier.image = vulkan_texture->get_image();
     present_image_barrier.subresourceRange = {
-        VK_IMAGE_ASPECT_COLOR_BIT,
+        vulkan_texture->get_image_aspect(),
         0, 1,
         0, 1,
     };
@@ -131,8 +104,8 @@ void VulkanRenderCommands::begin_render_pass(
     color_attachments.reserve(color_target_count);
     for (size_t i = 0; i < color_target_count; i++)
     {
-        VulkanTexture* vk_render_target = static_cast<VulkanTexture*>(color_targets->render_target);
-        VulkanTexture* vk_resolve_target = static_cast<VulkanTexture*>(color_targets->resolve_target);
+        VulkanTexture* vk_render_target = dynamic_cast<VulkanTexture*>(color_targets->render_target);
+        VulkanTexture* vk_resolve_target = dynamic_cast<VulkanTexture*>(color_targets->resolve_target);
         BONSAI_ASSERT(vk_render_target != nullptr && "Color target was NULL!");
         pass_image_barriers.push_back(get_image_memory_barrier(
             vk_render_target,
@@ -142,7 +115,7 @@ void VulkanRenderCommands::begin_render_pass(
             VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             {
-                VK_IMAGE_ASPECT_COLOR_BIT,
+                vk_render_target->get_image_aspect(),
                 0, 1,
                 0, 1,
             }
@@ -158,7 +131,7 @@ void VulkanRenderCommands::begin_render_pass(
                 VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                 {
-                    VK_IMAGE_ASPECT_COLOR_BIT,
+                    vk_resolve_target->get_image_aspect(),
                     0, 1,
                     0, 1,
                 }
@@ -173,8 +146,8 @@ void VulkanRenderCommands::begin_render_pass(
         rendering_attachment_info.resolveMode = vk_resolve_target ? VK_RESOLVE_MODE_AVERAGE_BIT : VK_RESOLVE_MODE_NONE;
         rendering_attachment_info.resolveImageView = vk_resolve_target ? vk_resolve_target->get_image_view() : VK_NULL_HANDLE;
         rendering_attachment_info.resolveImageLayout = vk_resolve_target ? vk_resolve_target->get_current_layout() : VK_IMAGE_LAYOUT_UNDEFINED;
-        rendering_attachment_info.loadOp = get_load_op(color_targets[i].load_op);
-        rendering_attachment_info.storeOp = get_store_op(color_targets[i].store_op);
+        rendering_attachment_info.loadOp = get_vulkan_load_op(color_targets[i].load_op);
+        rendering_attachment_info.storeOp = get_vulkan_store_op(color_targets[i].store_op);
         rendering_attachment_info.clearValue = VkClearValue{{{
             color_targets[i].clear_value.color.float32[0],
             color_targets[i].clear_value.color.float32[1],
@@ -188,8 +161,8 @@ void VulkanRenderCommands::begin_render_pass(
     VkRenderingAttachmentInfo depth_attachment{};
     if (depth_target != nullptr)
     {
-        VulkanTexture* vk_render_target = static_cast<VulkanTexture*>(depth_target->render_target);
-        VulkanTexture* vk_resolve_target = static_cast<VulkanTexture*>(depth_target->resolve_target);
+        VulkanTexture* vk_render_target = dynamic_cast<VulkanTexture*>(depth_target->render_target);
+        VulkanTexture* vk_resolve_target = dynamic_cast<VulkanTexture*>(depth_target->resolve_target);
         BONSAI_ASSERT(vk_render_target != nullptr && "Depth target was NULL!");
         pass_image_barriers.push_back(get_image_memory_barrier(
             vk_render_target,
@@ -199,7 +172,7 @@ void VulkanRenderCommands::begin_render_pass(
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             {
-                VK_IMAGE_ASPECT_DEPTH_BIT,
+                vk_render_target->get_image_aspect(),
                 0, 1,
                 0, 1,
             }
@@ -215,7 +188,7 @@ void VulkanRenderCommands::begin_render_pass(
                 VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 {
-                    VK_IMAGE_ASPECT_DEPTH_BIT,
+                    vk_resolve_target->get_image_aspect(),
                     0, 1,
                     0, 1,
                 }
@@ -229,8 +202,8 @@ void VulkanRenderCommands::begin_render_pass(
         depth_attachment.resolveMode = vk_resolve_target ? VK_RESOLVE_MODE_AVERAGE_BIT : VK_RESOLVE_MODE_NONE;
         depth_attachment.resolveImageView = vk_resolve_target ? vk_resolve_target->get_image_view() : VK_NULL_HANDLE;
         depth_attachment.resolveImageLayout = vk_resolve_target ? vk_resolve_target->get_current_layout() : VK_IMAGE_LAYOUT_UNDEFINED;
-        depth_attachment.loadOp = get_load_op(depth_target->load_op);
-        depth_attachment.storeOp = get_store_op(depth_target->store_op);
+        depth_attachment.loadOp = get_vulkan_load_op(depth_target->load_op);
+        depth_attachment.storeOp = get_vulkan_store_op(depth_target->store_op);
         depth_attachment.clearValue.depthStencil = {
             depth_target->clear_value.depth_stencil.depth,
             depth_target->clear_value.depth_stencil.stencil,
@@ -241,8 +214,8 @@ void VulkanRenderCommands::begin_render_pass(
     VkRenderingAttachmentInfo stencil_attachment{};
     if (stencil_target != nullptr)
     {
-        VulkanTexture* vk_render_target = static_cast<VulkanTexture*>(stencil_target->render_target);
-        VulkanTexture* vk_resolve_target = static_cast<VulkanTexture*>(stencil_target->resolve_target);
+        VulkanTexture* vk_render_target = dynamic_cast<VulkanTexture*>(stencil_target->render_target);
+        VulkanTexture* vk_resolve_target = dynamic_cast<VulkanTexture*>(stencil_target->resolve_target);
         BONSAI_ASSERT(vk_render_target != nullptr && "Stencil target was NULL!");
         pass_image_barriers.push_back(get_image_memory_barrier(
             vk_render_target,
@@ -252,7 +225,7 @@ void VulkanRenderCommands::begin_render_pass(
             VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
             VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             {
-                VK_IMAGE_ASPECT_STENCIL_BIT,
+                vk_render_target->get_image_aspect(),
                 0, 1,
                 0, 1,
             }
@@ -268,7 +241,7 @@ void VulkanRenderCommands::begin_render_pass(
                 VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
                 VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                 {
-                    VK_IMAGE_ASPECT_STENCIL_BIT,
+                    vk_resolve_target->get_image_aspect(),
                     0, 1,
                     0, 1,
                 }
@@ -282,8 +255,8 @@ void VulkanRenderCommands::begin_render_pass(
         stencil_attachment.resolveMode = vk_resolve_target ? VK_RESOLVE_MODE_AVERAGE_BIT : VK_RESOLVE_MODE_NONE;
         stencil_attachment.resolveImageView = vk_resolve_target ? vk_resolve_target->get_image_view() : VK_NULL_HANDLE;
         stencil_attachment.resolveImageLayout = vk_resolve_target ? vk_resolve_target->get_current_layout() : VK_IMAGE_LAYOUT_UNDEFINED;
-        stencil_attachment.loadOp = get_load_op(stencil_target->load_op);
-        stencil_attachment.storeOp = get_store_op(stencil_target->store_op);
+        stencil_attachment.loadOp = get_vulkan_load_op(stencil_target->load_op);
+        stencil_attachment.storeOp = get_vulkan_store_op(stencil_target->store_op);
         stencil_attachment.clearValue.depthStencil = {
             depth_target->clear_value.depth_stencil.depth,
             depth_target->clear_value.depth_stencil.stencil,
@@ -322,22 +295,87 @@ void VulkanRenderCommands::end_render_pass()
 
 void VulkanRenderCommands::set_pipeline(ShaderPipeline* pipeline)
 {
-    // TODO(nemjit001): Set the pipeline state based on the passed shader pipeline
+    VulkanShaderPipeline const* vk_pipeline = dynamic_cast<VulkanShaderPipeline*>(pipeline);
+    vkCmdBindPipeline(m_command_buffer, vk_pipeline->get_bind_point(), vk_pipeline->get_pipeline());
 }
 
-void VulkanRenderCommands::bind_uniform(char const* name, RenderBuffer* buffer, size_t size, size_t offset)
+void VulkanRenderCommands::set_primitive_topology(PrimitiveTopologyType primitive_topology)
 {
-    // TODO(nemjit001): Bind a uniform to the descriptor set that uses the specified named binding
+    vkCmdSetPrimitiveTopology(m_command_buffer, get_vulkan_topology(primitive_topology));
 }
 
-void VulkanRenderCommands::bind_buffer(char const* name, RenderBuffer* buffer, size_t size, size_t offset)
+void VulkanRenderCommands::set_viewports(size_t count, RenderViewport* viewports)
 {
-    // TODO(nemjit001): Bind a buffer to the descriptor set that uses the specified named binding
+    BONSAI_ASSERT(count == 1 && "Viewport count must be 1");
+    VkViewport const vk_viewport{
+        viewports[0].x,
+        viewports[0].y,
+        viewports[0].width,
+        viewports[0].height,
+        viewports[0].min_depth,
+        viewports[0].max_depth,
+    };
+
+    vkCmdSetViewport(m_command_buffer, 0, 1, &vk_viewport);
 }
 
-void VulkanRenderCommands::bind_texture(char const* name, RenderTexture* texture)
+void VulkanRenderCommands::set_scissor_rects(size_t count, RenderRect2D* scissor_rects)
 {
-    // TODO(nemjit001): Bind a texture to the descriptor set that uses the specified named binding
+    BONSAI_ASSERT(count == 1 && "Scissor rect count must be 1");
+    VkRect2D const vk_scissor_rect{
+        { scissor_rects[0].offset.x, scissor_rects[0].offset.y },
+        { scissor_rects[0].extent.width, scissor_rects[0].extent.height },
+    };
+
+    vkCmdSetScissor(m_command_buffer, 0, 1, &vk_scissor_rect);
+}
+
+void VulkanRenderCommands::bind_vertex_buffers(uint32_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets)
+{
+    std::vector<VkBuffer> vertex_buffers;
+    vertex_buffers.resize(count);
+    for (size_t i = 0; i < count; i++)
+    {
+        VulkanBuffer const* vk_buffer = dynamic_cast<VulkanBuffer*>(buffers[i]);
+        vertex_buffers[i] = vk_buffer->get_buffer();
+    }
+
+    vkCmdBindVertexBuffers(
+        m_command_buffer,
+        base_binding,
+        static_cast<uint32_t>(count),
+        vertex_buffers.data(),
+        offsets
+    );
+}
+
+void VulkanRenderCommands::bind_index_buffer(RenderBuffer* buffer, size_t offset, IndexType index_type)
+{
+    VulkanBuffer const* vk_buffer = dynamic_cast<VulkanBuffer*>(buffer);
+    vkCmdBindIndexBuffer(m_command_buffer, vk_buffer->get_buffer(), offset, get_vulkan_index_type(index_type));
+}
+
+void VulkanRenderCommands::draw_instanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance)
+{
+    vkCmdDraw(
+        m_command_buffer,
+        vertex_count,
+        instance_count,
+        first_vertex,
+        first_instance
+    );
+}
+
+void VulkanRenderCommands::draw_indexed_instanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance)
+{
+    vkCmdDrawIndexed(
+        m_command_buffer,
+        index_count,
+        instance_count,
+        first_index,
+        vertex_offset,
+        first_instance
+    );
 }
 
 void VulkanRenderCommands::dispatch(uint32_t x, uint32_t y, uint32_t z)

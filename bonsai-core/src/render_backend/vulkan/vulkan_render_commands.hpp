@@ -30,11 +30,19 @@ public:
 
     void set_pipeline(ShaderPipeline* pipeline) override;
 
-    void bind_uniform(char const* name, RenderBuffer* buffer, size_t size, size_t offset) override;
+    void set_primitive_topology(PrimitiveTopologyType primitive_topology) override;
 
-    void bind_buffer(char const* name, RenderBuffer* buffer, size_t size, size_t offset) override;
+    void set_viewports(size_t count, RenderViewport* viewports) override;
 
-    void bind_texture(char const* name, RenderTexture* texture) override;
+    void set_scissor_rects(size_t count, RenderRect2D* scissor_rects) override;
+
+    void bind_vertex_buffers(uint32_t base_binding, size_t count, RenderBuffer** buffers, size_t* offsets) override;
+
+    void bind_index_buffer(RenderBuffer* buffer, size_t offset, IndexType index_type) override;
+
+    void draw_instanced(uint32_t vertex_count, uint32_t instance_count, uint32_t first_vertex, uint32_t first_instance) override;
+
+    void draw_indexed_instanced(uint32_t index_count, uint32_t instance_count, uint32_t first_index, int32_t vertex_offset, uint32_t first_instance) override;
 
     void dispatch(uint32_t x, uint32_t y, uint32_t z) override;
 

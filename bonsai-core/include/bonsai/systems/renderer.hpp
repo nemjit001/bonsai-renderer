@@ -8,10 +8,10 @@ class Renderer
 {
 public:
     explicit Renderer(RenderBackend* render_backend);
-    ~Renderer() = default;
+    ~Renderer();
 
-    Renderer(Renderer const&) = default;
-    Renderer& operator=(Renderer const&) = default;
+    Renderer(Renderer const&) = delete;
+    Renderer& operator=(Renderer const&) = delete;
 
     /// @brief Handle a surface resize event.
     /// @param width New surface width in pixels.
@@ -24,6 +24,9 @@ public:
 private:
     RenderBackend* m_render_backend = nullptr;
     RenderExtent2D m_swap_extent = {};
+    ShaderPipeline* m_shader_pipeline = nullptr;
+    RenderBuffer* m_vertex_buffer = nullptr;
+    RenderBuffer* m_index_buffer = nullptr;
 };
 
 #endif //BONSAI_RENDERER_RENDERER_HPP

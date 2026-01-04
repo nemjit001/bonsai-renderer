@@ -37,3 +37,8 @@ VkImageLayout VulkanTexture::set_next_layout(VkImageLayout next_layout)
     m_layout = next_layout;
     return previous;
 }
+
+VkImageAspectFlags VulkanTexture::get_image_aspect() const
+{
+    return m_desc.vk_aspect_flags;
+}

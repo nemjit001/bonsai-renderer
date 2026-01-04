@@ -6,7 +6,9 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 #include "bonsai/render_backend/render_backend.hpp"
+#include "render_backend/vulkan/spirv_reflector.hpp"
 #include "render_backend/vulkan/vulkan_render_commands.hpp"
+#include "render_backend/shader_compiler.hpp"
 
 static constexpr uint32_t BONSAI_VULKAN_VERSION = VK_API_VERSION_1_3;
 
@@ -32,11 +34,17 @@ struct VulkanQueueFamilies
     uint32_t graphics_family; /// @brief The graphics queue family is also guaranteed to support presenting to surfaces.
 };
 
+struct VulkanPhysicalDeviceProperties
+{
+    VkPhysicalDeviceProperties2 properties2;
+};
+
 /// @brief Queried swap chain capabilities for a surface & physical device.
 struct VulkanSwapchainCapabilities
 {
     uint32_t min_image_count;
     uint32_t image_count;
+    RenderFormat render_format;
     VkSurfaceFormatKHR preferred_format;
     std::vector<VkPresentModeKHR> present_modes;
 };
@@ -71,6 +79,10 @@ public:
 
     RenderExtent2D get_swap_extent() const override;
 
+    RenderFormat get_swap_format() const override;
+
+    bool is_swap_srgb() const override;
+
     RenderBackendFrameResult new_frame() override;
 
     RenderBackendFrameResult end_frame() override;
@@ -92,10 +104,14 @@ public:
         uint32_t height,
         uint32_t depth_or_layers,
         uint32_t mip_levels,
-        uint32_t sample_count,
+        SampleCount sample_count,
         RenderTextureUsageFlags texture_usage,
         RenderTextureTilingMode tiling_mode
     ) override;
+
+    ShaderPipeline* create_graphics_pipeline(GraphicsPipelineDescriptor pipeline_descriptor) override;
+
+    ShaderPipeline* create_compute_pipeline(ComputePipelineDescriptor pipeline_descriptor) override;
 
     uint64_t get_current_frame_index() const override { return m_frame_idx; }
 
@@ -117,7 +133,7 @@ private:
     /// @return A suitable physical device, or VK_NULL_HANDLE on failure.
     static VkPhysicalDevice find_physical_device(
         VkInstance instance,
-        VkPhysicalDeviceProperties& device_properties,
+        VulkanPhysicalDeviceProperties& device_properties,
         VulkanDeviceFeatures& enabled_device_features,
         std::vector<char const*> const& enabled_device_extensions
     );
@@ -164,6 +180,19 @@ private:
         VulkanSwapchainConfiguration& swapchain_config
     );
 
+    /// @brief Compile shader source code using the shader compiler.
+    /// @param source Shader source structure.
+    /// @param target_profile Shader target profile.
+    /// @param compiled_shader Output compiled shader blob.
+    /// @return A boolean indicating successful compilation.
+    bool compile_shader_source(ShaderSource const& source, LPCWSTR target_profile, IDxcBlob** compiled_shader) const;
+
+    /// @brief Generate a pipeline layout based on reflection data for shaders.
+    /// @param reflector Reflection data for one or more shaders.
+    /// @param descriptor_set_layouts Output descriptor set layouts associated with the pipeline layout.
+    /// @return A generated pipeline layout.
+    VkPipelineLayout generate_pipeline_layout(SPIRVReflector const& reflector, std::vector<VkDescriptorSetLayout>& descriptor_set_layouts);
+
 private:
     PlatformSurface* m_main_surface = nullptr;
 
@@ -174,6 +203,7 @@ private:
     VkSurfaceKHR m_surface = VK_NULL_HANDLE;
 
     VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
+    VulkanPhysicalDeviceProperties m_device_properties = {};
     VulkanQueueFamilies m_queue_families = {};
     VkDevice m_device = VK_NULL_HANDLE;
     VkQueue m_graphics_queue = VK_NULL_HANDLE;
@@ -190,6 +220,7 @@ private:
     VkCommandBuffer m_frame_cmd_buffer = VK_NULL_HANDLE;
     VulkanRenderCommands m_frame_commands = {};
 
+    ShaderCompiler m_shader_compiler = {};
     uint64_t m_frame_idx = 0;
 };
 

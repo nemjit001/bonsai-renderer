@@ -9,8 +9,9 @@
 /// @brief Texture description, stores metadata used to create a texture.
 struct VulkanTextureDesc
 {
-    VkFormat format;
+    RenderFormat format;
     RenderExtent3D extent;
+    VkImageAspectFlags vk_aspect_flags;
 };
 
 class VulkanTexture : public RenderTexture
@@ -22,6 +23,8 @@ public:
 
     VulkanTexture(VulkanTexture const&) = delete;
     VulkanTexture& operator=(VulkanTexture const&) = delete;
+
+    RenderFormat format() const override { return m_desc.format; }
 
     RenderExtent3D extent() const override { return m_desc.extent; }
 
@@ -36,11 +39,20 @@ public:
     [[nodiscard]]
     VkImageLayout get_current_layout() const { return m_layout; }
 
+    /// @brief Get the underlying Vulkan image.
+    /// @return The Vulkan image handle.
     [[nodiscard]]
     VkImage get_image() const { return m_image; }
 
+    /// @brief Get the underlying Vulkan image view.
+    /// @return The Vulkan image view handle.
     [[nodiscard]]
     VkImageView get_image_view() const { return m_image_view; }
+
+    /// @brief Get the Vulkan image aspect flags.
+    /// @return The Vulkan image aspect flags for the stored format.
+    [[nodiscard]]
+    VkImageAspectFlags get_image_aspect() const;
 
 private:
     VkDevice m_device = VK_NULL_HANDLE;
