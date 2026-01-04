@@ -208,6 +208,21 @@ VkImageTiling get_vulkan_image_tiling(RenderTextureTilingMode tiling_mode)
     return VK_IMAGE_TILING_MAX_ENUM;
 }
 
+VkVertexInputRate get_vulkan_input_rate(VertexInputRate input_rate)
+{
+    switch (input_rate)
+    {
+    case VertexInputRatePerVertex:
+        return VK_VERTEX_INPUT_RATE_VERTEX;
+    case VertexInputRatePerInstance:
+        return VK_VERTEX_INPUT_RATE_INSTANCE;
+    default:
+        break;
+    }
+
+    return VK_VERTEX_INPUT_RATE_MAX_ENUM;
+}
+
 VkPrimitiveTopology get_vulkan_topology(PrimitiveTopologyType primitive_topology)
 {
     switch (primitive_topology)

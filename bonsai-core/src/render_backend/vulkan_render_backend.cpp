@@ -69,6 +69,76 @@ static VkDebugUtilsMessengerCreateInfoEXT get_debug_messenger_create_info()
     return create_info;
 }
 
+static uint32_t get_format_size_in_bytes(RenderFormat format)
+{
+    switch (format)
+    {
+    case RenderFormatR8_UNORM:
+    case RenderFormatR8_SNORM:
+    case RenderFormatR8_UINT:
+    case RenderFormatR8_SINT:
+        return 1;
+    case RenderFormatRG8_UNORM:
+    case RenderFormatRG8_SNORM:
+    case RenderFormatRG8_UINT:
+    case RenderFormatRG8_SINT:
+        return 2;
+    case RenderFormatRGBA8_UNORM:
+    case RenderFormatRGBA8_SNORM:
+    case RenderFormatRGBA8_UINT:
+    case RenderFormatRGBA8_SINT:
+    case RenderFormatRGBA8_SRGB:
+    case RenderFormatBGRA8_UNORM:
+    case RenderFormatBGRA8_SNORM:
+    case RenderFormatBGRA8_UINT:
+    case RenderFormatBGRA8_SINT:
+    case RenderFormatBGRA8_SRGB:
+        return 4;
+    case RenderFormatR16_SFLOAT:
+    case RenderFormatR16_UNORM:
+    case RenderFormatR16_SNORM:
+    case RenderFormatR16_UINT:
+    case RenderFormatR16_SINT:
+        return 2;
+    case RenderFormatRG16_SFLOAT:
+    case RenderFormatRG16_UNORM:
+    case RenderFormatRG16_SNORM:
+    case RenderFormatRG16_UINT:
+    case RenderFormatRG16_SINT:
+        return 4;
+    case RenderFormatRGBA16_SFLOAT:
+    case RenderFormatRGBA16_UNORM:
+    case RenderFormatRGBA16_SNORM:
+    case RenderFormatRGBA16_UINT:
+    case RenderFormatRGBA16_SINT:
+        return 8;
+    case RenderFormatR32_SFLOAT:
+    case RenderFormatR32_UINT:
+    case RenderFormatR32_SINT:
+        return 4;
+    case RenderFormatRG32_SFLOAT:
+    case RenderFormatRG32_UINT:
+    case RenderFormatRG32_SINT:
+        return 8;
+    case RenderFormatRGB32_SFLOAT:
+    case RenderFormatRGB32_UINT:
+    case RenderFormatRGB32_SINT:
+        return 12;
+    case RenderFormatRGBA32_SFLOAT:
+    case RenderFormatRGBA32_UINT:
+    case RenderFormatRGBA32_SINT:
+        return 16;
+    case RenderFormatD16_UNORM:
+    case RenderFormatD24_UNORM_S8_UINT:
+    case RenderFormatD32_SFLOAT:
+    case RenderFormatD32_SFLOAT_S8_UINT:
+    default:
+        break;
+    }
+
+    return 0;
+}
+
 std::vector<uint32_t> VulkanQueueFamilies::get_unique() const
 {
     std::vector<uint32_t> queue_families{ graphics_family, };
@@ -704,14 +774,46 @@ ShaderPipeline* VulkanRenderBackend::create_graphics_pipeline(GraphicsPipelineDe
         shader_stages.push_back(shader_stage_create_info);
     }
 
+    // Set up vertex input state
+    // NOTE(nemjit001): This assumes contiguous input bindings
+    std::vector<VkVertexInputBindingDescription> vertex_input_bindings{};
+    std::vector<VkVertexInputAttributeDescription> vertex_input_attributes{};
+    for (uint32_t i = 0; i < pipeline_descriptor.vertex_input_state.input_attribute_count; i++)
+    {
+        VertexAttributeDescription const& attr = pipeline_descriptor.vertex_input_state.input_attributes[i];
+
+        VkVertexInputAttributeDescription input_attribute_description{};
+        input_attribute_description.location = attr.location;
+        input_attribute_description.binding = attr.binding;
+        input_attribute_description.format = get_vulkan_format(attr.format);
+        input_attribute_description.offset = attr.offset;
+        vertex_input_attributes.push_back(input_attribute_description);
+
+        if (attr.binding >= vertex_input_bindings.size())
+        {
+            VkVertexInputBindingDescription input_binding_description{};
+            input_binding_description.binding = attr.binding;
+            input_binding_description.inputRate = get_vulkan_input_rate(attr.input_rate);
+            input_binding_description.stride = get_format_size_in_bytes(attr.format);
+            vertex_input_bindings.push_back(input_binding_description);
+        }
+        else
+        {
+            VkVertexInputBindingDescription& input_binding_description = vertex_input_bindings[attr.binding];
+            BONSAI_ASSERT(input_binding_description.binding == attr.binding);
+            BONSAI_ASSERT(input_binding_description.inputRate == get_vulkan_input_rate(attr.input_rate));
+            input_binding_description.stride += get_format_size_in_bytes(attr.format);
+        }
+    }
+
     VkPipelineVertexInputStateCreateInfo vertex_input_state{};
     vertex_input_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertex_input_state.pNext = nullptr;
     vertex_input_state.flags = 0;
-    vertex_input_state.vertexBindingDescriptionCount = reflector.get_vertex_binding_count();
-    vertex_input_state.pVertexBindingDescriptions = reflector.get_vertex_bindings();
-    vertex_input_state.vertexAttributeDescriptionCount = reflector.get_vertex_attribute_count();
-    vertex_input_state.pVertexAttributeDescriptions = reflector.get_vertex_attributes();
+    vertex_input_state.vertexBindingDescriptionCount = static_cast<uint32_t>(vertex_input_bindings.size());
+    vertex_input_state.pVertexBindingDescriptions = vertex_input_bindings.data();
+    vertex_input_state.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertex_input_attributes.size());
+    vertex_input_state.pVertexAttributeDescriptions = vertex_input_attributes.data();
 
     VkPipelineInputAssemblyStateCreateInfo input_assembly_state{};
     input_assembly_state.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

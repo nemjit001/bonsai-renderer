@@ -238,6 +238,13 @@ enum ShaderSourceKind : uint32_t
     ShaderSourceKindFile    = 1,    /// @brief Expects a C string containing a shader file path.
 };
 
+/// @brief Vertex input rate for rasterization pipelines.
+enum VertexInputRate : uint32_t
+{
+    VertexInputRatePerVertex    = 0,
+    VertexInputRatePerInstance  = 1,
+};
+
 /// @brief Index buffer strip cut value to use for strip topology types.
 enum IndexBufferStripCutValue : uint32_t
 {
@@ -391,6 +398,23 @@ struct ShaderSource
     char const* shader_source;      /// @brief Shader source file path or code.
 };
 
+struct VertexAttributeDescription
+{
+    uint32_t binding;
+    uint32_t location;
+    char const* semantic_name;
+    uint32_t semantic_index;
+    RenderFormat format;
+    uint32_t offset;
+    VertexInputRate input_rate;
+};
+
+struct VertexInputState
+{
+    uint32_t input_attribute_count;
+    VertexAttributeDescription* input_attributes;
+};
+
 /// @brief Fixed function pipeline input assembly state.
 struct InputAssemblyState
 {
@@ -467,6 +491,7 @@ struct GraphicsPipelineDescriptor
 {
     ShaderSource const* vertex_shader;
     ShaderSource const* fragment_shader;
+    VertexInputState vertex_input_state;
     InputAssemblyState input_assembly_state;
     RasterizationState rasterization_state;
     MultisampleState multisample_state;

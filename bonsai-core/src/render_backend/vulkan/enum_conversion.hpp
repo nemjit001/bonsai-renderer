@@ -13,6 +13,8 @@ VkImageType get_vulkan_image_type(RenderTextureType texture_type);
 
 VkImageTiling get_vulkan_image_tiling(RenderTextureTilingMode tiling_mode);
 
+VkVertexInputRate get_vulkan_input_rate(VertexInputRate input_rate);
+
 VkPrimitiveTopology get_vulkan_topology(PrimitiveTopologyType primitive_topology);
 
 VkPolygonMode get_vulkan_polygon_mode(PolygonMode polygon_mode);

@@ -16,13 +16,6 @@ struct ReflectModule
     SpvReflectEntryPoint spv_entrypoint;
 };
 
-/// @brief SPIR-V vertex binding layout.
-struct VertexBindingLayout
-{
-    std::vector<VkVertexInputBindingDescription> vertex_bindings;
-    std::vector<VkVertexInputAttributeDescription> vertex_attributes;
-};
-
 /// @brief SPIR-V descriptor binding.
 struct DescriptorBinding
 {
@@ -52,26 +45,6 @@ public:
     /// @param z Local size in the z dimension.
     void get_workgroup_size(uint32_t& x, uint32_t& y, uint32_t& z) const;
 
-    /// @brief Get the shader pipeline vertex attribute count.
-    /// @return The number of vertex attributes for the shaders in the reflector.
-    [[nodiscard]]
-    uint32_t get_vertex_attribute_count() const;
-
-    /// @brief Get the shader pipeline vertex attributes.
-    /// @return The vertex attributes for the shaders in the reflector.
-    [[nodiscard]]
-    VkVertexInputAttributeDescription const* get_vertex_attributes() const;
-
-    /// @brief Get the shader pipeline vertex binding count.
-    /// @return The number of vertex bindings for the shaders in the reflector.
-    [[nodiscard]]
-    uint32_t get_vertex_binding_count() const;
-
-    /// @brief Get the shader pipeline vertex bindings.
-    /// @return The vertex bindings for the shaders in the reflector.
-    [[nodiscard]]
-    VkVertexInputBindingDescription const* get_vertex_bindings() const;
-
     /// @brief Get the shader pipeline push constant range count.
     /// @return The number of unique push constant ranges for the shaders in the reflector.
     [[nodiscard]]
@@ -99,11 +72,6 @@ private:
     /// @return A list of reflect modules.
     static std::vector<ReflectModule> parse_reflect_modules(IDxcBlob** shader_sources, uint32_t source_count);
 
-    /// @brief Parse the vertex binding layout from a list of shader reflect modules.
-    /// @param reflect_modules The list of shader reflect modules to parse.
-    /// @return The parsed vertex binding layout.
-    static VertexBindingLayout parse_vertex_binding_layout(std::vector<ReflectModule> const& reflect_modules);
-
     /// @brief Parse push constant ranges from a list of shader reflect modules.
     /// @param reflect_modules The list of shader reflect modules to parse.
     /// @return A list of used push constant ranges.
@@ -116,7 +84,6 @@ private:
 
 private:
     std::vector<ReflectModule> m_reflect_modules;
-    VertexBindingLayout m_vertex_binding_layout;
     std::vector<VkPushConstantRange> m_push_constant_ranges;
     std::vector<DescriptorBinding> m_descriptor_bindings;
 };

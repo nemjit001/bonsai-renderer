@@ -1,15 +1,15 @@
 #include "bonsai/systems/renderer.hpp"
 
-#include <cstring>
+#include <string>
 #include "bonsai/core/fatal_exit.hpp"
 
 // TODO(nemjit001): Add shader asset type support w/ loading from disk
 static char const* SHADER_CODE = R"(
 struct VertexInput
 {
-    float3 position     : POSITION0;
-    float3 color        : COLOR0;
-    float2 tex_coord    : TEXCOORD0;
+    [[vk::location(0)]] float3 position     : POSITION0;
+    [[vk::location(1)]] float3 color        : COLOR0;
+    [[vk::location(2)]] float2 tex_coord    : TEXCOORD0;
 };
 
 struct VertexOutput
@@ -64,9 +64,18 @@ Renderer::Renderer(RenderBackend* render_backend)
     fragment_shader.entrypoint = "PSmain";
     fragment_shader.shader_source = SHADER_CODE;
 
+    VertexAttributeDescription vertex_attributes[] = {
+        { 0, 0, "POSITION", 0, RenderFormatRGB32_SFLOAT, 0, VertexInputRatePerVertex },
+        { 0, 1, "COLOR", 0, RenderFormatRGB32_SFLOAT, 12, VertexInputRatePerVertex },
+        { 0, 2, "TEXCOORD", 0, RenderFormatRG32_SFLOAT, 24, VertexInputRatePerVertex },
+    };
+
     GraphicsPipelineDescriptor pipeline_descriptor{};
     pipeline_descriptor.vertex_shader = &vertex_shader;
     pipeline_descriptor.fragment_shader = &fragment_shader;
+
+    pipeline_descriptor.vertex_input_state.input_attribute_count = std::size(vertex_attributes);
+    pipeline_descriptor.vertex_input_state.input_attributes = vertex_attributes;
 
     pipeline_descriptor.input_assembly_state.primitive_topology = PrimitiveTopologyTypeTriangleList;
     pipeline_descriptor.input_assembly_state.strip_cut_value = IndexBufferStripCutValueDisabled;

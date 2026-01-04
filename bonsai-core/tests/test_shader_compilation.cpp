@@ -131,39 +131,4 @@ TEST(shader_compilation_tests, reflect_compute_shader_pipeline_layout_spirv)
     }
 }
 
-TEST(shader_compilation_tests, reflect_vertex_binding_layout)
-{
-    ShaderCompiler shader_compiler{};
-    DxcBuffer const shader_source{ VERTEX_SHADER, std::strlen(VERTEX_SHADER), 0 };
-    CComPtr<IDxcBlob> spirv_shader{};
-    EXPECT_TRUE(shader_compiler.compile_source("reflect_shader", "VSMain", BONSAI_TARGET_PROFILE_VS, shader_source, nullptr, true, &spirv_shader));
-
-    SPIRVReflector reflector(spirv_shader);
-    uint32_t const vertex_attr_count = reflector.get_vertex_attribute_count();
-    uint32_t const vertex_binding_count = reflector.get_vertex_binding_count();
-    EXPECT_EQ(vertex_attr_count, 3);
-    EXPECT_EQ(vertex_binding_count, 1);
-
-
-    VkVertexInputAttributeDescription const* vertex_attributes = reflector.get_vertex_attributes();
-    EXPECT_EQ(vertex_attributes[0].binding, 0);
-    EXPECT_EQ(vertex_attributes[0].location, 0);
-    EXPECT_EQ(vertex_attributes[0].format, VK_FORMAT_R32G32B32_SFLOAT);
-    EXPECT_EQ(vertex_attributes[0].offset, 0);
-
-    EXPECT_EQ(vertex_attributes[1].binding, 0);
-    EXPECT_EQ(vertex_attributes[1].location, 1);
-    EXPECT_EQ(vertex_attributes[1].format, VK_FORMAT_R32G32B32_SFLOAT);
-    EXPECT_EQ(vertex_attributes[1].offset, 12);
-
-    EXPECT_EQ(vertex_attributes[2].binding, 0);
-    EXPECT_EQ(vertex_attributes[2].location, 2);
-    EXPECT_EQ(vertex_attributes[2].format, VK_FORMAT_R32G32_SFLOAT);
-    EXPECT_EQ(vertex_attributes[2].offset, 24);
-
-    VkVertexInputBindingDescription const* vertex_bindings = reflector.get_vertex_bindings();
-    EXPECT_EQ(vertex_bindings[0].binding, 0);
-    EXPECT_EQ(vertex_bindings[0].stride, 32);
-}
-
 #endif //BONSAI_USE_VULKAN
