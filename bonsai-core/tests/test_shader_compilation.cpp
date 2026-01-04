@@ -29,32 +29,6 @@ void CSMain()
 }
 )";
 
-static constexpr char const* VERTEX_SHADER = R"(
-struct VSInput
-{
-    [[vk::location(0)]] float3 position     : POSITION0;
-    [[vk::location(1)]] float3 normal       : NORMAL0;
-    [[vk::location(2)]] float2 tex_coord    : TEXCOORD0;
-};
-
-struct PSInput
-{
-    float4 position     : SV_Position;
-    float3 normal       : NORMAL0;
-    float2 tex_coord    : TEXCOORD0;
-};
-
-[shader("vertex")]
-PSInput VSMain(VSInput input)
-{
-    PSInput result;
-    result.position = float4(input.position, 1.0);
-    result.normal = input.normal;
-    result.tex_coord = input.tex_coord;
-    return result;
-}
-)";
-
 TEST(shader_compilation_tests, compile_compute_shader)
 {
     ShaderCompiler const shader_compiler{};
